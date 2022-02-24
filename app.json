@@ -38,6 +38,11 @@
     "name": "Alexey Krainev",
     "email": "xmrvizzy@ya.ru"
   },
+  "bugs": {
+    "url": "https://github.com/kraineff/ru.yandex.alice/issues"
+  },
+  "source": "https://github.com/kraineff/ru.yandex.alice",
+  "homeyCommunityTopicId": 60957,
   "flow": {
     "actions": [
       {

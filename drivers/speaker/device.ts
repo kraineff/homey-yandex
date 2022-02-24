@@ -23,12 +23,12 @@ module.exports = class SpeakerDevice extends Homey.Device {
         await this.onMultipleCapabilityListener();
 
         if (this.session.ready) await this.init();
-        else await this.setUnavailable("Требуется повторная авторизация");
+        else await this.setUnavailable(this.homey.__("device.auth_required"));
 
         this.session.on("available", async (status) => {
             if (status) await this.init();
             else {
-                await this.setUnavailable("Требуется повторная авторизация");
+                await this.setUnavailable(this.homey.__("device.auth_required"));
                 await this.glagol.close();
             }
         })
@@ -174,9 +174,9 @@ module.exports = class SpeakerDevice extends Homey.Device {
             });
 
             await this.app.quasar.setDeviceConfig(this.speaker, config);
-            return "Настройки успешно обновлены";
+            return this.homey.__("device.save_settings");
         } else {
-            throw Error("Требуется повторная авторизация");
+            throw Error(this.homey.__("device.auth_required"));
         }
     }
 }
