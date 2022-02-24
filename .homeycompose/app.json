@@ -1,0 +1,35 @@
+{
+  "id": "ru.yandex.alice",
+  "version": "1.0.0",
+  "compatibility": ">=5.0.0",
+  "platforms": ["local"],
+  "sdk": 3,
+  "brandColor": "#C926FF",
+  "name": {
+    "en": "Yandex Alice",
+    "ru": "Яндекс Алиса"
+  },
+  "description": {
+    "en": " Enhances your Voice Control experience."
+  },
+  "category": ["appliances"],
+  "tags": {
+    "en": ["yandex", "alice"],
+    "ru": ["яндекс", "алиса"]
+  },
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "permissions": [],
+  "author": {
+    "name": "Alexey Krainev",
+    "email": "xmrvizzy@ya.ru"
+  },
+  "bugs": {
+    "url": "https://github.com/kraineff/ru.yandex.alice/issues"
+  },
+  "source": "https://github.com/kraineff/ru.yandex.alice",
+  "homeyCommunityTopicId": 60957
+}

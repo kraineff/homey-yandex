@@ -1,0 +1,286 @@
+{
+  "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
+  "id": "ru.yandex.alice",
+  "version": "1.0.0",
+  "compatibility": ">=5.0.0",
+  "platforms": [
+    "local"
+  ],
+  "sdk": 3,
+  "brandColor": "#C926FF",
+  "name": {
+    "en": "Yandex Alice",
+    "ru": "Яндекс Алиса"
+  },
+  "description": {
+    "en": " Enhances your Voice Control experience."
+  },
+  "category": [
+    "appliances"
+  ],
+  "tags": {
+    "en": [
+      "yandex",
+      "alice"
+    ],
+    "ru": [
+      "яндекс",
+      "алиса"
+    ]
+  },
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png",
+    "xlarge": "/assets/images/xlarge.png"
+  },
+  "permissions": [],
+  "author": {
+    "name": "Alexey Krainev",
+    "email": "xmrvizzy@ya.ru"
+  },
+  "flow": {
+    "actions": [
+      {
+        "id": "text_to_speech",
+        "title": {
+          "en": "Text-to-Speech",
+          "ru": "Синтез речи (TTS)"
+        },
+        "titleFormatted": {
+          "en": "Say [[text]]",
+          "ru": "Произнести [[text]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=speaker"
+          },
+          {
+            "type": "text",
+            "name": "text",
+            "title": {
+              "en": "Text",
+              "ru": "Текст"
+            },
+            "placeholder": {
+              "en": "Hello, world!",
+              "ru": "Привет, мир!"
+            }
+          }
+        ]
+      },
+      {
+        "id": "send_command",
+        "title": {
+          "en": "Send a command",
+          "ru": "Выполнить команду"
+        },
+        "titleFormatted": {
+          "en": "Send a [[command]]",
+          "ru": "Выполнить [[command]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=speaker"
+          },
+          {
+            "type": "text",
+            "name": "command",
+            "title": {
+              "en": "Command",
+              "ru": "Команда"
+            },
+            "placeholder": {
+              "en": "What's the weather like now",
+              "ru": "Какая сейчас погода"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "drivers": [
+    {
+      "name": {
+        "en": "Speaker",
+        "ru": "Колонка"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "step": 0.1
+        }
+      },
+      "images": {
+        "small": "/drivers/speaker/assets/images/small.png",
+        "large": "/drivers/speaker/assets/images/large.png",
+        "xlarge": "/drivers/speaker/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "id": "speaker",
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "LED Screen",
+            "ru": "LED-экран"
+          },
+          "children": [
+            {
+              "id": "brightness",
+              "type": "number",
+              "label": {
+                "en": "Brightness",
+                "ru": "Яркость"
+              },
+              "value": -1,
+              "min": -1,
+              "max": 100,
+              "units": {
+                "en": "%"
+              },
+              "hint": {
+                "en": "Auto Brightness: -1",
+                "ru": "Автоматическая яркость: -1"
+              }
+            },
+            {
+              "id": "music_equalizer_visualization",
+              "type": "dropdown",
+              "value": "auto",
+              "label": {
+                "en": "Music Equalizer Visualization",
+                "ru": "Визуализация музыки"
+              },
+              "values": [
+                {
+                  "id": "auto",
+                  "label": {
+                    "en": "Auto",
+                    "ru": "Автоматически"
+                  }
+                },
+                {
+                  "id": "pads",
+                  "label": {
+                    "en": "Pads",
+                    "ru": "Плитки"
+                  }
+                },
+                {
+                  "id": "bricksSmall",
+                  "label": {
+                    "en": "Small Bricks",
+                    "ru": "Маленькие кирпичи"
+                  }
+                },
+                {
+                  "id": "barsBottom",
+                  "label": {
+                    "en": "Bottom Bars",
+                    "ru": "Полосы (снизу)"
+                  }
+                },
+                {
+                  "id": "barsCenter",
+                  "label": {
+                    "en": "Center Bars",
+                    "ru": "Полосы (по центру)"
+                  }
+                },
+                {
+                  "id": "flame",
+                  "label": {
+                    "en": "Flame",
+                    "ru": "Волна (снизу)"
+                  }
+                },
+                {
+                  "id": "waveCenter",
+                  "label": {
+                    "en": "Center Wave",
+                    "ru": "Волна (по центру)"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "time_visualization",
+              "type": "dropdown",
+              "value": "middle",
+              "label": {
+                "en": "Time Visualization",
+                "ru": "Размер часов"
+              },
+              "values": [
+                {
+                  "id": "small",
+                  "label": {
+                    "en": "Small",
+                    "ru": "Маленький"
+                  }
+                },
+                {
+                  "id": "middle",
+                  "label": {
+                    "en": "Medium",
+                    "ru": "Средний"
+                  }
+                },
+                {
+                  "id": "large",
+                  "label": {
+                    "en": "Large",
+                    "ru": "Большой"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "discovery": {
+    "yandex_station": {
+      "type": "mdns-sd",
+      "mdns-sd": {
+        "name": "_yandexio",
+        "protocol": "tcp"
+      },
+      "id": "{{txt.deviceid}}"
+    }
+  }
+}

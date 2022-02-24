@@ -1,0 +1,89 @@
+[
+    {
+        "type": "group",
+        "label": {
+            "en": "LED Screen",
+            "ru": "LED-экран"
+        },
+        "children": [
+            {
+                "id": "brightness",
+                "type": "number",
+                "label": {
+                    "en": "Brightness",
+                    "ru": "Яркость"
+                },
+                "value": -1,
+                "min": -1,
+                "max": 100,
+                "units": { "en": "%" },
+                "hint": {
+                    "en": "Auto Brightness: -1",
+                    "ru": "Автоматическая яркость: -1"
+                }
+            },
+            {
+                "id": "music_equalizer_visualization",
+                "type": "dropdown",
+                "value": "auto",
+                "label": {
+                    "en": "Music Equalizer Visualization",
+                    "ru": "Визуализация музыки"
+                },
+                "values": [
+                    { "id": "auto", "label": {
+                        "en": "Auto",
+                        "ru": "Автоматически"
+                    }},
+                    { "id": "pads", "label": {
+                        "en": "Pads",
+                        "ru": "Плитки"
+                    }},
+                    { "id": "bricksSmall", "label": {
+                        "en": "Small Bricks",
+                        "ru": "Маленькие кирпичи"
+                    }},
+                    { "id": "barsBottom", "label": {
+                        "en": "Bottom Bars",
+                        "ru": "Полосы (снизу)"
+                    }},
+                    { "id": "barsCenter", "label": {
+                        "en": "Center Bars",
+                        "ru": "Полосы (по центру)"
+                    }},
+                    { "id": "flame", "label": {
+                        "en": "Flame",
+                        "ru": "Волна (снизу)"
+                    }},
+                    { "id": "waveCenter", "label": {
+                        "en": "Center Wave",
+                        "ru": "Волна (по центру)"
+                    }}
+                ]
+            },
+            {
+                "id": "time_visualization",
+                "type": "dropdown",
+                "value": "middle",
+                "label": {
+                    "en": "Time Visualization",
+                    "ru": "Размер часов"
+                },
+                "values": [
+                    { "id": "small", "label": {
+                        "en": "Small",
+                        "ru": "Маленький"
+                    }},
+                    { "id": "middle", "label": {
+                        "en": "Medium",
+                        "ru": "Средний"
+                    }},
+                    { "id": "large", "label": {
+                        "en": "Large",
+                        "ru": "Большой"
+                    }}
+                ]
+            }
+        ]
+    }
+]

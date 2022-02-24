@@ -1,0 +1,54 @@
+{
+    "actions": [
+        {
+            "id": "text_to_speech",
+            "title": {
+                "en": "Text-to-Speech",
+                "ru": "Синтез речи (TTS)"
+            },
+            "titleFormatted": {
+                "en": "Say [[text]]",
+                "ru": "Произнести [[text]]"
+            },
+            "args": [
+                {
+                    "type": "text",
+                    "name": "text",
+                    "title": {
+                        "en": "Text",
+                        "ru": "Текст"
+                    },
+                    "placeholder": {
+                        "en": "Hello, world!",
+                        "ru": "Привет, мир!"
+                    }
+                }
+            ]
+        },
+        {
+            "id": "send_command",
+            "title": {
+                "en": "Send a command",
+                "ru": "Выполнить команду"
+            },
+            "titleFormatted": {
+                "en": "Send a [[command]]",
+                "ru": "Выполнить [[command]]"
+            },
+            "args": [
+                {
+                    "type": "text",
+                    "name": "command",
+                    "title": {
+                        "en": "Command",
+                        "ru": "Команда"
+                    },
+                    "placeholder": {
+                        "en": "What's the weather like now",
+                        "ru": "Какая сейчас погода"
+                    }
+                }
+            ]
+        }
+    ]
+}
