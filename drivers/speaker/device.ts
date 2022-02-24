@@ -22,7 +22,12 @@ module.exports = class SpeakerDevice extends Homey.Device {
         await this.onDataListener();
         await this.onMultipleCapabilityListener();
 
-        if (this.session.ready) await this.init();
+        if (this.session.ready) {
+            //@ts-ignore
+            await this.app.quasarInit().then(async () => {
+                await this.init();
+            });
+        }
         else await this.setUnavailable(this.homey.__("device.auth_required"));
 
         this.session.on("available", async (status) => {
