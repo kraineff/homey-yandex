@@ -9,9 +9,29 @@ module.exports = class SpeakerDriver extends Homey.Driver {
     async onInit(): Promise<void> {
         this.app = <YandexApp>this.homey.app;
         this.session = this.app.session;
+
+        this.homey.flow.getActionCard('text_to_speech').registerRunListener(async (args, state) => {
+            await this.app.quasar.send(args.device.speaker, args["text"], true);
+        });
+
+        this.homey.flow.getActionCard('send_command').registerRunListener(async (args, state) => {
+            await this.app.quasar.send(args.device.speaker, args["command"]);
+        });
     }
     
     async onPair(pair: Homey.Driver.PairSession) {
+        // pair.setHandler("list_devices", async () => {
+        //     return [];
+        // });
+
+        // pair.setHandler("showView", async (view) => {
+        //     console.log(view);
+        //     if (view === "auth") {
+        //         //@ts-ignore
+        //         await pair.nextView();
+        //     }
+        // });
+        
         // if (!(this.app.homey.settings.get("x_token") || this.app.homey.settings.get("cookie"))) {
         //     // @ts-ignore
         //     await session.showView("auth");

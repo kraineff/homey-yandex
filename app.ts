@@ -33,17 +33,13 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
         await this.session.connect(settings.get("x_token") || "", settings.get("cookie") || "", settings.get("music_token") || "").then(async (status) => {
             if (status) await this.quasar.init();
         });
-        
 
-        // Действия Flow
-        const tts = this.homey.flow.getActionCard('text_to_speech');
-        tts.registerRunListener(async (args, state) => {
-            await this.quasar.send(args.device.speaker, args["text"], true);
-        });
+        // Для тестеров (раскоментируйте код ниже, запустите приложение, перейдите по ссылки в консоли и авторизируйтесь, затем если пишет Успешно, перезапустите приложение.)
 
-        const send_command = this.homey.flow.getActionCard('send_command');
-        send_command.registerRunListener(async (args, state) => {
-            await this.quasar.send(args.device.speaker, args["command"]);
-        });
+        // console.log(await this.session.getAuthUrl());
+        // setInterval(async () => {
+        //     let check = await this.session.checkAuth();
+        //     if (check.status) console.log("Успешно!");
+        // }, 5000);
     }
 }
