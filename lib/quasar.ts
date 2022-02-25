@@ -74,7 +74,7 @@ export default class YandexQuasar {
         let response = await this.session.request({
             method: "POST",
             url: `${USER_URL}/scenarios`,
-            data: JSON.stringify({
+            data: {
                 name: name,
                 icon: "home",
                 triggers: [{ type: "scenario.trigger.voice", value: name.slice(6) }],
@@ -88,7 +88,7 @@ export default class YandexQuasar {
                         }]
                     }]
                 }}]
-            })
+            }
         });
         if (response.status !== "ok") throw response;
 

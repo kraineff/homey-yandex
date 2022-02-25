@@ -17,6 +17,9 @@
     "connectivity": ["lan", "cloud"],
     "pair": [
         {
+            "id": "auth"
+        },
+        {
             "id": "list_devices",
             "template": "list_devices",
             "navigation": { "next": "add_devices" }

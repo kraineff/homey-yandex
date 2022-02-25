@@ -19,50 +19,7 @@ module.exports = class SpeakerDriver extends Homey.Driver {
         });
     }
     
-    async onPair(pair: Homey.Driver.PairSession) {
-        // pair.setHandler("list_devices", async () => {
-        //     return [];
-        // });
-
-        // pair.setHandler("showView", async (view) => {
-        //     console.log(view);
-        //     if (view === "auth") {
-        //         //@ts-ignore
-        //         await pair.nextView();
-        //     }
-        // });
-        
-        // if (!(this.app.homey.settings.get("x_token") || this.app.homey.settings.get("cookie"))) {
-        //     // @ts-ignore
-        //     await session.showView("auth");
-
-        //     let url = await this.app.session.getAuthUrl();
-        //     console.log(url)
-        //     // @ts-ignore
-        //     session.emit("auth", url);
-
-        //     let check = setInterval(async () => {
-        //         let data = await this.app.session.checkAuth();
-        //         if (data.status) {
-        //             clearInterval(check);
-        //             // @ts-ignore
-        //             await session.showView("list_devices");
-        //         }
-        //     }, 5000);
-        // }
-        
-        // if (this.app.homey.settings.get("x_token") || this.app.homey.settings.get("cookie")) {
-        // }
-
-        // session.setHandler("showView", async (viewId) => {
-        //     if (viewId === "auth") {
-        //         console.log("TEST1")
-        //         //@ts-ignore
-        //         await session.emit("startAuth", "URL_HERE");
-        //         console.log("TEST2")
-        //     }
-        // });
-
+    onPair(pair: Homey.Driver.PairSession) {
         pair.setHandler("list_devices", async () => {
             let devices: any[] = [];
             let discoveryResult: any = this.app.discoveryStrategy.getDiscoveryResults();
@@ -86,6 +43,14 @@ module.exports = class SpeakerDriver extends Homey.Driver {
             });
             
             return devices;
+        });
+        
+        pair.setHandler("check", async () => {
+            return await this.session.checkAuth();
+        });
+
+        pair.setHandler("start", async () => {
+            return !this.session.ready ? await this.session.getAuthUrl() : "list_devices";
         });
     }
 }

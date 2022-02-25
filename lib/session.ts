@@ -68,18 +68,18 @@ export default class YandexSession extends EventEmitter {
 
     async checkAuth() {
         console.log("[Session] -> Проверка авторизации");
-
-        if (!this.auth_payload) return { "error": "Нету данных для отслеживания", "status": false };
+        
         let response = await this.session({
             method: "POST",
             url: "https://passport.yandex.ru/auth/new/magic/status/",
             data: qs.stringify(this.auth_payload)
         });
-        if (response.data.status !== "ok") return { "error": "Авторизация еще не подтверждена", "status": false };
+        if (response.data.status !== "ok") return false;
         
         this.setProperties({ "cookie": response.headers["set-cookie"]!.join('; ') });
         await this.getTokenFromCookie();
-        return { "status": true }
+        this.emit("available", true);
+        return true
     }
 
     async getTokenFromCookie() {

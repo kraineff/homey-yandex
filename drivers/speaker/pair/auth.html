@@ -1,9 +1,22 @@
 <script type="application/javascript">
     Homey.setTitle("Авторизация");
 
-    Homey.on("startAuth", (url) => {
-        console.log(url);
-    });
+    Homey.emit("start").then((view => {
+        if (view === "list_devices") {
+            Homey.showView(view);
+        } else {
+            document.getElementById("ya-button").href = view;
+
+            let check = setInterval(() => {
+                Homey.emit("check").then((result) => {
+                    if (result) {
+                        clearInterval(check);
+                        Homey.showView("list_devices");
+                    }
+                });
+            }, 5000);
+        }
+    }));
 </script>
 
 <style type="text/css">
@@ -16,5 +29,6 @@
 </style>
 
 <div class="wrapper">
-    <a id="auth" href="#">Redirect</a>
+    <p style="height: 100%;">Для авторизации нажмите на кнопку "Открыть", затем авторизуйтесь на сайте Яндекса и вернитесь в Homey.</p>
+    <a id="ya-button" class="button" style="text-decoration: none; text-align: center; background-color: #00c139; color: white;" href="#">Открыть</a>
 </div>

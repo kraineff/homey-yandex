@@ -30,24 +30,8 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             }
         });
 
-        await this.session.connect(settings.get("x_token") || "", settings.get("cookie") || "", settings.get("music_token") || "");
-
-        // Для тестеров (раскоментируйте код ниже, запустите приложение, перейдите по ссылки в консоли и авторизируйтесь, затем если пишет Успешно, закоментируйте код и перезапустите приложение.)
-
-        // console.log(await this.session.getAuthUrl());
-        // setInterval(async () => {
-        //     let check = await this.session.checkAuth();
-        //     if (check.status) console.log("Успешно!");
-        // }, 5000);
+        await this.session.connect(settings.get("x_token") || "", settings.get("cookie") || "", settings.get("music_token") || "").then(async (status) => {
+            if (status) await this.quasar.init();
+        });
     }
-    
-    quasarInit = (() => {
-        let executed = false;
-        return async () => {
-            if (!executed) {
-                executed = true;
-                await this.quasar.init();
-            }
-        }
-    })();
 }
