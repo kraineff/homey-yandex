@@ -39,14 +39,7 @@ module.exports = class SpeakerDevice extends Homey.Device {
 
         this.speaker = await this.app.quasar.getSpeaker(this.getData()["id"]);
 
-        // Обновление настроек
-        let config = await this.app.quasar.getDeviceConfig(this.speaker);
-        await this.setSettings({
-            brightness: config.led.brightness.auto ? -1 : config.led.brightness.value,
-            music_equalizer_visualization: config.led.music_equalizer_visualization.auto ? "auto" : config.led.music_equalizer_visualization.style,
-            time_visualization: config.led.time_visualization.size
-        });
-
+        await this.initSettings();
         await this.checkLocalConnection();
     }
 
