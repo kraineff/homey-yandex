@@ -122,7 +122,10 @@
         "speaker_artist",
         "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_up",
+        "volume_down",
+        "volume_mute"
       ],
       "capabilitiesOptions": {
         "volume_set": {
