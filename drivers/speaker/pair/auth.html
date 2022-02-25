@@ -1,10 +1,11 @@
 <script type="application/javascript">
-    Homey.setTitle("Авторизация");
-
     Homey.emit("start").then((view => {
         if (view === "list_devices") {
             Homey.showView(view);
         } else {
+            Homey.setTitle("Авторизация");
+            Homey.setNavigationClose();
+            document.getElementsByClassName("wrapper").style.display = "flex";
             document.getElementById("ya-button").href = view;
 
             let check = setInterval(() => {
@@ -21,7 +22,7 @@
 
 <style type="text/css">
     .wrapper {
-        display: flex;
+        display: none;
         flex-direction: column;
         width: 100%;
         height: 100%;
