@@ -35,9 +35,11 @@ module.exports = class SpeakerDriver extends Homey.Driver {
                     name: speaker.name,
                     data: {
                         id: speaker.id
-                    },
-                    icon: `/${speaker.quasar_info.platform}.svg`
+                    }
                 };
+
+                let icons = ["yandexmicro", "yandexmini_2", "yandexmini", "yandexstation_2", "yandexstation"];
+                if (icons.includes(speaker.quasar_info.platform)) config.icon = `/${speaker.quasar_info.platform}.svg`;
 
                 if (Object.keys(discoveryResult).includes(speaker.quasar_info.device_id)) {
                     let data: any = discoveryResult[speaker.quasar_info.device_id];
