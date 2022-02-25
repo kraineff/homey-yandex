@@ -4,8 +4,7 @@
             Homey.showView(view);
         } else {
             Homey.setTitle("Авторизация");
-            Homey.setNavigationClose();
-            document.getElementsByClassName("wrapper").style.display = "flex";
+            document.getElementById("wrapper").style.display = "flex";
             document.getElementById("ya-button").href = view;
 
             let check = setInterval(() => {
@@ -21,7 +20,7 @@
 </script>
 
 <style type="text/css">
-    .wrapper {
+    #wrapper {
         display: none;
         flex-direction: column;
         width: 100%;
@@ -29,7 +28,7 @@
     }
 </style>
 
-<div class="wrapper">
+<div id="wrapper">
     <p style="height: 100%;">Для авторизации нажмите на кнопку "Открыть", затем авторизуйтесь на сайте Яндекса и вернитесь в Homey.</p>
     <a id="ya-button" class="button" style="text-decoration: none; text-align: center; background-color: #00c139; color: white;" href="#">Открыть</a>
 </div>

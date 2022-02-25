@@ -10,6 +10,11 @@ module.exports = class SpeakerDriver extends Homey.Driver {
         this.app = <YandexApp>this.homey.app;
         this.session = this.app.session;
 
+        if (this.session.ready) {
+            //@ts-ignore
+            await this.app.quasarInit();
+        }
+
         this.homey.flow.getActionCard('text_to_speech').registerRunListener(async (args, state) => {
             await this.app.quasar.send(args.device.speaker, args["text"], true);
         });
@@ -24,6 +29,7 @@ module.exports = class SpeakerDriver extends Homey.Driver {
             let devices: any[] = [];
             let discoveryResult: any = this.app.discoveryStrategy.getDiscoveryResults();
 
+            await this.app.quasar.init();
             this.app.quasar.rawSpeakers().forEach(speaker => {
                 let config: any = {
                     name: speaker.name,

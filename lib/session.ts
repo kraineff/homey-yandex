@@ -78,7 +78,7 @@ export default class YandexSession extends EventEmitter {
         
         this.setProperties({ "cookie": response.headers["set-cookie"]!.join('; ') });
         await this.getTokenFromCookie();
-        this.emit("available", true);
+        this.emit("available", true, true);
         return true
     }
 

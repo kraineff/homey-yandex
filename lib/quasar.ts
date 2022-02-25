@@ -23,7 +23,7 @@ const IOT_TYPES: any = {
 }
 
 const MASK_EN: string = "0123456789abcdef-";
-const MASK_RU: string = "оеаинтсрвлкмдпуяы";
+const MASK_RU: string = "оеаинтсрвлкмдпуяю";
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 

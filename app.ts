@@ -30,8 +30,16 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             }
         });
 
-        await this.session.connect(settings.get("x_token") || "", settings.get("cookie") || "", settings.get("music_token") || "").then(async (status) => {
-            if (status) await this.quasar.init();
-        });
+        await this.session.connect(settings.get("x_token") || "", settings.get("cookie") || "", settings.get("music_token") || "");
     }
+
+    quasarInit = (() => {
+        let executed = false;
+        return async () => {
+            if (!executed) {
+                executed = true;
+                await this.quasar.init();
+            }
+        }
+    })();
 }
