@@ -89,7 +89,7 @@ module.exports = class SpeakerDevice extends Homey.Device {
         this.glagol.on(this.getData()["id"], async data => {
             if (data?.state) {
                 let state = data.state;
-                if ("volume" in state) await this.setCapabilityValue("volume_set", state.volume * 100);
+                if ("volume" in state) await this.setCapabilityValue("volume_set", state.volume * 10);
                 if ("playing" in state) await this.setCapabilityValue("speaker_playing", state.playing);
                 if ("subtitle" in state.playerState) await this.setCapabilityValue("speaker_artist", state.playerState.subtitle);
                 if ("title" in state.playerState) await this.setCapabilityValue("speaker_track", state.playerState.title);
@@ -128,14 +128,14 @@ module.exports = class SpeakerDevice extends Homey.Device {
         this.registerCapabilityListener("volume_up", async () => {
             if (!this.isLocal) await this.app.quasar.send(this.speaker, `громче`);
             else {
-                let volume = (this.getCapabilityValue("volume_set") + 10) / 100
+                let volume = (this.getCapabilityValue("volume_set") + 1) / 10
                 if (volume <= 1) await this.glagol!.send({ command: "setVolume", volume: volume });
             }
         });
         this.registerCapabilityListener("volume_down", async () => {
             if (!this.isLocal) await this.app.quasar.send(this.speaker, `тише`);
             else {
-                let volume = (this.getCapabilityValue("volume_set") - 10) / 100
+                let volume = (this.getCapabilityValue("volume_set") - 1) / 10
                 if (volume >= 0) await this.glagol!.send({ command: "setVolume", volume: volume });
             }
         });
@@ -164,26 +164,29 @@ module.exports = class SpeakerDevice extends Homey.Device {
         if (this.session.ready) {
             let config = await this.app.quasar.getDeviceConfig(this.speaker);
 
-            changedKeys.forEach(key => {
-                let value = newSettings[key];
-                if (key === "brightness") {
-                    if (value === -1) config.led.brightness.auto = true;
-                    else {
-                        config.led.brightness.auto = false;
-                        config.led.brightness.value = value / 100;
+            if (config.led) {
+                changedKeys.forEach(key => {
+                    let value = newSettings[key];
+                    if (key === "brightness") {
+                        if (value === -1) config.led.brightness.auto = true;
+                        else {
+                            config.led.brightness.auto = false;
+                            config.led.brightness.value = value / 100;
+                        }
                     }
-                }
-                if (key === "music_equalizer_visualization") {
-                    if (value === "auto") config.led.music_equalizer_visualization.auto = true;
-                    else {
-                        config.led.music_equalizer_visualization.auto = false;
-                        config.led.music_equalizer_visualization.style = value;
+                    if (key === "music_equalizer_visualization") {
+                        if (value === "auto") config.led.music_equalizer_visualization.auto = true;
+                        else {
+                            config.led.music_equalizer_visualization.auto = false;
+                            config.led.music_equalizer_visualization.style = value;
+                        }
                     }
-                }
-                if (key === "time_visualization") config.led.time_visualization.size = value;
-            });
+                    if (key === "time_visualization") config.led.time_visualization.size = value;
+                });
+    
+                await this.app.quasar.setDeviceConfig(this.speaker, config);
+            }
 
-            await this.app.quasar.setDeviceConfig(this.speaker, config);
             return this.homey.__("device.save_settings");
         } else {
             throw Error(this.homey.__("device.auth_required"));

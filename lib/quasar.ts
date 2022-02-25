@@ -43,7 +43,7 @@ export default class YandexQuasar {
             method: "GET",
             url: `${USER_URL}/devices`
         });
-        if (response.status !== "ok") throw response;
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         let devices: YandexDevice[] = [];
         response.rooms.forEach(room => (<YandexDevice[]>room["devices"]).forEach(device => devices.push(device)));
@@ -60,7 +60,7 @@ export default class YandexQuasar {
             method: "GET",
             url: `${USER_URL}/scenarios`
         });
-        if (response.status !== "ok") throw response;
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         let scenario_id = ((<Scenario[]>response.scenarios).find(s => s.name === this.encode(deviceId)))?.id || await this.addScenario(deviceId);
         return { ...this.rawSpeakers().find(s => s.id === deviceId)!, scenario_id }
@@ -90,7 +90,7 @@ export default class YandexQuasar {
                 }}]
             }
         });
-        if (response.status !== "ok") throw response;
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         return response.scenario_id;
     }
@@ -121,13 +121,13 @@ export default class YandexQuasar {
                 }}]
             }
         });
-        if (response.status !== "ok") throw response;
+        if (response?.status !== "ok") throw `Ошибка изменения сценария: ${response}`;
 
         response = await this.session.request({
             method: "POST",
             url: `${USER_URL}/scenarios/${device.scenario_id}/actions`
         });
-        if (response.status !== "ok") throw response;
+        if (response?.status !== "ok") throw `Ошибка выполнения сценария: ${response}`;
     }
 
     async updateOnlineStats() {
@@ -135,7 +135,7 @@ export default class YandexQuasar {
             method: "GET",
             url: "https://quasar.yandex.ru/devices_online_stats"
         });
-        if (response.status !== "ok") throw response;
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
         return response;
     }
 
@@ -145,7 +145,7 @@ export default class YandexQuasar {
             url: `${USER_URL}/devices/${deviceId}`
         });
 
-        if (response.status !== "ok") throw response;
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
         return response;
     }
 
@@ -158,7 +158,7 @@ export default class YandexQuasar {
             params: { "device_id": device.quasar_info.device_id, "platform": device.quasar_info.platform }
         });
 
-        if (response.status !== "ok") throw response;
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
         return response.config;
     }
 
@@ -172,7 +172,7 @@ export default class YandexQuasar {
             data: config
         });
 
-        if (response.status !== "ok") throw response;
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
     }
     
     async deviceAction(deviceId: string, actions: any ) {
@@ -193,6 +193,6 @@ export default class YandexQuasar {
             data: { "actions": _actions }
         });
 
-        if (response.status !== "ok") throw response;
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
     }
 }

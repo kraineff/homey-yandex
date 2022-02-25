@@ -129,8 +129,12 @@
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
-          "max": 100,
-          "step": 10
+          "max": 10,
+          "step": 1
+        },
+        "speaker_duration": {
+          "min": 0.01,
+          "max": 1
         }
       },
       "images": {
