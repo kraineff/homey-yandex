@@ -128,14 +128,14 @@ module.exports = class SpeakerDevice extends Homey.Device {
         this.registerCapabilityListener("volume_up", async () => {
             if (!this.isLocal) await this.app.quasar.send(this.speaker, `громче`);
             else {
-                let volume = Number(Number(this.getCapabilityValue("volume_set") + 0.1).toFixed(1));
+                let volume = (this.getCapabilityValue("volume_set") + 10) / 100
                 if (volume <= 1) await this.glagol!.send({ command: "setVolume", volume: volume });
             }
         });
         this.registerCapabilityListener("volume_down", async () => {
             if (!this.isLocal) await this.app.quasar.send(this.speaker, `тише`);
             else {
-                let volume = Number(Number(this.getCapabilityValue("volume_set") - 0.1).toFixed(1));
+                let volume = (this.getCapabilityValue("volume_set") - 10) / 100
                 if (volume >= 0) await this.glagol!.send({ command: "setVolume", volume: volume });
             }
         });
