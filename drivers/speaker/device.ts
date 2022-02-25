@@ -89,7 +89,7 @@ module.exports = class SpeakerDevice extends Homey.Device {
         this.glagol.on(this.getData()["id"], async data => {
             if (data?.state) {
                 let state = data.state;
-                if ("volume" in state) await this.setCapabilityValue("volume_set", state.volume);
+                if ("volume" in state) await this.setCapabilityValue("volume_set", state.volume * 100);
                 if ("playing" in state) await this.setCapabilityValue("speaker_playing", state.playing);
                 if ("subtitle" in state.playerState) await this.setCapabilityValue("speaker_artist", state.playerState.subtitle);
                 if ("title" in state.playerState) await this.setCapabilityValue("speaker_track", state.playerState.title);
@@ -122,20 +122,20 @@ module.exports = class SpeakerDevice extends Homey.Device {
     // При изменении данных
     async onMultipleCapabilityListener() {
         this.registerCapabilityListener("volume_set", async (value) => {
-            if (!this.isLocal) await this.app.quasar.send(this.speaker, `громкость на ${value * 10}`);
-            else await this.glagol!.send({ command: "setVolume", volume: value });
+            if (!this.isLocal) await this.app.quasar.send(this.speaker, `громкость на ${value / 10}`);
+            else await this.glagol!.send({ command: "setVolume", volume: value / 100 });
         });
         this.registerCapabilityListener("volume_up", async () => {
             if (!this.isLocal) await this.app.quasar.send(this.speaker, `громче`);
             else {
-                let volume = Number(Number(await this.getCapabilityValue("volume_set") + 0.1).toFixed(1));
+                let volume = Number(Number(this.getCapabilityValue("volume_set") + 0.1).toFixed(1));
                 if (volume <= 1) await this.glagol!.send({ command: "setVolume", volume: volume });
             }
         });
         this.registerCapabilityListener("volume_down", async () => {
             if (!this.isLocal) await this.app.quasar.send(this.speaker, `тише`);
             else {
-                let volume = Number(Number(await this.getCapabilityValue("volume_set") - 0.1).toFixed(1));
+                let volume = Number(Number(this.getCapabilityValue("volume_set") - 0.1).toFixed(1));
                 if (volume >= 0) await this.glagol!.send({ command: "setVolume", volume: volume });
             }
         });

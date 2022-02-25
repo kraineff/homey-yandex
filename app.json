@@ -128,7 +128,9 @@
       ],
       "capabilitiesOptions": {
         "volume_set": {
-          "step": 0.1
+          "min": 0,
+          "max": 100,
+          "step": 10
         }
       },
       "images": {
