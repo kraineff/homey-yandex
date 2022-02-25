@@ -52,11 +52,13 @@ module.exports = class SpeakerDevice extends Homey.Device {
 
     async initSettings() {
         let config = await this.app.quasar.getDeviceConfig(this.speaker);
-        await this.setSettings({
-            brightness: config.led.brightness.auto ? -1 : config.led.brightness.value,
-            music_equalizer_visualization: config.led.music_equalizer_visualization.auto ? "auto" : config.led.music_equalizer_visualization.style,
-            time_visualization: config.led.time_visualization.size
-        });
+        if (config.led) {
+            await this.setSettings({
+                brightness: config.led.brightness.auto ? -1 : config.led.brightness.value,
+                music_equalizer_visualization: config.led.music_equalizer_visualization.auto ? "auto" : config.led.music_equalizer_visualization.style,
+                time_visualization: config.led.time_visualization.size
+            });
+        }
     }
 
     async checkLocalConnection() {
