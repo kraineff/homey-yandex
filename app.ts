@@ -11,20 +11,18 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
     async onInit() {
         let settings = this.homey.settings;
         this.discoveryStrategy = this.homey.discovery.getStrategy("yandex_station");
-
-        // Сессия
         this.session = new YandexSession();
         this.quasar = new YandexQuasar(this.session);
 
+        // При обновлении статуса сессии
         this.session.on("available", async (status, onStartup) => {
             console.log(status ? "[Session] -> Успешная авторизация" : "[Приложение] -> Требуется повторная авторизация");
-            if (!onStartup && status) {
-                await this.quasar.init();
-                await this.quasar.update();
-            }
+
+            if (!onStartup) status ? await this.quasar.init() : await this.quasar.close();
             if (!status) ["x_token", "cookie", "music_token"].forEach(key => settings.set(key, ""));
         });
 
+        // При обновлении данных сессии
         this.session.on("update", (data) => {
             if (data) {
                 Object.keys(data).forEach(key => {
@@ -36,7 +34,8 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
 
         await this.session.connect(settings.get("x_token") || "", settings.get("cookie") || "", settings.get("music_token") || "");
 
-        // Триггер команды
+
+        // Триггер: Получена команда
         const commandReceivedTrigger = this.homey.flow.getTriggerCard("command_received");
         commandReceivedTrigger.registerRunListener(async (args, state) => args.command === state.command);
 
@@ -52,7 +51,6 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             if (!executed) {
                 executed = true;
                 await this.quasar.init();
-                await this.quasar.update();
             }
         }
     })();

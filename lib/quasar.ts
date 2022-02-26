@@ -37,9 +37,13 @@ export default class YandexQuasar extends EventEmitter {
         let devices: YandexDevice[] = [];
         response.rooms.forEach(room => (<YandexDevice[]>room["devices"]).forEach(device => devices.push(device)));
         this.devices = [...devices, ...response.speakers, ...response.unconfigured_devices];
+
+        await this.connect();
     }
 
-    async update() {
+    async connect() {
+        console.log(`[Quasar] -> Запуск получения команд`);
+
         let response = await this.session.request({
             method: "GET",
             url: "https://iot.quasar.yandex.ru/m/v3/user/devices"
@@ -73,6 +77,14 @@ export default class YandexQuasar extends EventEmitter {
         });
 
         ws.connect(response.updates_url);
+    }
+
+    async close() {
+        if (this.connection?.connected) {
+            console.log(`[Quasar] -> Остановка получения команд`);
+
+            this.connection.close();
+        }
     }
 
     rawSpeakers = () => this.devices.filter(device => device.type.startsWith("devices.types.smart_speaker"));

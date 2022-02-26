@@ -29,7 +29,7 @@ export default class YandexGlagol extends EventEmitter {
     }
 
     async connect() {
-        console.log(`[Glagol: ${this.device.id}] -> Подключение к WebSocket`);
+        console.log(`[Glagol: ${this.device.id}] -> Запуск получения данных`);
 
         this.client = new client();
 
@@ -59,7 +59,7 @@ export default class YandexGlagol extends EventEmitter {
 
     async close() {
         if (this.connection?.connected) {
-            console.log(`[Glagol: ${this.device.id}] -> Отключение от WebSocket`);
+            console.log(`[Glagol: ${this.device.id}] -> Остановка получения данных`);
 
             this.connection.close();
         }
