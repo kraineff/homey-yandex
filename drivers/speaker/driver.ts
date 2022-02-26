@@ -38,8 +38,9 @@ module.exports = class SpeakerDriver extends Homey.Driver {
                     }
                 };
 
-                let icons = ["yandexmicro", "yandexmini_2", "yandexmini", "yandexstation_2", "yandexstation"];
-                if (icons.includes(speaker.quasar_info.platform)) config.icon = `/${speaker.quasar_info.platform}.svg`;
+                let yandex = ["yandexmicro", "yandexmini_2", "yandexmini", "yandexstation_2", "yandexstation"];
+                let other = ["elari_a98", "jbl_link_music", "jbl_link_portable", "lightcomm", "linkplay_a98", "prestigio_smart_mate", "wk7y"];
+                if ([...yandex, ...other].includes(speaker.quasar_info.platform)) config.icon = `/${speaker.quasar_info.platform}.svg`;
 
                 if (Object.keys(discoveryResult).includes(speaker.quasar_info.device_id)) {
                     let data: any = discoveryResult[speaker.quasar_info.device_id];
