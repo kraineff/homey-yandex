@@ -19,6 +19,7 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
         this.session.on("available", async (status, onStartup) => {
             console.log(status ? "[Session] -> Успешная авторизация" : "[Приложение] -> Требуется повторная авторизация");
             if (!onStartup && status) await this.quasar.init();
+            if (!status) ["x_token", "cookie", "music_token"].forEach(key => settings.set(key, ""));
         });
 
         this.session.on("update", (data) => {
