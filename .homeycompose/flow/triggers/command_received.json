@@ -16,8 +16,8 @@
                 "ru": "Команда"
             },
             "example": {
-                "en": "I'm home",
-                "ru": "Я дома"
+                "en": "Running the home flow",
+                "ru": "Запускаю сценарий дом"
             }
         }
     ],
@@ -30,8 +30,8 @@
                 "ru": "Команда"
             },
             "placeholder": {
-                "en": "I'm home",
-                "ru": "Я дома"
+                "en": "Turn it up to 0",
+                "ru": "Сделай громче на 0"
             }
         }
     ]
