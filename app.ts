@@ -18,7 +18,10 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
 
         this.session.on("available", async (status, onStartup) => {
             console.log(status ? "[Session] -> Успешная авторизация" : "[Приложение] -> Требуется повторная авторизация");
-            if (!onStartup && status) await this.quasar.init();
+            if (!onStartup && status) {
+                await this.quasar.init();
+                await this.quasar.update();
+            }
             if (!status) ["x_token", "cookie", "music_token"].forEach(key => settings.set(key, ""));
         });
 
@@ -32,6 +35,15 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
         });
 
         await this.session.connect(settings.get("x_token") || "", settings.get("cookie") || "", settings.get("music_token") || "");
+
+        // Триггер команды
+        const commandReceivedTrigger = this.homey.flow.getTriggerCard("command_received");
+        commandReceivedTrigger.registerRunListener(async (args, state) => args.command === state.command);
+
+        this.quasar.on("command_received", (data) => {
+            const command = { command: data.capabilities[0].state.value };
+            commandReceivedTrigger.trigger(command, command);
+        });
     }
 
     quasarInit = (() => {
@@ -40,6 +52,7 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             if (!executed) {
                 executed = true;
                 await this.quasar.init();
+                await this.quasar.update();
             }
         }
     })();

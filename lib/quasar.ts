@@ -1,14 +1,27 @@
+import EventEmitter from "events";
 import YandexSession from "./session";
 import { DevicesResponse, GetDeviceConfigResponse, Scenario, YandexDevice, YandexDeviceConfig, YandexDeviceData } from "../types";
+import { client, connection } from "websocket";
+import { RequestOptions } from "https";
+
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
-export default class YandexQuasar {
+export default class YandexQuasar extends EventEmitter {
     session: YandexSession;
     devices: YandexDevice[] = [];
     stats: any = {};
+    connection?: connection;
+
+    encode = (deviceId: string): string => {
+        const MASK_EN = "0123456789abcdef-";
+        const MASK_RU = "оеаинтсрвлкмдпуяю";
+
+        return "ХОМЯК " + [...deviceId].map(char => MASK_RU[MASK_EN.indexOf(char)]).join("");
+    }
 
     constructor(session: YandexSession) {
+        super();
         this.session = session;
     }
 
@@ -19,20 +32,49 @@ export default class YandexQuasar {
             method: "GET",
             url: `${USER_URL}/devices`
         });
-        if (typeof response !== "object") throw `Ошибка: ${response}`;
-        if ("status" in response && response.status !== "ok") this.session.emit("available", false);
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         let devices: YandexDevice[] = [];
         response.rooms.forEach(room => (<YandexDevice[]>room["devices"]).forEach(device => devices.push(device)));
         this.devices = [...devices, ...response.speakers, ...response.unconfigured_devices];
     }
 
-    encode = (deviceId: string): string => {
-        const MASK_EN = "0123456789abcdef-";
-        const MASK_RU = "оеаинтсрвлкмдпуяю";
+    async update() {
+        let response = await this.session.request({
+            method: "GET",
+            url: "https://iot.quasar.yandex.ru/m/v3/user/devices"
+        });
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
-        return "ХОМЯК " + [...deviceId].map(char => MASK_RU[MASK_EN.indexOf(char)]).join("");
+        if (this.connection?.connected) this.connection.close();
+        let ws = new client();
+
+        ws.on("connect", (connection: connection) => {
+            this.connection = connection;
+            
+            this.connection.on("message", message => {
+                if (message.type === "utf8") {
+                    let response = JSON.parse(message.utf8Data);
+
+                    if (response.operation === "update_states") {
+                        (<any[]>JSON.parse(response.message).updated_devices)
+                            .filter(d => {
+                                if (!d.hasOwnProperty("capabilities")) return false;
+                                return (<any[]>d.capabilities).every(c => {
+                                    if (!c.hasOwnProperty("state")) return false;
+                                    if (c.type !== "devices.capabilities.quasar.server_action") return false;
+                                    return true;
+                                })
+                            })
+                            .forEach(d => this.emit("command_received", d));
+                    }
+                }
+            });
+        });
+
+        ws.connect(response.updates_url);
     }
+
     rawSpeakers = () => this.devices.filter(device => device.type.startsWith("devices.types.smart_speaker"));
 
     async getSpeaker(deviceId: string): Promise<YandexDevice> {
@@ -42,8 +84,7 @@ export default class YandexQuasar {
             method: "GET",
             url: `${USER_URL}/scenarios`
         });
-        if (typeof response !== "object") throw `Ошибка: ${response}`;
-        if ("status" in response && response.status !== "ok") this.session.emit("available", false);
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         let scenario_id = ((<Scenario[]>response.scenarios).find(s => s.name === this.encode(deviceId)))?.id || await this.addScenario(deviceId);
         return { ...this.rawSpeakers().find(s => s.id === deviceId)!, scenario_id }
@@ -73,8 +114,7 @@ export default class YandexQuasar {
                 }}]
             }
         });
-        if (typeof response !== "object") throw `Ошибка: ${response}`;
-        if ("status" in response && response.status !== "ok") this.session.emit("available", false);
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         return response.scenario_id;
     }
@@ -105,15 +145,13 @@ export default class YandexQuasar {
                 }}]
             }
         });
-        if (typeof response !== "object") throw `Ошибка: ${response}`;
-        if ("status" in response && response.status !== "ok") this.session.emit("available", false);
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         response = await this.session.request({
             method: "POST",
             url: `${USER_URL}/scenarios/${device.scenario_id}/actions`
         });
-        if (typeof response !== "object") throw `Ошибка: ${response}`;
-        if ("status" in response && response.status !== "ok") this.session.emit("available", false);
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
     }
 
     async updateOnlineStats() {
@@ -121,9 +159,7 @@ export default class YandexQuasar {
             method: "GET",
             url: "https://quasar.yandex.ru/devices_online_stats"
         });
-
-        if (typeof response !== "object") throw `Ошибка: ${response}`;
-        if ("status" in response && response.status !== "ok") this.session.emit("available", false);
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         return response;
     }
@@ -133,9 +169,7 @@ export default class YandexQuasar {
             method: "GET",
             url: `${USER_URL}/devices/${deviceId}`
         });
-
-        if (typeof response !== "object") throw `Ошибка: ${response}`;
-        if ("status" in response && response.status !== "ok") this.session.emit("available", false);
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         return response;
     }
@@ -148,9 +182,7 @@ export default class YandexQuasar {
             url: "https://quasar.yandex.ru/get_device_config",
             params: { "device_id": device.quasar_info.device_id, "platform": device.quasar_info.platform }
         });
-
-        if (typeof response !== "object") throw `Ошибка: ${response}`;
-        if ("status" in response && response.status !== "ok") this.session.emit("available", false);
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         return response.config;
     }
@@ -164,9 +196,7 @@ export default class YandexQuasar {
             params: { "device_id": device.quasar_info.device_id, "platform": device.quasar_info.platform },
             data: config
         });
-
-        if (typeof response !== "object") throw `Ошибка: ${response}`;
-        if ("status" in response && response.status !== "ok") this.session.emit("available", false);
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
     }
     
     async deviceAction(deviceId: string, actions: any ) {
@@ -194,7 +224,6 @@ export default class YandexQuasar {
         }
 
         let _actions: any[] = [];
-
         Object.keys(actions).forEach(key => {
             let value = actions[key];
             let type = !isNaN(key as any) ? "devices.capabilities.custom.button" : IOT_TYPES[key];
@@ -207,8 +236,6 @@ export default class YandexQuasar {
             url: `${USER_URL}/devices/${deviceId}/actions`,
             data: { "actions": _actions }
         });
-
-        if (typeof response !== "object") throw `Ошибка: ${response}`;
-        if ("status" in response && response.status !== "ok") this.session.emit("available", false);
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
     }
 }

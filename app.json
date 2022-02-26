@@ -44,6 +44,47 @@
   "source": "https://github.com/kraineff/ru.yandex.alice",
   "homeyCommunityTopicId": 60957,
   "flow": {
+    "triggers": [
+      {
+        "title": {
+          "en": "Command is received",
+          "ru": "Получена команда"
+        },
+        "titleFormatted": {
+          "en": "[[command]] is received",
+          "ru": "[[command]] получена"
+        },
+        "tokens": [
+          {
+            "type": "string",
+            "name": "command",
+            "title": {
+              "en": "Command",
+              "ru": "Команда"
+            },
+            "example": {
+              "en": "I'm home",
+              "ru": "Я дома"
+            }
+          }
+        ],
+        "args": [
+          {
+            "type": "text",
+            "name": "command",
+            "title": {
+              "en": "Command",
+              "ru": "Команда"
+            },
+            "placeholder": {
+              "en": "I'm home",
+              "ru": "Я дома"
+            }
+          }
+        ],
+        "id": "command_received"
+      }
+    ],
     "actions": [
       {
         "id": "text_to_speech",
