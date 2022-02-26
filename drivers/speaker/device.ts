@@ -87,8 +87,8 @@ module.exports = class SpeakerDevice extends Homey.Device {
     // При получении данных
     async onDataListener() {
         this.glagol.on(this.getData()["id"], async data => {
-            if (data?.state) {
-                let state = data.state;
+            let state = data?.state;
+            if (state) {
                 if ("volume" in state) await this.setCapabilityValue("volume_set", state.volume * 10);
                 if ("playing" in state) await this.setCapabilityValue("speaker_playing", state.playing);
                 if ("subtitle" in state.playerState) await this.setCapabilityValue("speaker_artist", state.playerState.subtitle);
@@ -123,7 +123,7 @@ module.exports = class SpeakerDevice extends Homey.Device {
     async onMultipleCapabilityListener() {
         this.registerCapabilityListener("volume_set", async (value) => {
             if (!this.isLocal) await this.app.quasar.send(this.speaker, `громкость на ${value / 10}`);
-            else await this.glagol!.send({ command: "setVolume", volume: value / 100 });
+            else await this.glagol!.send({ command: "setVolume", volume: value / 10 });
         });
         this.registerCapabilityListener("volume_up", async () => {
             if (!this.isLocal) await this.app.quasar.send(this.speaker, `громче`);
