@@ -1,0 +1,24 @@
+{
+    "title": {
+        "en": "Scenario is started",
+        "ru": "Сценарий запущен"
+    },
+    "titleFormatted": {
+        "en": "[[scenario]] is started",
+        "ru": "[[scenario]] запущен"
+    },
+    "args": [
+        {
+            "type": "autocomplete",
+            "name": "scenario",
+            "title": {
+                "en": "Scenario",
+                "ru": "Сценарий"
+            },
+            "placeholder": {
+                "en": "Sleep",
+                "ru": "Сон"
+            }
+        }
+    ]
+}

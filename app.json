@@ -47,38 +47,24 @@
     "triggers": [
       {
         "title": {
-          "en": "Command is received",
-          "ru": "Получена команда"
+          "en": "Scenario is started",
+          "ru": "Сценарий запущен"
         },
         "titleFormatted": {
-          "en": "[[command]] is received",
-          "ru": "[[command]] получена"
+          "en": "[[scenario]] is started",
+          "ru": "[[scenario]] запущен"
         },
-        "tokens": [
-          {
-            "type": "string",
-            "name": "command",
-            "title": {
-              "en": "Command",
-              "ru": "Команда"
-            },
-            "example": {
-              "en": "Running the home flow",
-              "ru": "Запускаю сценарий дом"
-            }
-          }
-        ],
         "args": [
           {
-            "type": "text",
-            "name": "command",
+            "type": "autocomplete",
+            "name": "scenario",
             "title": {
-              "en": "Command",
-              "ru": "Команда"
+              "en": "Scenario",
+              "ru": "Сценарий"
             },
             "placeholder": {
-              "en": "Turn it up to 0",
-              "ru": "Сделай громче на 0"
+              "en": "Sleep",
+              "ru": "Сон"
             }
           }
         ],

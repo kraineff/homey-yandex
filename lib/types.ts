@@ -1,6 +1,7 @@
 import Homey, { DiscoveryStrategy } from 'homey';
-import YandexQuasar from './lib/quasar';
-import YandexSession from './lib/session';
+
+import YandexSession from './session';
+import YandexQuasar from './quasar';
 
 export interface YandexApp extends Homey.App {
     session: YandexSession;
@@ -9,14 +10,11 @@ export interface YandexApp extends Homey.App {
 }
 
 export type Scenario = {
-    id: string
     name: string
+    trigger: string
+    action: string
     icon: string
-    icon_url: string
-    executable: boolean
-    devices: any[]
-    triggers: any[]
-    is_active: boolean
+    id: string
 }
 
 export type YandexDevice = {

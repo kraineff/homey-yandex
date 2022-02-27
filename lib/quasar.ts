@@ -1,8 +1,8 @@
 import EventEmitter from "events";
-import YandexSession from "./session";
-import { DevicesResponse, GetDeviceConfigResponse, Scenario, YandexDevice, YandexDeviceConfig, YandexDeviceData } from "../types";
 import { client, connection } from "websocket";
-import { RequestOptions } from "https";
+
+import YandexSession from "./session";
+import { DevicesResponse, GetDeviceConfigResponse, Scenario, YandexDevice, YandexDeviceConfig, YandexDeviceData } from "./types";
 
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
@@ -12,6 +12,7 @@ export default class YandexQuasar extends EventEmitter {
     devices: YandexDevice[] = [];
     stats: any = {};
     connection?: connection;
+    scenarios!: Scenario[];
 
     encode = (deviceId: string): string => {
         const MASK_EN = "0123456789abcdef-";
@@ -38,7 +39,39 @@ export default class YandexQuasar extends EventEmitter {
         response.rooms.forEach(room => (<YandexDevice[]>room["devices"]).forEach(device => devices.push(device)));
         this.devices = [...devices, ...response.speakers, ...response.unconfigured_devices];
 
+        await this.updateScenarios(await this.getScenarios());
         await this.connect();
+    }
+
+    async getScenarios() {
+        let response = await this.session.request({
+            method: "GET",
+            url: `${USER_URL}/scenarios`
+        });
+        if (response?.status !== "ok") throw `Ошибка: ${response}`;
+        return response.scenarios;
+    }
+
+    async updateScenarios(scenarios: any[]) {
+        console.log(`[Quasar] -> Обновление сценариев`);
+
+        let ids = scenarios.map(s => s.id);
+
+        let rawScenarios = await Promise.all(ids.map(async (id) => {
+            let response = await this.session.request({
+                method: "GET",
+                url: `${USER_URL}/scenarios/${id}/edit`
+            });
+            return response?.status === "ok" ? response.scenario: {};
+        }));
+
+        this.scenarios = rawScenarios.map(s => ({
+            name: s.name,
+            trigger: s.triggers[0].value,
+            action: s.steps[0].parameters.launch_devices[0].capabilities[0].state.value,
+            icon: s.icon_url,
+            id: s.id
+        }));
     }
 
     async connect() {
@@ -56,9 +89,11 @@ export default class YandexQuasar extends EventEmitter {
         ws.on("connect", (connection: connection) => {
             this.connection = connection;
             
-            this.connection.on("message", message => {
+            this.connection.on("message", async (message) => {
                 if (message.type === "utf8") {
                     let response = JSON.parse(message.utf8Data);
+
+                    // if (response.operation === "update_scenario_list") await this.updateScenarios(JSON.parse(response.message).scenarios);
 
                     if (response.operation === "update_states") {
                         (<any[]>JSON.parse(response.message).updated_devices)
@@ -70,7 +105,7 @@ export default class YandexQuasar extends EventEmitter {
                                     return true;
                                 })
                             })
-                            .forEach(d => this.emit("command_received", d));
+                            .forEach(d => this.emit("scenario_started", d));
                     }
                 }
             });
@@ -92,13 +127,7 @@ export default class YandexQuasar extends EventEmitter {
     async getSpeaker(deviceId: string): Promise<YandexDevice> {
         console.log(`[Quasar: ${deviceId}] -> Проверка scenario_id`);
 
-        let response = await this.session.request({
-            method: "GET",
-            url: `${USER_URL}/scenarios`
-        });
-        if (response?.status !== "ok") throw `Ошибка: ${response}`;
-
-        let scenario_id = ((<Scenario[]>response.scenarios).find(s => s.name === this.encode(deviceId)))?.id || await this.addScenario(deviceId);
+        let scenario_id = this.scenarios.find(s => s.name === this.encode(deviceId))?.id || await this.addScenario(deviceId);
         return { ...this.rawSpeakers().find(s => s.id === deviceId)!, scenario_id }
     }
     

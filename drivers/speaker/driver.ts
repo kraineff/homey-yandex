@@ -1,6 +1,7 @@
 import Homey from "homey";
+
 import YandexSession from "../../lib/session";
-import { YandexApp } from "../../types";
+import { YandexApp } from "../../lib/types";
 
 module.exports = class SpeakerDriver extends Homey.Driver {
     app!: YandexApp;

@@ -1,9 +1,10 @@
-import { YandexLocalDevice } from "../types";
-import YandexSession from "./session";
-import { client, connection } from "websocket";
-import { v4 } from "uuid";
-import { RequestOptions } from "https";
 import EventEmitter from "events";
+import { client, connection } from "websocket";
+import { RequestOptions } from "https";
+import { v4 } from "uuid";
+
+import YandexSession from "./session";
+import { YandexLocalDevice } from "./types";
 
 export default class YandexGlagol extends EventEmitter {
     session: YandexSession;

@@ -1,7 +1,8 @@
-import Homey, { DiscoveryResultMDNSSD } from 'homey';
-import YandexGlagol from '../../lib/glagol';
-import YandexSession from '../../lib/session';
-import { YandexApp, YandexDevice } from "../../types";
+import Homey, { DiscoveryResultMDNSSD } from "homey";
+
+import YandexSession from "../../lib/session";
+import YandexGlagol from "../../lib/glagol";
+import { YandexApp, YandexDevice } from "../../lib/types";
 
 module.exports = class SpeakerDevice extends Homey.Device {
     app!: YandexApp;
