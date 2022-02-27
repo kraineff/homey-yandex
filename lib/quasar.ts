@@ -13,6 +13,7 @@ export default class YandexQuasar extends EventEmitter {
     stats: any = {};
     connection?: connection;
     scenarios!: Scenario[];
+    scenario_interval?: NodeJS.Timeout;
 
     encode = (deviceId: string): string => {
         const MASK_EN = "0123456789abcdef-";
@@ -67,8 +68,9 @@ export default class YandexQuasar extends EventEmitter {
 
         this.scenarios = rawScenarios.map(s => ({
             name: s.name,
-            trigger: s.triggers[0].value,
-            action: s.steps[0].parameters.launch_devices[0].capabilities[0].state.value,
+            trigger: s.triggers[0]?.value,
+            action: s.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.value ||
+                    s.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.value,
             icon: s.icon_url,
             id: s.id
         }));
@@ -92,9 +94,13 @@ export default class YandexQuasar extends EventEmitter {
             this.connection.on("message", async (message) => {
                 if (message.type === "utf8") {
                     let response = JSON.parse(message.utf8Data);
-
-                    // if (response.operation === "update_scenario_list") await this.updateScenarios(JSON.parse(response.message).scenarios);
-
+                    if (response.operation === "update_scenario_list") {
+                        if (this.scenario_interval) clearTimeout(this.scenario_interval);
+                        this.scenario_interval = setTimeout(async () => {
+                            await this.updateScenarios(JSON.parse(response.message).scenarios);
+                        }, 5000);
+                    }
+                    
                     if (response.operation === "update_states") {
                         (<any[]>JSON.parse(response.message).updated_devices)
                             .filter(d => {
