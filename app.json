@@ -68,7 +68,7 @@
             }
           }
         ],
-        "id": "command_received"
+        "id": "scenario_started"
       }
     ],
     "actions": [
