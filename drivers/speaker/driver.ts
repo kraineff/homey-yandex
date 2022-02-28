@@ -16,7 +16,11 @@ module.exports = class SpeakerDriver extends Homey.Driver {
         });
 
         this.homey.flow.getActionCard('send_command').registerRunListener(async (args, state) => {
-            await this.app.quasar.send(args.device.speaker, args["command"]);
+            const device = args.device;
+            const command = args["command"];
+
+            if (!device.isLocal) await this.app.quasar.send(device.speaker, command);
+            else await device.glagol.send({ command: "sendText", text: command });
         });
     }
     
