@@ -57,14 +57,4 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             if (scenario) scenarioStartedTrigger.trigger(undefined, scenario);
         });
     }
-
-    quasarInit = (() => {
-        let executed = false;
-        return async () => {
-            if (!executed) {
-                executed = true;
-                await this.quasar.init();
-            }
-        }
-    })();
 }

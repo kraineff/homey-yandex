@@ -16,6 +16,8 @@ export default class YandexQuasar extends EventEmitter {
     scenarios!: Scenario[];
     scenario_interval?: NodeJS.Timeout;
 
+    ready: boolean = false;
+
     encode = (deviceId: string): string => {
         const MASK_EN = "0123456789abcdef-";
         const MASK_RU = "оеаинтсрвлкмдпуяю";
@@ -30,7 +32,8 @@ export default class YandexQuasar extends EventEmitter {
 
     async init() {
         console.log("[Quasar] -> Инициализация квазара");
-
+        
+        this.ready = true;
         await this.updateDevices();
         await this.updateScenarios();
         await this.connect();
@@ -139,6 +142,8 @@ export default class YandexQuasar extends EventEmitter {
     }
 
     async close() {
+        this.ready = false;
+        
         if (this.connection?.connected) {
             console.log(`[Quasar] -> Остановка получения команд`);
 
