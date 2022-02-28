@@ -61,7 +61,7 @@ export default class YandexGlagol extends EventEmitter {
 
         ws.on("connectFailed", async () => await this.reConnect());
 
-        ws.connect(`wss://${this.device.local.address}:${this.device.local.port}`, undefined, undefined, undefined, <RequestOptions>{ rejectUnauthorized: false });
+        ws.connect(`wss://${this.device.local!.address}:${this.device.local!.port}`, undefined, undefined, undefined, <RequestOptions>{ rejectUnauthorized: false });
     }
 
     async close() {

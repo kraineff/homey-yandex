@@ -27,7 +27,7 @@ export type Device = {
         platform: string
         scenario_id?: string
     }
-    local: {
+    local?: {
         address: string
         port: string
     }
