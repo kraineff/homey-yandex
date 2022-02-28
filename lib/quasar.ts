@@ -1,5 +1,4 @@
 import EventEmitter from "events";
-import { DiscoveryResultMDNSSD } from "homey";
 import { client, connection } from "websocket";
 
 import YandexSession from "./session";
@@ -12,18 +11,13 @@ export default class YandexQuasar extends EventEmitter {
     session: YandexSession;
     devices: Device[] = [];
     stats: any = {};
+
     connection?: connection;
     scenarios!: Scenario[];
-    scenario_interval?: NodeJS.Timeout;
+    scenarioTimer?: NodeJS.Timeout;
+    reconnectTimer?: NodeJS.Timeout;
 
     ready: boolean = false;
-
-    encode = (deviceId: string): string => {
-        const MASK_EN = "0123456789abcdef-";
-        const MASK_RU = "оеаинтсрвлкмдпуяю";
-
-        return "ХОМЯК " + [...deviceId].map(char => MASK_RU[MASK_EN.indexOf(char)]).join("");
-    }
 
     constructor(session: YandexSession) {
         super();
@@ -97,6 +91,15 @@ export default class YandexQuasar extends EventEmitter {
         }));
     }
 
+    async reConnect() {
+        console.log(`[Quasar] -> Перезапуск получения команд`);
+
+        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = setTimeout(async () => {
+            await this.connect();
+        }, 10000);
+    }
+
     async connect() {
         console.log(`[Quasar] -> Запуск получения команд`);
 
@@ -107,7 +110,7 @@ export default class YandexQuasar extends EventEmitter {
         if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
         if (this.connection?.connected) this.connection.close();
-        let ws = new client();
+        const ws = new client();
 
         ws.on("connect", (connection: connection) => {
             this.connection = connection;
@@ -115,9 +118,10 @@ export default class YandexQuasar extends EventEmitter {
             this.connection.on("message", async (message) => {
                 if (message.type === "utf8") {
                     let response = JSON.parse(message.utf8Data);
+
                     if (response.operation === "update_scenario_list") {
-                        if (this.scenario_interval) clearTimeout(this.scenario_interval);
-                        this.scenario_interval = setTimeout(async () => {
+                        if (this.scenarioTimer) clearTimeout(this.scenarioTimer);
+                        this.scenarioTimer = setTimeout(async () => {
                             await this.updateScenarios(JSON.parse(response.message).scenarios);
                         }, 5000);
                     }
@@ -136,7 +140,12 @@ export default class YandexQuasar extends EventEmitter {
                     }
                 }
             });
+
+            this.connection.on("error", async () => await this.reConnect());
+            this.connection.on("close", async () => await this.reConnect());
         });
+
+        ws.on("connectFailed", async () => await this.reConnect());
 
         ws.connect(response.updates_url);
     }
@@ -149,6 +158,13 @@ export default class YandexQuasar extends EventEmitter {
 
             this.connection.close();
         }
+    }
+
+    encode = (deviceId: string): string => {
+        const MASK_EN = "0123456789abcdef-";
+        const MASK_RU = "оеаинтсрвлкмдпуяю";
+
+        return "ХОМЯК " + [...deviceId].map(char => MASK_RU[MASK_EN.indexOf(char)]).join("");
     }
 
     rawSpeakers = () => this.devices.filter(device => device.type.startsWith("devices.types.smart_speaker"));

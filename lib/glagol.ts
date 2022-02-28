@@ -9,10 +9,10 @@ import { Device } from "./types";
 export default class YandexGlagol extends EventEmitter {
     session: YandexSession;
     device!: Device;
+    local_token: string = "";
 
     connection?: connection;
-    client!: client;
-    local_token: string = "";
+    reconnectTimer?: NodeJS.Timeout;
 
     constructor(session: YandexSession) {
         super();
@@ -29,12 +29,21 @@ export default class YandexGlagol extends EventEmitter {
         await this.connect();
     }
 
+    async reConnect() {
+        console.log(`[Glagol: ${this.device.id}] -> Перезапуск получения данных`);
+
+        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = setTimeout(async () => {
+            await this.init(this.device);
+        }, 10000);
+    }
+
     async connect() {
         console.log(`[Glagol: ${this.device.id}] -> Запуск получения данных`);
 
-        this.client = new client();
+        const ws = new client();
 
-        this.client.on("connect", async (connection: connection) => {
+        ws.on("connect", async (connection: connection) => {
             this.connection = connection;
             
             await this.send({ command: "softwareVersion" });
@@ -46,16 +55,13 @@ export default class YandexGlagol extends EventEmitter {
                 }
             });
 
-            this.connection.on("error", async (error) => {
-                await this.init(this.device);
-            });
+            this.connection.on("error", async () => await this.reConnect());
+            this.connection.on("close", async () => await this.reConnect());
         });
 
-        this.client.on("connectFailed", error => {
-            console.log(`Ошибка подключения к WebSocket: ${error.message}`);
-        });
+        ws.on("connectFailed", async () => await this.reConnect());
 
-        this.client.connect(`wss://${this.device.local.address}:${this.device.local.port}`, undefined, undefined, undefined, <RequestOptions>{ rejectUnauthorized: false });
+        ws.connect(`wss://${this.device.local.address}:${this.device.local.port}`, undefined, undefined, undefined, <RequestOptions>{ rejectUnauthorized: false });
     }
 
     async close() {
