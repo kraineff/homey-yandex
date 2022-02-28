@@ -57,8 +57,8 @@ export default class YandexQuasar extends EventEmitter {
             type: device.type,
             icon: device.icon_url,
             quasar: {
-                id: device.quasar_info.device_id,
-                platform: device.quasar_info.platform
+                id: device.quasar.id,
+                platform: device.quasar.platform
             }
         }));
     }
