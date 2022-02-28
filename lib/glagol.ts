@@ -4,11 +4,11 @@ import { RequestOptions } from "https";
 import { v4 } from "uuid";
 
 import YandexSession from "./session";
-import { YandexLocalDevice } from "./types";
+import { Device } from "./types";
 
 export default class YandexGlagol extends EventEmitter {
     session: YandexSession;
-    device!: YandexLocalDevice;
+    device!: Device;
 
     connection?: connection;
     client!: client;
@@ -19,8 +19,8 @@ export default class YandexGlagol extends EventEmitter {
         this.session = session;
     }
     
-    async reConnect(device: YandexLocalDevice) {
-        console.log(`[Glagol: ${device.id}] -> Проверка подключения`);
+    async init(device: Device) {
+        console.log(`[Glagol: ${device.id}] -> Инициализация глагола`);
 
         this.device = device;
         if (!this.local_token) await this.getToken();
@@ -47,7 +47,7 @@ export default class YandexGlagol extends EventEmitter {
             });
 
             this.connection.on("error", async (error) => {
-                await this.reConnect(this.device);
+                await this.init(this.device);
             });
         });
 
@@ -55,7 +55,7 @@ export default class YandexGlagol extends EventEmitter {
             console.log(`Ошибка подключения к WebSocket: ${error.message}`);
         });
 
-        this.client.connect(`wss://${this.device.host}:${this.device.port}`, undefined, undefined, undefined, <RequestOptions>{ rejectUnauthorized: false });
+        this.client.connect(`wss://${this.device.local.address}:${this.device.local.port}`, undefined, undefined, undefined, <RequestOptions>{ rejectUnauthorized: false });
     }
 
     async close() {
@@ -86,8 +86,8 @@ export default class YandexGlagol extends EventEmitter {
             method: "GET",
             url: "https://quasar.yandex.net/glagol/token",
             params: {
-                device_id: this.device.quasar_info.device_id,
-                platform: this.device.quasar_info.platform
+                device_id: this.device.quasar.id,
+                platform: this.device.quasar.platform
             }
         });
 

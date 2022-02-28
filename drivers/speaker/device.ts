@@ -2,13 +2,13 @@ import Homey, { DiscoveryResultMDNSSD } from "homey";
 
 import YandexSession from "../../lib/session";
 import YandexGlagol from "../../lib/glagol";
-import { YandexApp, YandexDevice } from "../../lib/types";
+import { YandexApp, Device } from "../../lib/types";
 
 module.exports = class SpeakerDevice extends Homey.Device {
     app!: YandexApp;
     session!: YandexSession;
     glagol!: YandexGlagol;
-    speaker!: YandexDevice;
+    speaker!: Device;
     isLocal: boolean = false;
     image!: Homey.Image;
     latestImageUrl: string = "";
@@ -19,11 +19,14 @@ module.exports = class SpeakerDevice extends Homey.Device {
         this.glagol = new YandexGlagol(this.session);
         this.image = await this.app.homey.images.createImage();
 
-        // await this.onAvailabilityListener();
         await this.onDataListener();
         await this.onMultipleCapabilityListener();
 
-        if (this.session.ready) await this.init();
+        if (this.session.ready) {
+            //@ts-ignore
+            await this.app.quasarInit();
+            await this.init();
+        }
         else await this.setUnavailable(this.homey.__("device.auth_required"));
 
         this.session.on("available", async (status) => {
@@ -61,7 +64,12 @@ module.exports = class SpeakerDevice extends Homey.Device {
                 this.setStoreValue("address", address);
                 this.setStoreValue("port", port);
             }
-            await this.glagol.reConnect({ ...this.speaker, host: this.getStoreValue("address"), port: this.getStoreValue("port") });
+
+            this.speaker = {...this.speaker, local: {
+                address: this.getStoreValue("address"),
+                port: this.getStoreValue("port")
+            }};
+            await this.glagol.init(this.speaker);
         }
 
         if (this.getData()["local_id"]) {
@@ -73,15 +81,6 @@ module.exports = class SpeakerDevice extends Homey.Device {
 
         this.app.discoveryStrategy.on("result", async (discoveryResult: DiscoveryResultMDNSSD) => {
             if (discoveryResult.id === this.getData()["local_id"]) await connect(discoveryResult.address, discoveryResult.port);
-        });
-    }
-
-    // При получении статуса доступности
-    async onAvailabilityListener() {
-        this.homey.on("availability", async (local_id: string, online: boolean) => {
-            if (!this.isLocal && local_id === this.getData()["local_id"]) {
-                online ? await this.setAvailable() : await this.setUnavailable();
-            }
         });
     }
 
@@ -169,20 +168,20 @@ module.exports = class SpeakerDevice extends Homey.Device {
                 changedKeys.forEach(key => {
                     let value = newSettings[key];
                     if (key === "brightness") {
-                        if (value === -1) config.led.brightness.auto = true;
+                        if (value === -1) config.led!.brightness.auto = true;
                         else {
-                            config.led.brightness.auto = false;
-                            config.led.brightness.value = value / 100;
+                            config.led!.brightness.auto = false;
+                            config.led!.brightness.value = value / 100;
                         }
                     }
                     if (key === "music_equalizer_visualization") {
-                        if (value === "auto") config.led.music_equalizer_visualization.auto = true;
+                        if (value === "auto") config.led!.music_equalizer_visualization.auto = true;
                         else {
-                            config.led.music_equalizer_visualization.auto = false;
-                            config.led.music_equalizer_visualization.style = value;
+                            config.led!.music_equalizer_visualization.auto = false;
+                            config.led!.music_equalizer_visualization.style = value;
                         }
                     }
-                    if (key === "time_visualization") config.led.time_visualization.size = value;
+                    if (key === "time_visualization") config.led!.time_visualization.size = value;
                 });
     
                 await this.app.quasar.setDeviceConfig(this.speaker, config);

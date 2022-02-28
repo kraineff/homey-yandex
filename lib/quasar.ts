@@ -1,15 +1,16 @@
 import EventEmitter from "events";
+import { DiscoveryResultMDNSSD } from "homey";
 import { client, connection } from "websocket";
 
 import YandexSession from "./session";
-import { DevicesResponse, GetDeviceConfigResponse, Scenario, YandexDevice, YandexDeviceConfig, YandexDeviceData } from "./types";
+import { Scenario, Device, DeviceConfig } from "./types";
 
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
 export default class YandexQuasar extends EventEmitter {
     session: YandexSession;
-    devices: YandexDevice[] = [];
+    devices: Device[] = [];
     stats: any = {};
     connection?: connection;
     scenarios!: Scenario[];
@@ -28,20 +29,35 @@ export default class YandexQuasar extends EventEmitter {
     }
 
     async init() {
-        console.log("[Quasar] -> Обновление списка устройств");
+        console.log("[Quasar] -> Инициализация квазара");
 
-        let response: DevicesResponse = await this.session.request({
+        await this.updateDevices();
+        await this.updateScenarios();
+        await this.connect();
+    }
+
+    async updateDevices() {
+        console.log("[Quasar] -> Обновление устройств");
+
+        let response = await this.session.request({
             method: "GET",
             url: `${USER_URL}/devices`
         });
         if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
-        let devices: YandexDevice[] = [];
-        response.rooms.forEach(room => (<YandexDevice[]>room["devices"]).forEach(device => devices.push(device)));
-        this.devices = [...devices, ...response.speakers, ...response.unconfigured_devices];
+        let rawDevices: any[] = [];
+        (<any[]>response.rooms).forEach(room => (<any[]>room["devices"]).forEach(device => rawDevices.push(device)));
 
-        await this.updateScenarios(await this.getScenarios());
-        await this.connect();
+        this.devices = [...rawDevices, ...response.speakers, ...response.unconfigured_devices].map(device => <Device>({
+            id: device.id,
+            name: device.name,
+            type: device.type,
+            icon: device.icon_url,
+            quasar: {
+                id: device.quasar_info.device_id,
+                platform: device.quasar_info.platform
+            }
+        }));
     }
 
     async getScenarios() {
@@ -53,8 +69,10 @@ export default class YandexQuasar extends EventEmitter {
         return response.scenarios;
     }
 
-    async updateScenarios(scenarios: any[]) {
+    async updateScenarios(scenarios: any[] = []) {
         console.log(`[Quasar] -> Обновление сценариев`);
+
+        if (scenarios.length === 0) scenarios = await this.getScenarios();
 
         let ids = scenarios.map(s => s.id);
 
@@ -130,11 +148,14 @@ export default class YandexQuasar extends EventEmitter {
 
     rawSpeakers = () => this.devices.filter(device => device.type.startsWith("devices.types.smart_speaker"));
 
-    async getSpeaker(deviceId: string): Promise<YandexDevice> {
+    async getSpeaker(deviceId: string): Promise<Device> {
         console.log(`[Quasar: ${deviceId}] -> Проверка scenario_id`);
 
         let scenario_id = this.scenarios.find(s => s.name === this.encode(deviceId))?.id || await this.addScenario(deviceId);
-        return { ...this.rawSpeakers().find(s => s.id === deviceId)!, scenario_id }
+        let speakers = this.rawSpeakers().find(s => s.id === deviceId)!;
+        speakers.quasar.scenario_id = scenario_id;
+
+        return speakers;
     }
     
     async addScenario(deviceId: string): Promise<string> {
@@ -166,16 +187,16 @@ export default class YandexQuasar extends EventEmitter {
         return response.scenario_id;
     }
 
-    async send(device: YandexDevice, message: string, isTTS: boolean = false) {
+    async send(device: Device, message: string, isTTS: boolean = false) {
         console.log(`[Quasar: ${device.id}] -> Выполнение действия -> ${message}`);
 
-        if (!device.scenario_id) return;
+        if (!device.quasar.scenario_id) return;
         let action = isTTS ? "phrase_action" : "text_action";
         let name = this.encode(device.id);
 
         let response = await this.session.request({
             method: "PUT",
-            url: `${USER_URL}/scenarios/${device.scenario_id}`,
+            url: `${USER_URL}/scenarios/${device.quasar.scenario_id}`,
             data: {
                 name: name,
                 icon: "home",
@@ -196,7 +217,7 @@ export default class YandexQuasar extends EventEmitter {
 
         response = await this.session.request({
             method: "POST",
-            url: `${USER_URL}/scenarios/${device.scenario_id}/actions`
+            url: `${USER_URL}/scenarios/${device.quasar.scenario_id}/actions`
         });
         if (response?.status !== "ok") throw `Ошибка: ${response}`;
     }
@@ -212,7 +233,7 @@ export default class YandexQuasar extends EventEmitter {
     }
 
     async getDevice(deviceId: string) {
-        let response: YandexDeviceData = await this.session.request({
+        let response = await this.session.request({
             method: "GET",
             url: `${USER_URL}/devices/${deviceId}`
         });
@@ -221,26 +242,26 @@ export default class YandexQuasar extends EventEmitter {
         return response;
     }
 
-    async getDeviceConfig(device: YandexDevice): Promise<YandexDeviceConfig> {
+    async getDeviceConfig(device: Device) {
         console.log(`[Quasar: ${device.id}] -> Получение настроек`);
 
-        let response: GetDeviceConfigResponse = await this.session.request({
+        let response = await this.session.request({
             method: "GET",
             url: "https://quasar.yandex.ru/get_device_config",
-            params: { "device_id": device.quasar_info.device_id, "platform": device.quasar_info.platform }
+            params: { "device_id": device.quasar.id, "platform": device.quasar.platform }
         });
         if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
-        return response.config;
+        return <DeviceConfig>response.config;
     }
 
-    async setDeviceConfig(device: YandexDevice, config: YandexDeviceConfig) {
+    async setDeviceConfig(device: Device, config: DeviceConfig) {
         console.log(`[Quasar ${device.id}] -> Установка настроек`);
 
         let response = await this.session.request({
             method: "POST",
             url: "https://quasar.yandex.ru/set_device_config",
-            params: { "device_id": device.quasar_info.device_id, "platform": device.quasar_info.platform },
+            params: { "device_id": device.quasar.id, "platform": device.quasar.platform },
             data: config
         });
         if (response?.status !== "ok") throw `Ошибка: ${response}`;

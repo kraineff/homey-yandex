@@ -11,11 +11,6 @@ module.exports = class SpeakerDriver extends Homey.Driver {
         this.app = <YandexApp>this.homey.app;
         this.session = this.app.session;
 
-        if (this.session.ready) {
-            //@ts-ignore
-            await this.app.quasarInit();
-        }
-
         this.homey.flow.getActionCard('text_to_speech').registerRunListener(async (args, state) => {
             await this.app.quasar.send(args.device.speaker, args["text"], true);
         });
@@ -26,41 +21,51 @@ module.exports = class SpeakerDriver extends Homey.Driver {
     }
     
     onPair(pair: Homey.Driver.PairSession) {
-        pair.setHandler("list_devices", async () => {
-            let devices: any[] = [];
-            let discoveryResult: any = this.app.discoveryStrategy.getDiscoveryResults();
+        // Начальный экран
+        pair.setHandler("start", async () => {
+            return !this.session.ready ? await this.session.getAuthUrl() : "list_devices";
+        });
 
-            await this.app.quasar.init();
-            this.app.quasar.rawSpeakers().forEach(speaker => {
-                let config: any = {
+        // Проверка авторизации
+        pair.setHandler("check", async () => {
+            return await this.session.checkAuth();
+        });
+
+        // Обновление квазара
+        pair.setHandler("showView", async (viewId) => {
+            if (viewId === "add_devices") await this.app.quasar.updateScenarios();
+        });
+
+        pair.setHandler("list_devices", async () => {
+            await this.app.quasar.updateDevices();
+
+            return this.app.quasar.rawSpeakers().map(speaker => {
+                // Основа
+                let base: any = {
                     name: speaker.name,
                     data: {
                         id: speaker.id
                     }
                 };
 
+                // Иконка
                 let yandex = ["yandexmicro", "yandexmini_2", "yandexmini", "yandexstation_2", "yandexstation"];
                 let other = ["elari_a98", "jbl_link_music", "jbl_link_portable", "lightcomm", "linkplay_a98", "prestigio_smart_mate", "wk7y"];
-                if ([...yandex, ...other].includes(speaker.quasar_info.platform)) config.icon = `/${speaker.quasar_info.platform}.svg`;
+                if ([...yandex, ...other].includes(speaker.quasar.platform)) base.icon = `/${speaker.quasar.platform}.svg`;
 
-                if (Object.keys(discoveryResult).includes(speaker.quasar_info.device_id)) {
-                    let data: any = discoveryResult[speaker.quasar_info.device_id];
-                    config.data["local_id"] = data.txt.deviceid;
-                    config.store = { "address": data.address, "port": data.port }
+                // Локальный режим
+                let discoveryResult: any = this.app.discoveryStrategy.getDiscoveryResults();
+                if (Object.keys(discoveryResult).includes(speaker.quasar.id)) {
+                    let data: any = discoveryResult[speaker.quasar.id];
+                    base.data["local_id"] = data.txt.deviceid;
+                    base.store = {
+                        address: data.address,
+                        port: data.port
+                    }
                 }
 
-                devices.push(config);
+                return base;
             });
-            
-            return devices;
-        });
-        
-        pair.setHandler("check", async () => {
-            return await this.session.checkAuth();
-        });
-
-        pair.setHandler("start", async () => {
-            return !this.session.ready ? await this.session.getAuthUrl() : "list_devices";
         });
     }
 }

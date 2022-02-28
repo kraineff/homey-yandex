@@ -24,8 +24,8 @@ export default class YandexSession extends EventEmitter {
         this.on("available", (status) => this.ready = status);
     }
 
-    async connect(x_token: string, cookie: string, music_token: string) {
-        console.log("[Session] -> Попытка подключения");
+    async init(x_token: string, cookie: string, music_token: string) {
+        console.log("[Session] -> Инициализация сессии");
 
         this.x_token = x_token;
         this.music_token = music_token;

@@ -3,7 +3,6 @@ import Homey from "homey";
 import YandexSession from "./lib/session";
 import YandexQuasar from "./lib/quasar";
 import { YandexApp } from "./lib/types";
-import { ArgumentAutocompleteResults } from "homey/lib/FlowCard";
 
 module.exports = class YandexAlice extends Homey.App implements YandexApp {
     session!: YandexSession;
@@ -33,7 +32,7 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
         });
 
         // Подключение к сессии
-        await this.session.connect(
+        await this.session.init(
             this.homey.settings.get("x_token") || "",
             this.homey.settings.get("cookie") || "",
             this.homey.settings.get("music_token") || ""
