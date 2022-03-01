@@ -2,14 +2,14 @@ import Homey, { DiscoveryResultMDNSSD } from "homey";
 
 import YandexSession from "../../lib/session";
 import YandexGlagol from "../../lib/glagol";
-import { YandexApp, Device } from "../../lib/types";
+import { YandexApp, Speaker } from "../../lib/types";
 
 module.exports = class SpeakerDevice extends Homey.Device {
     app!: YandexApp;
     session!: YandexSession;
     glagol!: YandexGlagol;
 
-    speaker!: Device;
+    speaker!: Speaker;
     isLocal: boolean = false;
 
     image!: Homey.Image;
@@ -50,7 +50,7 @@ module.exports = class SpeakerDevice extends Homey.Device {
     }
 
     async initSettings() {
-        let config = await this.app.quasar.devices.getConfig(this.speaker);
+        let config = await this.app.quasar.devices.getSpeakerConfig(this.speaker);
         if (config.led) {
             await this.setSettings({
                 brightness: config.led.brightness.auto ? -1 : config.led.brightness.value,
@@ -164,7 +164,7 @@ module.exports = class SpeakerDevice extends Homey.Device {
     // При изменении настроек
     async onSettings({ oldSettings, newSettings, changedKeys }: { oldSettings: any; newSettings: any; changedKeys: string[]; }): Promise<string | void> {
         if (this.session.ready) {
-            let config = await this.app.quasar.devices.getConfig(this.speaker);
+            let config = await this.app.quasar.devices.getSpeakerConfig(this.speaker);
 
             if (config.led) {
                 changedKeys.forEach(key => {
@@ -186,7 +186,7 @@ module.exports = class SpeakerDevice extends Homey.Device {
                     if (key === "time_visualization") config.led!.time_visualization.size = value;
                 });
     
-                await this.app.quasar.devices.setConfig(this.speaker, config);
+                await this.app.quasar.devices.setSpeakerConfig(this.speaker, config);
             }
 
             return this.homey.__("device.save_settings");

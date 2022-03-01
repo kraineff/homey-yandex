@@ -2,6 +2,7 @@ import Homey, { DiscoveryStrategy } from 'homey';
 
 import YandexSession from './session';
 import YandexQuasar from './quasar';
+import { type } from 'os';
 
 export interface YandexApp extends Homey.App {
     session: YandexSession;
@@ -26,6 +27,9 @@ export type Device = {
     name: string
     icon: string
     type: string
+}
+
+export type Speaker = Device & {
     quasar: {
         id: string
         platform: string
@@ -37,7 +41,7 @@ export type Device = {
     }
 }
 
-export type DeviceConfig = {
+export type SpeakerConfig = {
     allow_non_self_calls: boolean
     beta: boolean
     led?: {

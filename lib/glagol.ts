@@ -4,11 +4,11 @@ import { RequestOptions } from "https";
 import { v4 } from "uuid";
 
 import YandexSession from "./session";
-import { Device } from "./types";
+import { Speaker } from "./types";
 
 export default class YandexGlagol extends EventEmitter {
     session: YandexSession;
-    device!: Device;
+    speaker!: Speaker;
     local_token: string = "";
 
     connection?: connection;
@@ -19,10 +19,10 @@ export default class YandexGlagol extends EventEmitter {
         this.session = session;
     }
     
-    async init(device: Device) {
-        console.log(`[Glagol: ${device.id}] -> Инициализация глагола`);
+    async init(speaker: Speaker) {
+        console.log(`[Glagol: ${speaker.id}] -> Инициализация глагола`);
 
-        this.device = device;
+        this.speaker = speaker;
         if (!this.local_token) await this.getToken();
 
         await this.close();
@@ -30,16 +30,16 @@ export default class YandexGlagol extends EventEmitter {
     }
 
     async reConnect() {
-        console.log(`[Glagol: ${this.device.id}] -> Перезапуск получения данных`);
+        console.log(`[Glagol: ${this.speaker.id}] -> Перезапуск получения данных`);
 
         if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
         this.reconnectTimer = setTimeout(async () => {
-            await this.init(this.device);
+            await this.init(this.speaker);
         }, 10000);
     }
 
     async connect() {
-        console.log(`[Glagol: ${this.device.id}] -> Запуск получения данных`);
+        console.log(`[Glagol: ${this.speaker.id}] -> Запуск получения данных`);
 
         const ws = new client();
 
@@ -51,7 +51,7 @@ export default class YandexGlagol extends EventEmitter {
             this.connection.on("message", message => {
                 if (message.type === "utf8") {
                     let response = JSON.parse(message.utf8Data);
-                    this.emit(this.device.id, response);
+                    this.emit(this.speaker.id, response);
                 }
             });
 
@@ -61,12 +61,12 @@ export default class YandexGlagol extends EventEmitter {
 
         ws.on("connectFailed", async () => await this.reConnect());
 
-        ws.connect(`wss://${this.device.local!.address}:${this.device.local!.port}`, undefined, undefined, undefined, <RequestOptions>{ rejectUnauthorized: false });
+        ws.connect(`wss://${this.speaker.local!.address}:${this.speaker.local!.port}`, undefined, undefined, undefined, <RequestOptions>{ rejectUnauthorized: false });
     }
 
     async close() {
         if (this.connection?.connected) {
-            console.log(`[Glagol: ${this.device.id}] -> Остановка получения данных`);
+            console.log(`[Glagol: ${this.speaker.id}] -> Остановка получения данных`);
 
             this.connection.close();
         }
@@ -74,7 +74,7 @@ export default class YandexGlagol extends EventEmitter {
 
     async send(payload: any) {
         if (this.connection?.connected) {
-            console.log(`[Glagol: ${this.device.id}] -> Выполнение действия -> ${JSON.stringify(payload)}`);
+            console.log(`[Glagol: ${this.speaker.id}] -> Выполнение действия -> ${JSON.stringify(payload)}`);
 
             this.connection.send(JSON.stringify({
                 conversationToken: this.local_token,
@@ -86,14 +86,14 @@ export default class YandexGlagol extends EventEmitter {
     }
 
     async getToken() {
-        console.log(`[Glagol: ${this.device.id}] -> Получение локального токена`);
+        console.log(`[Glagol: ${this.speaker.id}] -> Получение локального токена`);
 
         let response = await this.session.request({
             method: "GET",
             url: "https://quasar.yandex.net/glagol/token",
             params: {
-                device_id: this.device.quasar.id,
-                platform: this.device.quasar.platform
+                device_id: this.speaker.quasar.id,
+                platform: this.speaker.quasar.platform
             }
         });
 

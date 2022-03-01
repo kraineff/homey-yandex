@@ -1,7 +1,7 @@
 import YandexSession from "./session";
 import YandexDevices from "./devices";
 import YandexScenarios from "./scenarios";
-import { Device } from "./types";
+import { Speaker } from "./types";
 
 export default class YandexQuasar {
     session: YandexSession;
@@ -30,9 +30,9 @@ export default class YandexQuasar {
         await this.scenarios.close();
     }
 
-    async send(device: Device, message: string, isTTS: boolean = false) {
-        if (!device.quasar.scenario_id) return;
-        let scenario = this.scenarios.findById(device.quasar.scenario_id);
+    async send(speaker: Speaker, message: string, isTTS: boolean = false) {
+        if (!speaker.quasar.scenario_id) return;
+        let scenario = this.scenarios.findById(speaker.quasar.scenario_id);
         if (!scenario) return;
 
         scenario.action.type = isTTS ? "phrase_action" : "text_action";
