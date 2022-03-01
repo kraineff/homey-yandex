@@ -32,11 +32,11 @@ export default class YandexSession extends EventEmitter {
         this.cookie = cookie;
 
         if ((await this.session.get("https://yandex.ru/quasar?storage=1")).data.storage.user.uid) {
-            this.emit("available", true, true);
+            this.emit("available", true);
             return true;
         } else {
             let cookies = await this.refreshCookies();
-            this.emit("available", cookies, true);
+            this.emit("available", cookies);
             return cookies;
         }
     }
@@ -78,7 +78,6 @@ export default class YandexSession extends EventEmitter {
         
         this.setProperties({ "cookie": response.headers["set-cookie"]!.join('; ') });
         await this.getTokenFromCookie();
-        this.emit("available", true, true);
         return true
     }
 

@@ -17,8 +17,10 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
         this.session.on("available", async (status, onStartup) => {
             console.log(status ? "[Session] -> Успешная авторизация" : "[Приложение] -> Требуется повторная авторизация");
 
-            if (!onStartup) status ? await this.quasar.init() : await this.quasar.close();
-            if (!status) ["x_token", "cookie", "music_token"].forEach(key => this.homey.settings.set(key, ""));
+            if (!status) {
+                if (this.quasar.ready) await this.quasar.close();
+                ["x_token", "cookie", "music_token"].forEach(key => this.homey.settings.set(key, ""));
+            }
         });
 
         // При обновлении данных сессии
@@ -36,7 +38,9 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             this.homey.settings.get("x_token") || "",
             this.homey.settings.get("cookie") || "",
             this.homey.settings.get("music_token") || ""
-        );
+        ).then(async (status) => {
+            if (status) await this.quasar.init();
+        });
 
 
         // Триггер: получена команда

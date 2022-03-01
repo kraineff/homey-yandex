@@ -56,7 +56,6 @@ export default class YandexGlagol extends EventEmitter {
             });
 
             this.connection.on("error", async () => await this.reConnect());
-            this.connection.on("close", async () => await this.reConnect());
         });
 
         ws.on("connectFailed", async () => await this.reConnect());
