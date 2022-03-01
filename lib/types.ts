@@ -14,7 +14,11 @@ export type Scenario = {
     name: string
     icon: string
     trigger: string
-    action: string
+    action: {
+        type: string
+        value: string
+    }
+    device_id: string
 }
 
 export type Device = {

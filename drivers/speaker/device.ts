@@ -8,8 +8,10 @@ module.exports = class SpeakerDevice extends Homey.Device {
     app!: YandexApp;
     session!: YandexSession;
     glagol!: YandexGlagol;
+
     speaker!: Device;
     isLocal: boolean = false;
+
     image!: Homey.Image;
     latestImageUrl: string = "";
 
@@ -38,14 +40,17 @@ module.exports = class SpeakerDevice extends Homey.Device {
     async init() {
         await this.setAvailable();
 
-        this.speaker = await this.app.quasar.getSpeaker(this.getData()["id"]);
+        let deviceId = this.getData()["id"];
+        let scenarioId = this.app.quasar.scenarios.findByEncodedId(deviceId)?.id || await this.app.quasar.scenarios.add(deviceId);
+        this.speaker = this.app.quasar.devices.getSpeaker(deviceId)!;
+        this.speaker.quasar.scenario_id = scenarioId;
 
         await this.initSettings();
         await this.checkLocalConnection();
     }
 
     async initSettings() {
-        let config = await this.app.quasar.getDeviceConfig(this.speaker);
+        let config = await this.app.quasar.devices.getConfig(this.speaker);
         if (config.led) {
             await this.setSettings({
                 brightness: config.led.brightness.auto ? -1 : config.led.brightness.value,
@@ -159,7 +164,7 @@ module.exports = class SpeakerDevice extends Homey.Device {
     // При изменении настроек
     async onSettings({ oldSettings, newSettings, changedKeys }: { oldSettings: any; newSettings: any; changedKeys: string[]; }): Promise<string | void> {
         if (this.session.ready) {
-            let config = await this.app.quasar.getDeviceConfig(this.speaker);
+            let config = await this.app.quasar.devices.getConfig(this.speaker);
 
             if (config.led) {
                 changedKeys.forEach(key => {
@@ -181,7 +186,7 @@ module.exports = class SpeakerDevice extends Homey.Device {
                     if (key === "time_visualization") config.led!.time_visualization.size = value;
                 });
     
-                await this.app.quasar.setDeviceConfig(this.speaker, config);
+                await this.app.quasar.devices.setConfig(this.speaker, config);
             }
 
             return this.homey.__("device.save_settings");

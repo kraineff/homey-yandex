@@ -37,13 +37,13 @@ module.exports = class SpeakerDriver extends Homey.Driver {
 
         // Обновление квазара
         pair.setHandler("showView", async (viewId) => {
-            if (viewId === "add_devices") await this.app.quasar.updateScenarios();
+            if (viewId === "add_devices") await this.app.quasar.scenarios.update();
         });
 
         pair.setHandler("list_devices", async () => {
-            await this.app.quasar.updateDevices();
+            await this.app.quasar.devices.update();
 
-            return this.app.quasar.rawSpeakers().map(speaker => {
+            return this.app.quasar.devices.speakers.map(speaker => {
                 // Основа
                 let base: any = {
                     name: speaker.name,

@@ -43,17 +43,17 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
         const scenarioStartedTrigger = this.homey.flow.getTriggerCard("scenario_started");
         scenarioStartedTrigger.registerRunListener(async (args, state) => args.scenario.name === state.name);
         scenarioStartedTrigger.registerArgumentAutocompleteListener("scenario", async (query, args) => {
-            const scenarios = this.quasar.scenarios.map(s => ({
+            const scenarios = this.quasar.scenarios.scenarios.map(s => ({
                 name: s.name,
-                description: `${s.trigger} | ${s.action}`,
+                description: `${s.trigger} | ${s.action.value}`,
                 image: s.icon
             }));
 
             return <any>scenarios.filter(result => result.name.toLowerCase().includes(query.toLowerCase()));
         })
 
-        this.quasar.on("scenario_started", (data) => {
-            const scenario = this.quasar.scenarios.find(s => s.action === data.capabilities[0].state.value);
+        this.quasar.scenarios.on("scenario_started", (data) => {
+            const scenario = this.quasar.scenarios.findByAction(data.capabilities[0].state.value);
             if (scenario) scenarioStartedTrigger.trigger(undefined, scenario);
         });
     }
