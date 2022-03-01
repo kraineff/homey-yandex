@@ -26,7 +26,6 @@ export default class YandexQuasar {
 
     async close() {
         this.ready = false;
-
         await this.scenarios.close();
     }
 

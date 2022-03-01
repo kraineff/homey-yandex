@@ -11,6 +11,8 @@ module.exports = class SpeakerDriver extends Homey.Driver {
         this.app = <YandexApp>this.homey.app;
         this.session = this.app.session;
 
+        if (!this.app.quasar.ready) await this.app.quasar.init();
+
         this.homey.flow.getActionCard('text_to_speech').registerRunListener(async (args, state) => {
             await this.app.quasar.send(args.device.speaker, args["text"], true);
         });
