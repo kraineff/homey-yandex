@@ -5,7 +5,9 @@ import { Scenario } from "./types";
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
-const missingNumbers = (a: number[]) => Array.from(Array(Math.max(...a)).keys()).map((n, i) => a.indexOf(i) < 0? i : null).filter(f=>f);
+const missingNumbers = (a: number[], l: boolean = true) => Array.from(Array(Math.max(...a)).keys())
+    .map((n, i) => a.indexOf(i) < 0  && (!l || i > Math.min(...a)) ? i : null)
+    .filter(f => f);
 
 const encode = (deviceId: string): string => {
     const MASK_EN = "0123456789abcdef-";
@@ -119,7 +121,7 @@ export default class YandexScenarios extends EventEmitter {
             if (response?.status !== "ok") throw `Ошибка: ${response}`;
             scenarios = response.scenarios;
         }
-
+        
         // Получение полных сценариев
         let ids = scenarios.map(s => s.id);
 
@@ -148,7 +150,8 @@ export default class YandexScenarios extends EventEmitter {
             .map(s => s.action.value.replace("Сделай громче на 0", "").length)
             .sort();
         
-        let missing = missingNumbers(converted);
+        let missing: any;
+        if (converted.length !== 0) missing = missingNumbers(converted)!;
 
         this.scenarios
             .filter(s => s.action.value === "тихо")
@@ -157,8 +160,8 @@ export default class YandexScenarios extends EventEmitter {
 
                 let count;
                 if (converted.length !== 0) {
-                    if (missing && missing.length !== 0) {
-                        count = missing[0]!;
+                    if (missing.length !== 0) {
+                        count = missing[0];
                         missing.shift();
                     } else count = converted[converted.length - 1] + 1;
                 } else count = 1;
