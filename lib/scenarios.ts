@@ -51,8 +51,6 @@ export default class YandexScenarios extends EventEmitter {
     }
 
     async init() {
-        console.log("[Quasar] -> Инициализация модуля сценариев");
-
         await this.update();
         await this.connect();
     }

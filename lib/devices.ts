@@ -14,8 +14,6 @@ export default class YandexDevices {
     }
 
     async init() {
-        console.log("[Quasar] -> Инициализация модуля устройств");
-
         await this.update();
     }
 

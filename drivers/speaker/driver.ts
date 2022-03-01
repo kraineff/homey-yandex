@@ -11,7 +11,7 @@ module.exports = class SpeakerDriver extends Homey.Driver {
         this.app = <YandexApp>this.homey.app;
         this.session = this.app.session;
 
-        if (!this.app.quasar.ready) await this.app.quasar.init();
+        if (this.session.ready && !this.app.quasar.ready) await this.app.quasar.init();
 
         this.homey.flow.getActionCard('text_to_speech').registerRunListener(async (args, state) => {
             await this.app.quasar.send(args.device.speaker, args["text"], true);
@@ -37,13 +37,8 @@ module.exports = class SpeakerDriver extends Homey.Driver {
             return await this.session.checkAuth();
         });
 
-        // Обновление квазара
-        pair.setHandler("showView", async (viewId) => {
-            if (viewId === "add_devices") await this.app.quasar.scenarios.update();
-        });
-
         pair.setHandler("list_devices", async () => {
-            await this.app.quasar.devices.update();
+            !this.app.quasar.ready ? await this.app.quasar.init() : await this.app.quasar.devices.update();
 
             return this.app.quasar.devices.speakers.map(speaker => {
                 // Основа
