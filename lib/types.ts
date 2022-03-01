@@ -2,7 +2,6 @@ import Homey, { DiscoveryStrategy } from 'homey';
 
 import YandexSession from './session';
 import YandexQuasar from './quasar';
-import { type } from 'os';
 
 export interface YandexApp extends Homey.App {
     session: YandexSession;
