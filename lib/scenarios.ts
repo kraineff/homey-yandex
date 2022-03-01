@@ -5,6 +5,8 @@ import { Scenario } from "./types";
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
+const missingNumbers = (a: number[]) => Array.from(Array(Math.max(...a)).keys()).map((n, i) => a.indexOf(i) < 0? i : null).filter(f=>f);
+
 const encode = (deviceId: string): string => {
     const MASK_EN = "0123456789abcdef-";
     const MASK_RU = "оеаинтсрвлкмдпуяю";
@@ -142,12 +144,27 @@ export default class YandexScenarios extends EventEmitter {
         }));
 
         // Конвертация действий
-        let converted = this.scenarios.filter(s => s.action.value.includes("Сделай громче на 0?")).sort();
+        let converted = this.scenarios.filter(s => s.action.value.includes("Сделай громче на 0?"))
+            .map(s => s.action.value.replace("Сделай громче на 0", "").length)
+            .sort();
+        
+        let missing = missingNumbers(converted);
+
         this.scenarios
             .filter(s => s.action.value === "тихо")
             .forEach(async (s) => {
                 s.action.type = "text_action";
-                s.action.value = converted.length === 0 ? "Сделай громче на 0?" : converted[converted.length - 1].action.value + "?";
+
+                let count;
+                if (converted.length !== 0) {
+                    if (missing && missing.length !== 0) {
+                        count = missing[0]!;
+                        missing.shift();
+                    } else count = converted[converted.length - 1] + 1;
+                } else count = 1;
+
+                s.action.value = "Сделай громче на 0" + "?".repeat(count);
+
                 await this.edit(s);
             });
     }
