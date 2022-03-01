@@ -1,4 +1,5 @@
 {
+    "scenario_phrase": "Фраза",
     "device": {
         "auth_required": "Требуется повторная авторизация",
         "save_settings": "Настройки успешно обновлены"

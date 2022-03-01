@@ -47,11 +47,12 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
         const scenarioStartedTrigger = this.homey.flow.getTriggerCard("scenario_started");
         scenarioStartedTrigger.registerRunListener(async (args, state) => args.scenario.name === state.name);
         scenarioStartedTrigger.registerArgumentAutocompleteListener("scenario", async (query, args) => {
-            const scenarios = this.quasar.scenarios.scenarios.map(s => ({
-                name: s.name,
-                description: `${s.trigger} | ${s.action.value}`,
-                image: s.icon
-            }));
+            const scenarios = this.quasar.scenarios.scenarios
+                .filter(s => !s.name.startsWith("ХОМЯК")).map(s => ({
+                    name: s.name,
+                    description: `${this.homey.__("scenario_phrase")}: ${s.trigger}`,
+                    image: s.icon
+                }));
 
             return <any>scenarios.filter(result => result.name.toLowerCase().includes(query.toLowerCase()));
         })
