@@ -32,7 +32,7 @@ export default class YandexQuasar {
     async send(speaker: Speaker, message: string, isTTS: boolean = false) {
         console.log(`[Quasar: ${speaker.id}] -> Выполнение команды -> ${message}`);
 
-        let scenarioId = this.scenarios.findByEncodedId(speaker.id)?.id || await this.scenarios.add(speaker.id);
+        const scenarioId = this.scenarios.findByEncodedId(speaker.id)?.id || await this.scenarios.add(speaker.id);
         let scenario = this.scenarios.findById(scenarioId)!;
         scenario.action.type = isTTS ? "phrase_action" : "text_action";
         scenario.action.value = message;

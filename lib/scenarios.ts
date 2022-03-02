@@ -65,9 +65,18 @@ export default class YandexScenarios extends EventEmitter {
         await this.connect();
     }
 
-    findById = (scenarioId: string) => this.scenarios.find(s => s.id === scenarioId);
-    findByEncodedId = (deviceId: string) => this.scenarios.find(s => s.name === encode(deviceId));
-    findByAction = (action: string) => this.scenarios.find(s => s.action.value === action);
+    findById = (scenarioId: string) => {
+        const scenario = this.scenarios.find(s => s.id === scenarioId);
+        return scenario ? JSON.parse(JSON.stringify(scenario)) : undefined;
+    };
+    findByEncodedId = (deviceId: string) => {
+        const scenario = this.scenarios.find(s => s.name === encode(deviceId));
+        return scenario ? JSON.parse(JSON.stringify(scenario)) : undefined;
+    };
+    findByAction = (action: string) => {
+        const scenario = this.scenarios.find(s => s.action.value === action);
+        return scenario ? JSON.parse(JSON.stringify(scenario)) : undefined;
+    };
 
     async add(deviceId: string): Promise<string> {
         console.log(`[Сценарии] -> Добавление системного сценария -> ${deviceId}`);
@@ -109,7 +118,7 @@ export default class YandexScenarios extends EventEmitter {
 
     async run(scenario: Scenario) {
         if (!this.findById(scenario.id)) return;
-        
+
         console.log(`[Сценарии] -> Запуск сценария -> ${scenario.name}`);
 
         let response = await this.session.request({
