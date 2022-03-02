@@ -38,11 +38,8 @@ module.exports = class SpeakerDevice extends Homey.Device {
 
     async init() {
         await this.setAvailable();
-
-        let deviceId = this.getData()["id"];
-        let scenarioId = this.app.quasar.scenarios.findByEncodedId(deviceId)?.id || await this.app.quasar.scenarios.add(deviceId);
-        this.speaker = this.app.quasar.devices.getSpeaker(deviceId)!;
-        this.speaker.quasar.scenario_id = scenarioId;
+        
+        this.speaker = this.app.quasar.devices.getSpeaker(this.getData()["id"])!;
 
         await this.initSettings();
         await this.checkLocalConnection();

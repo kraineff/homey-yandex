@@ -18,7 +18,7 @@ export type Scenario = {
         type: string
         value: string
     }
-    device_id: string
+    device_id?: string
 }
 
 export type Device = {
@@ -32,7 +32,6 @@ export type Speaker = Device & {
     quasar: {
         id: string
         platform: string
-        scenario_id?: string
     }
     local?: {
         address: string

@@ -25,8 +25,14 @@ const SCENARIO_BASE = (data: any) => ({
     "steps": [{
         "type": "scenarios.steps.actions",
         "parameters": {
-            "requested_speaker_capabilities": [],
-            "launch_devices": [{
+            "requested_speaker_capabilities": !data.device_id ? [{
+                "type": "devices.capabilities.quasar.server_action",
+                "state": {
+                    "instance": data.action.type,
+                    "value": data.action.value
+                }
+            }] : [],
+            "launch_devices": data.device_id ? [{
                 "id": data.device_id,
                 "capabilities": [{
                     "type": "devices.capabilities.quasar.server_action",
@@ -35,7 +41,7 @@ const SCENARIO_BASE = (data: any) => ({
                         "value": data.action.value
                     }
                 }]
-            }]
+            }] : []
         }
     }]
 });
@@ -64,7 +70,7 @@ export default class YandexScenarios extends EventEmitter {
     findByAction = (action: string) => this.scenarios.find(s => s.action.value === action);
 
     async add(deviceId: string): Promise<string> {
-        console.log(`[Сценарии: ${deviceId}] -> Добавление сценария`);
+        console.log(`[Сценарии] -> Добавление системного сценария -> ${deviceId}`);
 
         let name = encode(deviceId);
 
@@ -87,7 +93,10 @@ export default class YandexScenarios extends EventEmitter {
     }
 
     async edit(scenario: Scenario) {
-        console.log(`[Сценарии: ${scenario.device_id}] -> Изменение сценария`);
+        const oldScenario = this.findById(scenario.id);
+        if (oldScenario && JSON.stringify(oldScenario) === JSON.stringify(scenario)) return;
+
+        console.log(`[Сценарии] -> Изменение сценария -> ${scenario.name}`);
 
         let response = await this.session.request({
             method: "PUT",
@@ -99,7 +108,9 @@ export default class YandexScenarios extends EventEmitter {
     }
 
     async run(scenario: Scenario) {
-        console.log(`[Сценарии: ${scenario.device_id}] -> Запуск сценария -> ${scenario.action.value}`);
+        if (!this.findById(scenario.id)) return;
+        
+        console.log(`[Сценарии] -> Запуск сценария -> ${scenario.name}`);
 
         let response = await this.session.request({
             method: "POST",
@@ -137,8 +148,10 @@ export default class YandexScenarios extends EventEmitter {
             name: s.name,
             trigger: s.triggers[0]?.value,
             action: {
-                type: s.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.instance,
-                value: s.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.value
+                type: s.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.instance ||
+                      s.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.instance,
+                value: s.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.value ||
+                       s.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.value
             },
             icon: s.icon_url,
             device_id: s.steps[0]?.parameters?.launch_devices[0]?.id,
