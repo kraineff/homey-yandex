@@ -65,39 +65,42 @@ export default class YandexScenarios extends EventEmitter {
         await this.connect();
     }
 
-    getScenarios = (): Scenario[] => JSON.parse(JSON.stringify(this.scenarios));
+    get = (scenarioId: string) => this.scenarios.find(s => s.id === scenarioId);
+    getByAction = (action: string) => this.scenarios.find(s => s.action.value === action);
+    getByEncodedId = (deviceId: string) => this.scenarios.find(s => s.name === encode(deviceId));
 
-    findById = (scenarioId: string) => this.getScenarios().find(s => s.id === scenarioId);
-    findByEncodedId = (deviceId: string) => this.getScenarios().find(s => s.name === encode(deviceId));
-    findByAction = (action: string) => this.getScenarios().find(s => s.action.value === action);
+    updateData(scenario: Scenario) {
+        const found = this.scenarios.findIndex(s => s.id === scenario.id);
+        found !== -1 ? this.scenarios[found] = scenario : this.scenarios.push(scenario);
+    }
 
     async add(deviceId: string): Promise<string> {
         console.log(`[Сценарии] -> Добавление системного сценария -> ${deviceId}`);
 
-        let name = encode(deviceId);
+        const name = encode(deviceId);
+        let data = {
+            name: name,
+            trigger: name.slice(6),
+            device_id: deviceId,
+            action: {
+                type: "phrase_action",
+                value: "пустышка"
+            }
+        }
 
         let response = await this.session.request({
             method: "POST",
             url: `${USER_URL}/scenarios`,
-            data: SCENARIO_BASE({
-                name: name,
-                trigger: name.slice(6),
-                device_id: deviceId,
-                action: {
-                    type: "phrase_action",
-                    value: "пустышка"
-                }
-            })
+            data: SCENARIO_BASE(data)
         });
 
         if (response?.status !== "ok") throw `Ошибка: ${response}`;
+
+        this.updateData(<Scenario>{ ...data, id: response.scenario_id });
         return response.scenario_id;
     }
 
     async edit(scenario: Scenario) {
-        const oldScenario = this.findById(scenario.id);
-        if (oldScenario && JSON.stringify(oldScenario) === JSON.stringify(scenario)) return;
-
         console.log(`[Сценарии] -> Изменение сценария -> ${scenario.name}`);
 
         let response = await this.session.request({
@@ -106,12 +109,11 @@ export default class YandexScenarios extends EventEmitter {
             data: SCENARIO_BASE(scenario)
         });
 
-        if (response?.status !== "ok") throw `Ошибка: ${response}`;
+        if (response?.status !== "ok") throw `Ошибка: ${response.message}`;
+        this.updateData(scenario);
     }
 
     async run(scenario: Scenario) {
-        if (!this.findById(scenario.id)) return;
-
         console.log(`[Сценарии] -> Запуск сценария -> ${scenario.name}`);
 
         let response = await this.session.request({
@@ -161,9 +163,9 @@ export default class YandexScenarios extends EventEmitter {
         }));
 
         // Конвертация действий
-        let convert = this.getScenarios().filter(s => s.action.value.toLowerCase() === "тихо");
+        const convert = this.scenarios.filter(s => s.action.value.toLowerCase() === "тихо");
         if (convert.length > 0) {
-            let converted = this.getScenarios()
+            const converted = this.scenarios
                 .filter(s => s.action.value.includes("Сделай громче на 0?"))
                 .map(s => s.action.value.replace("Сделай громче на 0", "").length).sort();
 

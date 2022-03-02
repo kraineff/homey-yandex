@@ -32,12 +32,14 @@ export default class YandexQuasar {
     async send(speaker: Speaker, message: string, isTTS: boolean = false) {
         console.log(`[Quasar: ${speaker.id}] -> Выполнение команды -> ${message}`);
 
-        const scenarioId = this.scenarios.findByEncodedId(speaker.id)?.id || await this.scenarios.add(speaker.id);
-        let scenario = this.scenarios.findById(scenarioId)!;
+        const scenarioId = this.scenarios.getByEncodedId(speaker.id)?.id || await this.scenarios.add(speaker.id);
+        const oldScenario = this.scenarios.get(scenarioId)!;
+        
+        let scenario = JSON.parse(JSON.stringify(oldScenario));
         scenario.action.type = isTTS ? "phrase_action" : "text_action";
         scenario.action.value = message;
 
-        await this.scenarios.edit(scenario);
+        if (JSON.stringify(oldScenario) !== JSON.stringify(scenario)) await this.scenarios.edit(scenario);
         await this.scenarios.run(scenario);
     }
 }
