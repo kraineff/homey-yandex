@@ -146,22 +146,22 @@ export default class YandexScenarios extends EventEmitter {
         }));
 
         // Конвертация действий
-        let convert = this.scenarios.filter(s => s.action.value === "тихо");
+        let convert = this.scenarios.filter(s => s.action.value.toLowerCase() === "тихо");
         if (convert.length > 0) {
-            let converted = this.scenarios.filter(s => s.action.value.includes("Сделай громче на 0?"))
+            let converted = this.scenarios
+                .filter(s => s.action.value.includes("Сделай громче на 0?"))
                 .map(s => s.action.value.replace("Сделай громче на 0", "").length).sort();
 
-            let missing: any;
-            if (converted.length > 0) missing = missingNumbers(converted);
+            let start: number, missing: any;
+            if (converted.length > 0) {
+                missing = missingNumbers(converted);
+                start = converted[converted.length - 1];
+            }
+            else start = 0;
             
             convert.forEach(async s => {
-                let count: number
-                if (converted.length > 0) {
-                    count = missing.length > 0 ? missing.shift() : converted[converted.length - 1] + 1;
-                } else count = 1;
-
                 s.action.type = "text_action";
-                s.action.value = "Сделай громче на 0" + "?".repeat(count);
+                s.action.value = "Сделай громче на 0" + "?".repeat(missing && missing.length > 0 ? missing.shift() : start = start + 1);
                 await this.edit(s);
             });
         }
