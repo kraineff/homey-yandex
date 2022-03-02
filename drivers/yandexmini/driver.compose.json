@@ -1,0 +1,37 @@
+{
+    "id": "yandexmini",
+    "name": {
+        "en": "Station Mini",
+        "ru": "Станция Мини"
+    },
+    "class": "speaker",
+    "capabilities": ["volume_set", "volume_up", "volume_down", "speaker_playing", "speaker_next", "speaker_prev", "speaker_artist", "speaker_track", "speaker_duration", "speaker_position"],
+    "capabilitiesOptions": {
+        "volume_set": {
+            "min": 0,
+            "max": 10,
+            "step": 1
+        }
+    },
+    "images": {
+        "small": "/drivers/yandexmini/assets/images/small.png",
+        "large": "/drivers/yandexmini/assets/images/large.png",
+        "xlarge": "/drivers/yandexmini/assets/images/xlarge.png"
+    },
+    "platforms": ["local"],
+    "connectivity": ["lan", "cloud"],
+    "pair": [
+        {
+            "id": "auth"
+        },
+        {
+            "id": "list_devices",
+            "template": "list_devices",
+            "navigation": { "next": "add_devices" }
+        },
+        {
+            "id": "add_devices",
+            "template": "add_devices"
+        }
+    ]
+}

@@ -1,7 +1,7 @@
 {
+    "id": "prestigio_smart_mate",
     "name": {
-        "en": "Speaker",
-        "ru": "Колонка"
+        "en": "Prestigio Smartmate"
     },
     "class": "speaker",
     "capabilities": ["volume_set", "volume_up", "volume_down", "speaker_playing", "speaker_next", "speaker_prev", "speaker_artist", "speaker_track", "speaker_duration", "speaker_position"],
@@ -13,9 +13,9 @@
         }
     },
     "images": {
-        "small": "/drivers/speaker/assets/images/small.png",
-        "large": "/drivers/speaker/assets/images/large.png",
-        "xlarge": "/drivers/speaker/assets/images/xlarge.png"
+        "small": "/drivers/prestigio_smart_mate/assets/images/small.png",
+        "large": "/drivers/prestigio_smart_mate/assets/images/large.png",
+        "xlarge": "/drivers/prestigio_smart_mate/assets/images/xlarge.png"
     },
     "platforms": ["local"],
     "connectivity": ["lan", "cloud"],

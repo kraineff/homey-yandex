@@ -1,10 +1,10 @@
 import Homey, { DiscoveryResultMDNSSD } from "homey";
 
-import YandexSession from "../../lib/session";
-import YandexGlagol from "../../lib/glagol";
-import { YandexApp, Speaker } from "../../lib/types";
+import YandexSession from "../lib/session";
+import YandexGlagol from "../lib/glagol";
+import { YandexApp, Speaker } from "../lib/types";
 
-module.exports = class SpeakerDevice extends Homey.Device {
+export default class SpeakerDevice extends Homey.Device {
     app!: YandexApp;
     session!: YandexSession;
     glagol!: YandexGlagol;
@@ -46,18 +46,21 @@ module.exports = class SpeakerDevice extends Homey.Device {
     }
 
     async initSettings() {
-        let config = await this.app.quasar.devices.getSpeakerConfig(this.speaker);
-        if (config.led) {
-            await this.setSettings({
-                brightness: config.led.brightness.auto ? -1 : config.led.brightness.value,
-                music_equalizer_visualization: config.led.music_equalizer_visualization.auto ? "auto" : config.led.music_equalizer_visualization.style,
-                time_visualization: config.led.time_visualization.size
-            });
+        if (["yandexstation_2", "yandexmini_2"].includes(this.driver.id)) {
+            let config = await this.app.quasar.devices.getSpeakerConfig(this.speaker);
+            if (config.led) {
+                await this.setSettings({
+                    brightness: config.led.brightness.auto ? -1 : config.led.brightness.value,
+                    music_equalizer_visualization: config.led.music_equalizer_visualization.auto ? "auto" : config.led.music_equalizer_visualization.style,
+                    time_visualization: config.led.time_visualization.size
+                });
+            }
         }
+        
         await this.setSettings({
             x_token: this.homey.settings.get("x_token"),
             cookies: this.homey.settings.get("cookie")
-        })
+        });
     }
 
     async checkLocalConnection() {
@@ -164,9 +167,9 @@ module.exports = class SpeakerDevice extends Homey.Device {
     // При изменении настроек
     async onSettings({ oldSettings, newSettings, changedKeys }: { oldSettings: any; newSettings: any; changedKeys: string[]; }): Promise<string | void> {
         if (this.session.ready) {
-            let config = await this.app.quasar.devices.getSpeakerConfig(this.speaker);
+            if (["yandexstation_2", "yandexmini_2"].includes(this.driver.id)) {
+                let config = await this.app.quasar.devices.getSpeakerConfig(this.speaker);
 
-            if (config.led) {
                 changedKeys.forEach(key => {
                     let value = newSettings[key];
                     if (key === "brightness") {
@@ -190,7 +193,6 @@ module.exports = class SpeakerDevice extends Homey.Device {
             }
 
             if (!newSettings["x_token"] || !newSettings["cookies"]) this.session.emit("available", false);
-
             return this.homey.__("device.save_settings");
         } else {
             throw Error(this.homey.__("device.auth_required"));

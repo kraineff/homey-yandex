@@ -9,18 +9,18 @@
             {
                 "id": "brightness",
                 "type": "number",
+                "value": -1,
                 "label": {
                     "en": "Brightness",
                     "ru": "Яркость"
                 },
-                "value": -1,
-                "min": -1,
-                "max": 100,
-                "units": { "en": "%" },
                 "hint": {
                     "en": "Auto Brightness: -1",
                     "ru": "Автоматическая яркость: -1"
-                }
+                },
+                "min": -1,
+                "max": 100,
+                "units": { "en": "%" }
             },
             {
                 "id": "music_equalizer_visualization",
@@ -126,6 +126,7 @@
             {
                 "id": "x_token",
                 "type": "text",
+                "value": "",
                 "label": {
                     "en": "General Token",
                     "ru": "Основной токен"
@@ -138,6 +139,7 @@
             {
                 "id": "cookies",
                 "type": "text",
+                "value": "",
                 "label": {
                     "en": "Cookies",
                     "ru": "Файлы Cookie"

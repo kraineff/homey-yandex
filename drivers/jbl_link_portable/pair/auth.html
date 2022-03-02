@@ -1,0 +1,34 @@
+<script type="application/javascript">
+    Homey.emit("start").then((view => {
+        if (view === "list_devices") {
+            Homey.showView(view);
+        } else {
+            Homey.setTitle("Авторизация");
+            document.getElementById("wrapper").style.display = "flex";
+            document.getElementById("ya-button").href = view;
+
+            let check = setInterval(() => {
+                Homey.emit("check").then((result) => {
+                    if (result) {
+                        clearInterval(check);
+                        Homey.showView("list_devices");
+                    }
+                });
+            }, 5000);
+        }
+    }));
+</script>
+
+<style type="text/css">
+    #wrapper {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+    }
+</style>
+
+<div id="wrapper">
+    <p style="height: 100%;">Для авторизации нажмите на кнопку "Открыть", затем авторизуйтесь на сайте Яндекса и вернитесь в Homey.</p>
+    <a id="ya-button" class="button" style="text-decoration: none; text-align: center; background-color: #00c139; color: white;" href="#">Открыть</a>
+</div>

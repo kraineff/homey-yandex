@@ -92,7 +92,7 @@ export default class YandexDevices {
 
     async getSpeakerConfig(speaker: Speaker) {
         console.log(`[Устройства: ${speaker.id}] -> Получение настроек`);
-
+        
         let response = await this.session.request({
             method: "GET",
             url: "https://quasar.yandex.ru/get_device_config",

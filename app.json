@@ -70,75 +70,13 @@
         ],
         "id": "scenario_started"
       }
-    ],
-    "actions": [
-      {
-        "id": "text_to_speech",
-        "title": {
-          "en": "Text-to-Speech",
-          "ru": "Синтез речи (TTS)"
-        },
-        "titleFormatted": {
-          "en": "Say [[text]]",
-          "ru": "Произнести [[text]]"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=speaker"
-          },
-          {
-            "type": "text",
-            "name": "text",
-            "title": {
-              "en": "Text",
-              "ru": "Текст"
-            },
-            "placeholder": {
-              "en": "Hello, world!",
-              "ru": "Привет, мир!"
-            }
-          }
-        ]
-      },
-      {
-        "id": "send_command",
-        "title": {
-          "en": "Send a command",
-          "ru": "Выполнить команду"
-        },
-        "titleFormatted": {
-          "en": "Send a [[command]]",
-          "ru": "Выполнить [[command]]"
-        },
-        "args": [
-          {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=speaker"
-          },
-          {
-            "type": "text",
-            "name": "command",
-            "title": {
-              "en": "Command",
-              "ru": "Команда"
-            },
-            "placeholder": {
-              "en": "What's the weather like now",
-              "ru": "Какая сейчас погода"
-            }
-          }
-        ]
-      }
     ]
   },
   "drivers": [
     {
+      "id": "elari_a98",
       "name": {
-        "en": "Speaker",
-        "ru": "Колонка"
+        "en": "Elari SmartBeat"
       },
       "class": "speaker",
       "capabilities": [
@@ -161,9 +99,9 @@
         }
       },
       "images": {
-        "small": "/drivers/speaker/assets/images/small.png",
-        "large": "/drivers/speaker/assets/images/large.png",
-        "xlarge": "/drivers/speaker/assets/images/xlarge.png"
+        "small": "/drivers/elari_a98/assets/images/small.png",
+        "large": "/drivers/elari_a98/assets/images/large.png",
+        "xlarge": "/drivers/elari_a98/assets/images/xlarge.png"
       },
       "platforms": [
         "local"
@@ -188,7 +126,828 @@
           "template": "add_devices"
         }
       ],
-      "id": "speaker",
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jbl_link_music",
+      "name": {
+        "en": "JBL Link Music"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/jbl_link_music/assets/images/small.png",
+        "large": "/drivers/jbl_link_music/assets/images/large.png",
+        "xlarge": "/drivers/jbl_link_music/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "jbl_link_portable",
+      "name": {
+        "en": "JBL Link Portable"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/jbl_link_portable/assets/images/small.png",
+        "large": "/drivers/jbl_link_portable/assets/images/large.png",
+        "xlarge": "/drivers/jbl_link_portable/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lightcomm",
+      "name": {
+        "en": "DEXP Smartbox"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/lightcomm/assets/images/small.png",
+        "large": "/drivers/lightcomm/assets/images/large.png",
+        "xlarge": "/drivers/lightcomm/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "linkplay_a98",
+      "name": {
+        "en": "IRBIS A"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/linkplay_a98/assets/images/small.png",
+        "large": "/drivers/linkplay_a98/assets/images/large.png",
+        "xlarge": "/drivers/linkplay_a98/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "prestigio_smart_mate",
+      "name": {
+        "en": "Prestigio Smartmate"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/prestigio_smart_mate/assets/images/small.png",
+        "large": "/drivers/prestigio_smart_mate/assets/images/large.png",
+        "xlarge": "/drivers/prestigio_smart_mate/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wk7y",
+      "name": {
+        "en": "LG XBOOM AI ThinQ"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/wk7y/assets/images/small.png",
+        "large": "/drivers/wk7y/assets/images/large.png",
+        "xlarge": "/drivers/wk7y/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "yandexmicro",
+      "name": {
+        "en": "Station Lite",
+        "ru": "Станция Лайт"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/yandexmicro/assets/images/small.png",
+        "large": "/drivers/yandexmicro/assets/images/large.png",
+        "xlarge": "/drivers/yandexmicro/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "yandexmini",
+      "name": {
+        "en": "Station Mini",
+        "ru": "Станция Мини"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/yandexmini/assets/images/small.png",
+        "large": "/drivers/yandexmini/assets/images/large.png",
+        "xlarge": "/drivers/yandexmini/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "yandexmini_2",
+      "name": {
+        "en": "Station Mini 2",
+        "ru": "Станция Мини 2"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/yandexmini_2/assets/images/small.png",
+        "large": "/drivers/yandexmini_2/assets/images/large.png",
+        "xlarge": "/drivers/yandexmini_2/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
       "settings": [
         {
           "type": "group",
@@ -200,19 +959,19 @@
             {
               "id": "brightness",
               "type": "number",
+              "value": -1,
               "label": {
                 "en": "Brightness",
                 "ru": "Яркость"
               },
-              "value": -1,
+              "hint": {
+                "en": "Auto Brightness: -1",
+                "ru": "Автоматическая яркость: -1"
+              },
               "min": -1,
               "max": 100,
               "units": {
                 "en": "%"
-              },
-              "hint": {
-                "en": "Auto Brightness: -1",
-                "ru": "Автоматическая яркость: -1"
               }
             },
             {
@@ -319,6 +1078,7 @@
             {
               "id": "x_token",
               "type": "text",
+              "value": "",
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
@@ -331,6 +1091,310 @@
             {
               "id": "cookies",
               "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "yandexstation",
+      "name": {
+        "en": "Station",
+        "ru": "Станция"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/yandexstation/assets/images/small.png",
+        "large": "/drivers/yandexstation/assets/images/large.png",
+        "xlarge": "/drivers/yandexstation/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "yandexstation_2",
+      "name": {
+        "en": "Station Max",
+        "ru": "Станция Макс"
+      },
+      "class": "speaker",
+      "capabilities": [
+        "volume_set",
+        "volume_up",
+        "volume_down",
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_artist",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "min": 0,
+          "max": 10,
+          "step": 1
+        }
+      },
+      "images": {
+        "small": "/drivers/yandexstation_2/assets/images/small.png",
+        "large": "/drivers/yandexstation_2/assets/images/large.png",
+        "xlarge": "/drivers/yandexstation_2/assets/images/xlarge.png"
+      },
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "lan",
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "LED Screen",
+            "ru": "LED-экран"
+          },
+          "children": [
+            {
+              "id": "brightness",
+              "type": "number",
+              "value": -1,
+              "label": {
+                "en": "Brightness",
+                "ru": "Яркость"
+              },
+              "hint": {
+                "en": "Auto Brightness: -1",
+                "ru": "Автоматическая яркость: -1"
+              },
+              "min": -1,
+              "max": 100,
+              "units": {
+                "en": "%"
+              }
+            },
+            {
+              "id": "music_equalizer_visualization",
+              "type": "dropdown",
+              "value": "auto",
+              "label": {
+                "en": "Music Equalizer Visualization",
+                "ru": "Визуализация музыки"
+              },
+              "values": [
+                {
+                  "id": "auto",
+                  "label": {
+                    "en": "Auto",
+                    "ru": "Автоматически"
+                  }
+                },
+                {
+                  "id": "pads",
+                  "label": {
+                    "en": "Pads",
+                    "ru": "Плитки"
+                  }
+                },
+                {
+                  "id": "bricksSmall",
+                  "label": {
+                    "en": "Small Bricks",
+                    "ru": "Маленькие кирпичи"
+                  }
+                },
+                {
+                  "id": "barsBottom",
+                  "label": {
+                    "en": "Bottom Bars",
+                    "ru": "Полосы (снизу)"
+                  }
+                },
+                {
+                  "id": "barsCenter",
+                  "label": {
+                    "en": "Center Bars",
+                    "ru": "Полосы (по центру)"
+                  }
+                },
+                {
+                  "id": "flame",
+                  "label": {
+                    "en": "Flame",
+                    "ru": "Волна (снизу)"
+                  }
+                },
+                {
+                  "id": "waveCenter",
+                  "label": {
+                    "en": "Center Wave",
+                    "ru": "Волна (по центру)"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "time_visualization",
+              "type": "dropdown",
+              "value": "middle",
+              "label": {
+                "en": "Time Visualization",
+                "ru": "Размер часов"
+              },
+              "values": [
+                {
+                  "id": "small",
+                  "label": {
+                    "en": "Small",
+                    "ru": "Маленький"
+                  }
+                },
+                {
+                  "id": "middle",
+                  "label": {
+                    "en": "Medium",
+                    "ru": "Средний"
+                  }
+                },
+                {
+                  "id": "large",
+                  "label": {
+                    "en": "Large",
+                    "ru": "Большой"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              },
+              "hint": {
+                "en": "Remove to reauthorize",
+                "ru": "Удалите для повторной авторизации"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
