@@ -33,7 +33,8 @@ export default class SpeakerDriver extends Homey.Driver {
                 });
             } else await this.app.quasar.devices.update();
             
-            return this.app.quasar.devices.speakers.filter(speaker => speaker.quasar.platform === this.id)
+            return this.app.quasar.devices.speakers
+                .filter(speaker => speaker.quasar.platform === this.id)
                 .map(speaker => {
                     // Основа
                     let base: any = {
@@ -45,8 +46,8 @@ export default class SpeakerDriver extends Homey.Driver {
 
                     // Локальный режим
                     let discoveryResult: any = this.app.discoveryStrategy.getDiscoveryResults();
-                    if (Object.keys(discoveryResult).includes(speaker.quasar.id)) {
-                        let data: any = discoveryResult[speaker.quasar.id];
+                    if (Object.keys(discoveryResult).includes(this.id)) {
+                        let data: any = discoveryResult[this.id];
                         base.data["local_id"] = data.txt.deviceid;
                         base.store = {
                             address: data.address,
