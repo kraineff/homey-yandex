@@ -129,6 +129,10 @@
                 "label": {
                     "en": "General Token",
                     "ru": "Основной токен"
+                },
+                "hint": {
+                    "en": "Remove to reauthorize",
+                    "ru": "Удалите для повторной авторизации"
                 }
             },
             {
@@ -137,6 +141,10 @@
                 "label": {
                     "en": "Cookies",
                     "ru": "Файлы Cookie"
+                },
+                "hint": {
+                    "en": "Remove to reauthorize",
+                    "ru": "Удалите для повторной авторизации"
                 }
             }
         ]

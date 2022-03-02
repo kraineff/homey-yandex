@@ -189,7 +189,7 @@ module.exports = class SpeakerDevice extends Homey.Device {
                 await this.app.quasar.devices.setSpeakerConfig(this.speaker, config);
             }
 
-            if (!newSettings["x_token"] && !newSettings["cookies"]) this.session.emit("available", false);
+            if (!newSettings["x_token"] || !newSettings["cookies"]) this.session.emit("available", false);
 
             return this.homey.__("device.save_settings");
         } else {
