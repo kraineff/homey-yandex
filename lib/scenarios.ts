@@ -245,7 +245,6 @@ export default class YandexScenarios extends EventEmitter {
     }
 
     async close() {
-        // this.ready = false;
         if (this.connection?.connected) {
             console.log(`[Quasar] -> Остановка получения команд`);
             this.connection.close();
