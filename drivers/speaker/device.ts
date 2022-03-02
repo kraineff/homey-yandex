@@ -54,6 +54,10 @@ module.exports = class SpeakerDevice extends Homey.Device {
                 time_visualization: config.led.time_visualization.size
             });
         }
+        await this.setSettings({
+            x_token: this.homey.settings.get("x_token"),
+            cookies: this.homey.settings.get("cookie")
+        })
     }
 
     async checkLocalConnection() {
@@ -184,6 +188,8 @@ module.exports = class SpeakerDevice extends Homey.Device {
     
                 await this.app.quasar.devices.setSpeakerConfig(this.speaker, config);
             }
+
+            if (!newSettings["x_token"] && !newSettings["cookies"]) this.session.emit("available", false);
 
             return this.homey.__("device.save_settings");
         } else {
