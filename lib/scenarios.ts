@@ -172,8 +172,7 @@ export default class YandexScenarios extends EventEmitter {
             let start: number, missing: any;
             if (converted.length > 0) {
                 missing = missingNumbers(converted);
-                if (missing.length === 0) missing = [1];
-                start = converted[converted.length - 1];
+                start = missing && missing.length === 0 ? 0 : converted[converted.length - 1];
             }
             else start = 0;
             
