@@ -160,7 +160,7 @@ export default class YandexScenarios extends EventEmitter {
             icon: s.icon_url,
             device_id: s.steps[0]?.parameters?.launch_devices[0]?.id,
             id: s.id
-        }));
+        })).filter(s => ["text_action", "phrase_action"].includes(s.action.value));
 
         // Конвертация действий
         const convert = this.scenarios.filter(s => s.action.value.toLowerCase() === "тихо");
