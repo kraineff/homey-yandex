@@ -65,18 +65,11 @@ export default class YandexScenarios extends EventEmitter {
         await this.connect();
     }
 
-    findById = (scenarioId: string) => {
-        const scenario = this.scenarios.find(s => s.id === scenarioId);
-        return scenario ? JSON.parse(JSON.stringify(scenario)) : undefined;
-    };
-    findByEncodedId = (deviceId: string) => {
-        const scenario = this.scenarios.find(s => s.name === encode(deviceId));
-        return scenario ? JSON.parse(JSON.stringify(scenario)) : undefined;
-    };
-    findByAction = (action: string) => {
-        const scenario = this.scenarios.find(s => s.action.value === action);
-        return scenario ? JSON.parse(JSON.stringify(scenario)) : undefined;
-    };
+    getScenarios = (): Scenario[] => JSON.parse(JSON.stringify(this.scenarios));
+
+    findById = (scenarioId: string) => this.getScenarios().find(s => s.id === scenarioId);
+    findByEncodedId = (deviceId: string) => this.getScenarios().find(s => s.name === encode(deviceId));
+    findByAction = (action: string) => this.getScenarios().find(s => s.action.value === action);
 
     async add(deviceId: string): Promise<string> {
         console.log(`[Сценарии] -> Добавление системного сценария -> ${deviceId}`);
@@ -168,9 +161,9 @@ export default class YandexScenarios extends EventEmitter {
         }));
 
         // Конвертация действий
-        let convert = this.scenarios.filter(s => s.action.value.toLowerCase() === "тихо");
+        let convert = this.getScenarios().filter(s => s.action.value.toLowerCase() === "тихо");
         if (convert.length > 0) {
-            let converted = this.scenarios
+            let converted = this.getScenarios()
                 .filter(s => s.action.value.includes("Сделай громче на 0?"))
                 .map(s => s.action.value.replace("Сделай громче на 0", "").length).sort();
 
