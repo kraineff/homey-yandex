@@ -46,8 +46,8 @@ export default class SpeakerDriver extends Homey.Driver {
 
                     // Локальный режим
                     let discoveryResult: any = this.app.discoveryStrategy.getDiscoveryResults();
-                    if (Object.keys(discoveryResult).includes(this.id)) {
-                        let data: any = discoveryResult[this.id];
+                    if (Object.keys(discoveryResult).includes(speaker.quasar.id)) {
+                        let data: any = discoveryResult[speaker.quasar.id];
                         base.data["local_id"] = data.txt.deviceid;
                         base.store = {
                             address: data.address,
