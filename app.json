@@ -137,21 +137,19 @@
   "drivers": [
     {
       "id": "elari_a98",
-      "name": {
-        "en": "Elari SmartBeat"
-      },
+      "name": "Elari SmartBeat",
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -169,7 +167,6 @@
         "local"
       ],
       "connectivity": [
-        "lan",
         "cloud"
       ],
       "pair": [
@@ -228,21 +225,19 @@
     },
     {
       "id": "jbl_link_music",
-      "name": {
-        "en": "JBL Link Music"
-      },
+      "name": "JBL Link Music",
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -260,7 +255,6 @@
         "local"
       ],
       "connectivity": [
-        "lan",
         "cloud"
       ],
       "pair": [
@@ -319,21 +313,19 @@
     },
     {
       "id": "jbl_link_portable",
-      "name": {
-        "en": "JBL Link Portable"
-      },
+      "name": "JBL Link Portable",
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -351,7 +343,6 @@
         "local"
       ],
       "connectivity": [
-        "lan",
         "cloud"
       ],
       "pair": [
@@ -410,21 +401,19 @@
     },
     {
       "id": "lightcomm",
-      "name": {
-        "en": "DEXP Smartbox"
-      },
+      "name": "DEXP Smartbox",
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -442,7 +431,6 @@
         "local"
       ],
       "connectivity": [
-        "lan",
         "cloud"
       ],
       "pair": [
@@ -501,21 +489,19 @@
     },
     {
       "id": "linkplay_a98",
-      "name": {
-        "en": "IRBIS A"
-      },
+      "name": "IRBIS A",
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -533,7 +519,6 @@
         "local"
       ],
       "connectivity": [
-        "lan",
         "cloud"
       ],
       "pair": [
@@ -592,21 +577,19 @@
     },
     {
       "id": "prestigio_smart_mate",
-      "name": {
-        "en": "Prestigio Smartmate"
-      },
+      "name": "Prestigio Smartmate",
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -624,7 +607,6 @@
         "local"
       ],
       "connectivity": [
-        "lan",
         "cloud"
       ],
       "pair": [
@@ -683,21 +665,19 @@
     },
     {
       "id": "wk7y",
-      "name": {
-        "en": "LG XBOOM AI ThinQ"
-      },
+      "name": "LG XBOOM AI ThinQ",
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -715,7 +695,6 @@
         "local"
       ],
       "connectivity": [
-        "lan",
         "cloud"
       ],
       "pair": [
@@ -780,16 +759,16 @@
       },
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -807,8 +786,8 @@
         "local"
       ],
       "connectivity": [
-        "lan",
-        "cloud"
+        "cloud",
+        "lan"
       ],
       "pair": [
         {
@@ -872,16 +851,16 @@
       },
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -899,8 +878,8 @@
         "local"
       ],
       "connectivity": [
-        "lan",
-        "cloud"
+        "cloud",
+        "lan"
       ],
       "pair": [
         {
@@ -964,16 +943,16 @@
       },
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -991,8 +970,8 @@
         "local"
       ],
       "connectivity": [
-        "lan",
-        "cloud"
+        "cloud",
+        "lan"
       ],
       "pair": [
         {
@@ -1175,16 +1154,16 @@
       },
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -1202,8 +1181,8 @@
         "local"
       ],
       "connectivity": [
-        "lan",
-        "cloud"
+        "cloud",
+        "lan"
       ],
       "pair": [
         {
@@ -1267,16 +1246,16 @@
       },
       "class": "speaker",
       "capabilities": [
-        "volume_set",
-        "volume_up",
-        "volume_down",
+        "speaker_artist",
+        "speaker_track",
         "speaker_playing",
         "speaker_next",
         "speaker_prev",
-        "speaker_artist",
-        "speaker_track",
         "speaker_duration",
-        "speaker_position"
+        "speaker_position",
+        "volume_set",
+        "volume_up",
+        "volume_down"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -1294,8 +1273,8 @@
         "local"
       ],
       "connectivity": [
-        "lan",
-        "cloud"
+        "cloud",
+        "lan"
       ],
       "pair": [
         {

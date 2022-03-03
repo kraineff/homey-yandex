@@ -5,7 +5,10 @@
         "ru": "Станция Макс"
     },
     "class": "speaker",
-    "capabilities": ["volume_set", "volume_up", "volume_down", "speaker_playing", "speaker_next", "speaker_prev", "speaker_artist", "speaker_track", "speaker_duration", "speaker_position"],
+    "capabilities": [
+        "speaker_artist", "speaker_track", "speaker_playing", "speaker_next", "speaker_prev",
+        "speaker_duration", "speaker_position", "volume_set", "volume_up", "volume_down"
+    ],
     "capabilitiesOptions": {
         "volume_set": {
             "min": 0,
@@ -19,7 +22,7 @@
         "xlarge": "/drivers/yandexstation_2/assets/images/xlarge.png"
     },
     "platforms": ["local"],
-    "connectivity": ["lan", "cloud"],
+    "connectivity": ["cloud", "lan"],
     "pair": [
         {
             "id": "auth"

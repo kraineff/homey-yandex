@@ -1,6 +1,6 @@
 import YandexSession from "./session";
-import YandexDevices from "./devices";
-import YandexScenarios from "./scenarios";
+import YandexDevices from "./quasar/devices";
+import YandexScenarios from "./quasar/scenarios";
 import { Speaker } from "./types";
 
 export default class YandexQuasar {

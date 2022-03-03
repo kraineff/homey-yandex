@@ -1,11 +1,10 @@
-import YandexSession from "./session";
-import { Device, Speaker, SpeakerConfig } from "./types";
+import YandexSession from "../session";
+import { Device, Speaker, SpeakerConfig } from "../types";
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
 export default class YandexDevices {
     session: YandexSession;
-
     devices!: Device[];
     speakers!: Speaker[];
 
@@ -45,7 +44,7 @@ export default class YandexDevices {
             }
             return data;
         });
-
+        
         this.devices = all.filter(d => !("quasar" in d));
         this.speakers = all.filter(d => d.type.startsWith("devices.types.smart_speaker") && "quasar" in d);
     }

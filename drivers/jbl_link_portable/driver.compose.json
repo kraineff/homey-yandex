@@ -1,10 +1,11 @@
 {
     "id": "jbl_link_portable",
-    "name": {
-        "en": "JBL Link Portable"
-    },
+    "name": "JBL Link Portable",
     "class": "speaker",
-    "capabilities": ["volume_set", "volume_up", "volume_down", "speaker_playing", "speaker_next", "speaker_prev", "speaker_artist", "speaker_track", "speaker_duration", "speaker_position"],
+    "capabilities": [
+        "speaker_artist", "speaker_track", "speaker_playing", "speaker_next", "speaker_prev",
+        "speaker_duration", "speaker_position", "volume_set", "volume_up", "volume_down"
+    ],
     "capabilitiesOptions": {
         "volume_set": {
             "min": 0,
@@ -18,7 +19,7 @@
         "xlarge": "/drivers/jbl_link_portable/assets/images/xlarge.png"
     },
     "platforms": ["local"],
-    "connectivity": ["lan", "cloud"],
+    "connectivity": ["cloud"],
     "pair": [
         {
             "id": "auth"
@@ -31,6 +32,43 @@
         {
             "id": "add_devices",
             "template": "add_devices"
+        }
+    ],
+    "settings": [
+        {
+            "type": "group",
+            "label": {
+                "en": "Authorization Data",
+                "ru": "Данные авторизации"
+            },
+            "children": [
+                {
+                    "id": "x_token",
+                    "type": "text",
+                    "value": "",
+                    "label": {
+                        "en": "General Token",
+                        "ru": "Основной токен"
+                    },
+                    "hint": {
+                        "en": "Remove to reauthorize",
+                        "ru": "Удалите для повторной авторизации"
+                    }
+                },
+                {
+                    "id": "cookies",
+                    "type": "text",
+                    "value": "",
+                    "label": {
+                        "en": "Cookies",
+                        "ru": "Файлы Cookie"
+                    },
+                    "hint": {
+                        "en": "Remove to reauthorize",
+                        "ru": "Удалите для повторной авторизации"
+                    }
+                }
+            ]
         }
     ]
 }

@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import { client, connection } from "websocket";
-import YandexSession from "./session";
-import { Scenario } from "./types";
+import YandexSession from "../session";
+import { Scenario } from "../types";
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
