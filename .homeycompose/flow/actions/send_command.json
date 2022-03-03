@@ -1,0 +1,29 @@
+{
+    "title": {
+        "en": "Send a command",
+        "ru": "Выполнить команду"
+    },
+    "titleFormatted": {
+        "en": "Send a [[command]]",
+        "ru": "Выполнить [[command]]"
+    },
+    "args": [
+        {
+            "type": "text",
+            "name": "command",
+            "title": {
+                "en": "Command",
+                "ru": "Команда"
+            },
+            "placeholder": {
+                "en": "What's the weather like now",
+                "ru": "Какая сейчас погода"
+            }
+        },
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=elari_a98|jbl_link_music|jbl_link_portable|lightcomm|linkplay_a98|prestigio_smart_mate|wk7y|yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
+        }
+    ]
+}

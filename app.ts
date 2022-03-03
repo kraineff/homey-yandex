@@ -42,6 +42,18 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             if (status) await this.quasar.init();
         });
 
+        // Действия: ТТС и команда
+        this.homey.flow.getActionCard("text_to_speech").registerRunListener(async (args, state) => {
+            await this.quasar.send(args.device.speaker, args["text"], true);
+        });
+
+        this.homey.flow.getActionCard("send_command").registerRunListener(async (args, state) => {
+            const device = args.device;
+            const command = args["command"];
+
+            if (!device.isLocal) await this.quasar.send(device.speaker, command);
+            else await device.glagol.send({ command: "sendText", text: command });
+        });
 
         // Триггер: получена команда
         const scenarioStartedTrigger = this.homey.flow.getTriggerCard("scenario_started");

@@ -70,6 +70,68 @@
         ],
         "id": "scenario_started"
       }
+    ],
+    "actions": [
+      {
+        "title": {
+          "en": "Send a command",
+          "ru": "Выполнить команду"
+        },
+        "titleFormatted": {
+          "en": "Send a [[command]]",
+          "ru": "Выполнить [[command]]"
+        },
+        "args": [
+          {
+            "type": "text",
+            "name": "command",
+            "title": {
+              "en": "Command",
+              "ru": "Команда"
+            },
+            "placeholder": {
+              "en": "What's the weather like now",
+              "ru": "Какая сейчас погода"
+            }
+          },
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=elari_a98|jbl_link_music|jbl_link_portable|lightcomm|linkplay_a98|prestigio_smart_mate|wk7y|yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
+          }
+        ],
+        "id": "send_command"
+      },
+      {
+        "title": {
+          "en": "Text-to-Speech",
+          "ru": "Синтез речи (TTS)"
+        },
+        "titleFormatted": {
+          "en": "Say [[text]]",
+          "ru": "Произнести [[text]]"
+        },
+        "args": [
+          {
+            "type": "text",
+            "name": "text",
+            "title": {
+              "en": "Text",
+              "ru": "Текст"
+            },
+            "placeholder": {
+              "en": "Hello, world!",
+              "ru": "Привет, мир!"
+            }
+          },
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=elari_a98|jbl_link_music|jbl_link_portable|lightcomm|linkplay_a98|prestigio_smart_mate|wk7y|yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
+          }
+        ],
+        "id": "text_to_speech"
+      }
     ]
   },
   "drivers": [

@@ -1,0 +1,29 @@
+{
+    "title": {
+        "en": "Text-to-Speech",
+        "ru": "Синтез речи (TTS)"
+    },
+    "titleFormatted": {
+        "en": "Say [[text]]",
+        "ru": "Произнести [[text]]"
+    },
+    "args": [
+        {
+            "type": "text",
+            "name": "text",
+            "title": {
+                "en": "Text",
+                "ru": "Текст"
+            },
+            "placeholder": {
+                "en": "Hello, world!",
+                "ru": "Привет, мир!"
+            }
+        },
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=elari_a98|jbl_link_music|jbl_link_portable|lightcomm|linkplay_a98|prestigio_smart_mate|wk7y|yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
+        }
+    ]
+}
