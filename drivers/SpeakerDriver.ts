@@ -27,11 +27,8 @@ export default class SpeakerDriver extends Homey.Driver {
         });
 
         pair.setHandler("list_devices", async () => {
-            if (ready) {
-                await this.app.quasar.init().then(() => {
-                    this.app.session.emit("available", true);
-                });
-            } else await this.app.quasar.devices.update();
+            if (ready) await this.app.quasar.init().then(() => this.app.session.emit("available", true));
+            else await this.app.quasar.devices.update();
             
             return this.app.quasar.devices.speakers
                 .filter(speaker => speaker.quasar.platform === this.id)
