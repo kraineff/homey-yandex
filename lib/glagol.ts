@@ -31,10 +31,10 @@ export default class YandexGlagol extends EventEmitter {
         this.speaker = speaker;
         if (!this.local_token) await this.getToken();
 
-        this.connect(url);
+        await this.connect(url);
     }
 
-    connect(url: () => string) {
+    async connect(url: () => string) {
         this.rws = new ReconnectingWebSocket(url, [], { WebSocket: GlagolWebSocket });
         this.rws.addEventListener("open", () => this.send({ command: "softwareVersion" }));
         this.rws.addEventListener("message", event => {

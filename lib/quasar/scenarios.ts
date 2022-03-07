@@ -61,7 +61,7 @@ export default class YandexScenarios extends EventEmitter {
 
     async init() {
         await this.update();
-        this.connect()
+        await this.connect()
     }
 
     get = (scenarioId: string) => this.scenarios.find(s => s.id === scenarioId);
@@ -180,7 +180,7 @@ export default class YandexScenarios extends EventEmitter {
         }
     }
 
-    connect() {
+    async connect() {
         console.log(`[Сценарии] -> Запуск получения команд`);
 
         const urlProvider = async () => {
