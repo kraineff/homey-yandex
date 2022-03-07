@@ -1,102 +1,75 @@
 import EventEmitter from "events";
-import { client, connection } from "websocket";
-import { RequestOptions } from "https";
 import { v4 } from "uuid";
+import ReconnectingWebSocket from "reconnecting-websocket";
+import WebSocket from 'ws';
 
-import YandexSession from "./session";
 import { Speaker } from "./types";
+import Yandex from "./yandex";
+
+class GlagolWebSocket extends WebSocket {
+    constructor(address: string | URL, protocols?: string | string[]) {
+        super(address, protocols, {
+            rejectUnauthorized: false
+        });
+    }
+}
 
 export default class YandexGlagol extends EventEmitter {
-    session: YandexSession;
+    yandex: Yandex;
     speaker!: Speaker;
     local_token: string = "";
+    rws!: ReconnectingWebSocket;
 
-    connection?: connection;
-    reconnectTimer?: NodeJS.Timeout;
-
-    constructor(session: YandexSession) {
+    constructor(yandex: Yandex) {
         super();
-        this.session = session;
+        this.yandex = yandex;
     }
     
-    async init(speaker: Speaker) {
+    async init(speaker: Speaker, url: () => string) {
         console.log(`[Glagol: ${speaker.id}] -> Инициализация глагола`);
 
         this.speaker = speaker;
         if (!this.local_token) await this.getToken();
 
-        await this.close();
-        await this.connect();
+        this.connect(url);
     }
 
-    async reConnect() {
-        console.log(`[Glagol: ${this.speaker.id}] -> Перезапуск получения данных`);
-
-        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-        this.reconnectTimer = setTimeout(async () => {
-            await this.init(this.speaker);
-        }, 10000);
-    }
-
-    async connect() {
-        console.log(`[Glagol: ${this.speaker.id}] -> Запуск получения данных`);
-
-        const ws = new client();
-
-        ws.on("connect", async (connection: connection) => {
-            this.connection = connection;
-            
-            await this.send({ command: "softwareVersion" });
-
-            this.connection.on("message", message => {
-                if (message.type === "utf8") {
-                    let response = JSON.parse(message.utf8Data);
-                    this.emit(this.speaker.id, response);
-                }
-            });
-
-            this.connection.on("error", async () => await this.reConnect());
+    connect(url: () => string) {
+        this.rws = new ReconnectingWebSocket(url, [], { WebSocket: GlagolWebSocket });
+        this.rws.addEventListener("open", () => this.send({ command: "softwareVersion" }));
+        this.rws.addEventListener("message", event => {
+            const data = JSON.parse(event.data);
+            if (data) this.emit(this.speaker.id, data);
         });
-
-        ws.on("connectFailed", async () => await this.reConnect());
-
-        ws.connect(`wss://${this.speaker.local!.address}:${this.speaker.local!.port}`, undefined, undefined, undefined, <RequestOptions>{ rejectUnauthorized: false });
     }
 
-    async close() {
-        if (this.connection?.connected) {
-            console.log(`[Glagol: ${this.speaker.id}] -> Остановка получения данных`);
+    send(payload: any) {
+        console.log(`[Glagol: ${this.speaker.id}] -> Выполнение действия -> ${JSON.stringify(payload)}`);
 
-            this.connection.close();
-        }
+        this.rws.send(JSON.stringify({
+            conversationToken: this.local_token,
+            payload: payload,
+            id: v4(),
+            sentTime: Math.floor(new Date().getTime() / 1000)
+        }));
     }
 
-    async send(payload: any) {
-        if (this.connection?.connected) {
-            console.log(`[Glagol: ${this.speaker.id}] -> Выполнение действия -> ${JSON.stringify(payload)}`);
-
-            this.connection.send(JSON.stringify({
-                conversationToken: this.local_token,
-                payload: payload,
-                id: v4(),
-                sentTime: Math.floor(new Date().getTime() / 1000)
-            }));
-        }
+    close() {
+        console.log(`[Glagol: ${this.speaker.id}] -> Остановка получения данных`);
+        this.rws.close();
     }
 
     async getToken() {
         console.log(`[Glagol: ${this.speaker.id}] -> Получение локального токена`);
 
-        let response = await this.session.request({
-            method: "GET",
-            url: "https://quasar.yandex.net/glagol/token",
+        return this.yandex.get("https://quasar.yandex.net/glagol/token", {
             params: {
                 device_id: this.speaker.quasar.id,
                 platform: this.speaker.quasar.platform
             }
+        }).then(resp => {
+            if (resp.data?.status !== "ok") throw new Error();
+            this.local_token = resp.data.token;
         });
-
-        if (response.status !== "ok") throw response;
-        this.local_token = response.token;
     }
 }

@@ -1,12 +1,12 @@
 import Homey, { DiscoveryResultMDNSSD } from "homey";
 
-import YandexSession from "../lib/session";
 import YandexGlagol from "../lib/glagol";
 import { YandexApp, Speaker } from "../lib/types";
+import Yandex from "../lib/yandex";
 
 export default class SpeakerDevice extends Homey.Device {
     app!: YandexApp;
-    session!: YandexSession;
+    yandex!: Yandex;
     glagol!: YandexGlagol;
 
     speaker!: Speaker;
@@ -17,29 +17,30 @@ export default class SpeakerDevice extends Homey.Device {
 
     async onInit(): Promise<void> {
         this.app = <YandexApp>this.homey.app;
-        this.session = this.app.session;
-        this.glagol = new YandexGlagol(this.session);
+        this.yandex = this.app.yandex;
+        this.glagol = new YandexGlagol(this.yandex);
         this.image = await this.app.homey.images.createImage();
 
         await this.onDataListener();
         await this.onMultipleCapabilityListener();
 
-        if (this.session.ready) await this.init();
+        if (this.yandex.ready) await this.init();
         else await this.setUnavailable(this.homey.__("device.auth_required"));
 
-        this.session.on("available", async (status) => {
-            if (status) await this.init();
-            else {
-                await this.setUnavailable(this.homey.__("device.auth_required"));
-                await this.glagol.close();
-            }
-        })
+        this.yandex.on("ready", async () => {
+            await this.init();
+        });
+
+        this.yandex.on("authRequired", async () => {
+            await this.setUnavailable(this.homey.__("device.auth_required"));
+            await this.glagol.close();
+        });
     }
 
     async init() {
         await this.setAvailable();
         
-        this.speaker = this.app.quasar.devices.getSpeaker(this.getData()["id"])!;
+        this.speaker = this.yandex.devices.getSpeaker(this.getData()["id"])!;
 
         await this.initSettings();
         await this.checkLocalConnection();
@@ -47,7 +48,7 @@ export default class SpeakerDevice extends Homey.Device {
 
     async initSettings() {
         if (["yandexstation_2", "yandexmini_2"].includes(this.driver.id)) {
-            let config = await this.app.quasar.devices.getSpeakerConfig(this.speaker);
+            let config = await this.yandex.devices.getSpeakerConfig(this.speaker);
             if (config.led) {
                 await this.setSettings({
                     brightness: config.led.brightness.auto ? -1 : config.led.brightness.value,
@@ -62,31 +63,25 @@ export default class SpeakerDevice extends Homey.Device {
             cookies: this.homey.settings.get("cookie")
         });
     }
-
+    
     async checkLocalConnection() {
-        let connect = async (address: string, port: string) => {
-            if (this.getStoreValue("address") !== address || this.getStoreValue("port") !== port) {
+        if (this.getData()["local_id"]) {
+            const localUrl = () => `wss://${this.getStoreValue("address")}:${this.getStoreValue("port")}`;
+            const updateData = (address: string, port: string) => {
                 this.setStoreValue("address", address);
                 this.setStoreValue("port", port);
             }
+            await this.glagol.init(this.speaker, localUrl);
 
-            this.speaker = {...this.speaker, local: {
-                address: this.getStoreValue("address"),
-                port: this.getStoreValue("port")
-            }};
-            await this.glagol.init(this.speaker);
-        }
-
-        if (this.getData()["local_id"]) {
             try {
                 let discoveryResult = <DiscoveryResultMDNSSD>this.app.discoveryStrategy.getDiscoveryResult(this.getData()["local_id"]);
-                if (discoveryResult) await connect(discoveryResult.address, discoveryResult.port);
+                if (discoveryResult) updateData(discoveryResult.address, discoveryResult.port);
             } catch (e) {}
-        }
 
-        this.app.discoveryStrategy.on("result", async (discoveryResult: DiscoveryResultMDNSSD) => {
-            if (discoveryResult.id === this.getData()["local_id"]) await connect(discoveryResult.address, discoveryResult.port);
-        });
+            this.app.discoveryStrategy.on("result", async (discoveryResult: DiscoveryResultMDNSSD) => {
+                if (discoveryResult.id === this.getData()["local_id"]) updateData(discoveryResult.address, discoveryResult.port);
+            });
+        }
     }
 
     // При получении данных
@@ -127,18 +122,18 @@ export default class SpeakerDevice extends Homey.Device {
     // При изменении данных
     async onMultipleCapabilityListener() {
         this.registerCapabilityListener("volume_set", async (value) => {
-            if (!this.isLocal) await this.app.quasar.send(this.speaker, `громкость на ${value / 10}`);
+            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, `громкость на ${value / 10}`);
             else await this.glagol!.send({ command: "setVolume", volume: value / 10 });
         });
         this.registerCapabilityListener("volume_up", async () => {
-            if (!this.isLocal) await this.app.quasar.send(this.speaker, `громче`);
+            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, `громче`);
             else {
                 let volume = (this.getCapabilityValue("volume_set") + 1) / 10
                 if (volume <= 1) await this.glagol!.send({ command: "setVolume", volume: volume });
             }
         });
         this.registerCapabilityListener("volume_down", async () => {
-            if (!this.isLocal) await this.app.quasar.send(this.speaker, `тише`);
+            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, `тише`);
             else {
                 let volume = (this.getCapabilityValue("volume_set") - 1) / 10
                 if (volume >= 0) await this.glagol!.send({ command: "setVolume", volume: volume });
@@ -146,15 +141,15 @@ export default class SpeakerDevice extends Homey.Device {
         });
 
         this.registerCapabilityListener("speaker_playing", async (value) => {
-            if (!this.isLocal) await this.app.quasar.send(this.speaker, value ? "продолжить" : "пауза");
+            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, value ? "продолжить" : "пауза");
             else await this.glagol!.send({ command: value ? "play" : "stop" });
         });
         this.registerCapabilityListener("speaker_next", async () => {
-            if (!this.isLocal) await this.app.quasar.send(this.speaker, "следующий трек");
+            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, "следующий трек");
             else await this.glagol!.send({ command: "next" });
         });
         this.registerCapabilityListener("speaker_prev", async () => {
-            if (!this.isLocal) await this.app.quasar.send(this.speaker, "прошлый трек");
+            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, "прошлый трек");
             else await this.glagol!.send({ command: "prev" });
         });
     }
@@ -166,9 +161,9 @@ export default class SpeakerDevice extends Homey.Device {
 
     // При изменении настроек
     async onSettings({ oldSettings, newSettings, changedKeys }: { oldSettings: any; newSettings: any; changedKeys: string[]; }): Promise<string | void> {
-        if (this.session.ready) {
+        if (this.yandex.ready) {
             if (["yandexstation_2", "yandexmini_2"].includes(this.driver.id)) {
-                let config = await this.app.quasar.devices.getSpeakerConfig(this.speaker);
+                let config = await this.yandex.devices.getSpeakerConfig(this.speaker);
 
                 changedKeys.forEach(key => {
                     let value = newSettings[key];
@@ -189,10 +184,10 @@ export default class SpeakerDevice extends Homey.Device {
                     if (key === "time_visualization") config.led!.time_visualization.size = value;
                 });
     
-                await this.app.quasar.devices.setSpeakerConfig(this.speaker, config);
+                await this.yandex.devices.setSpeakerConfig(this.speaker, config);
             }
 
-            if (!newSettings["x_token"] || !newSettings["cookies"]) this.session.emit("available", false);
+            if (!newSettings["x_token"] || !newSettings["cookies"]) this.yandex.emit("authRequired");
             return this.homey.__("device.save_settings");
         } else {
             throw Error(this.homey.__("device.auth_required"));

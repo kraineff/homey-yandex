@@ -1,7 +1,8 @@
 import EventEmitter from "events";
-import { client, connection } from "websocket";
-import YandexSession from "../session";
-import { Scenario } from "../types";
+import { Scenario, Speaker } from "../types";
+import Yandex from "../yandex";
+import ReconnectingWebSocket from "reconnecting-websocket";
+import WebSocket from 'ws';
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
@@ -47,22 +48,20 @@ const SCENARIO_BASE = (data: any) => ({
 });
 
 export default class YandexScenarios extends EventEmitter {
-    session: YandexSession;
+    yandex: Yandex;
 
+    rawScenarios?: any[];
     scenarios!: Scenario[];
+    updateTimer?: NodeJS.Timeout;
 
-    scenarioTimer?: NodeJS.Timeout;
-    connection?: connection;
-    reconnectTimer?: NodeJS.Timeout;
-
-    constructor(session: YandexSession) {
+    constructor(yandex: Yandex) {
         super();
-        this.session = session;
+        this.yandex = yandex;
     }
 
     async init() {
         await this.update();
-        await this.connect();
+        await this.connect()
     }
 
     get = (scenarioId: string) => this.scenarios.find(s => s.id === scenarioId);
@@ -74,7 +73,21 @@ export default class YandexScenarios extends EventEmitter {
         found !== -1 ? this.scenarios[found] = scenario : this.scenarios.push(scenario);
     }
 
-    async add(deviceId: string): Promise<string> {
+    async send(speaker: Speaker, message: string, isTTS: boolean = false) {
+        console.log(`[Quasar: ${speaker.id}] -> Выполнение команды -> ${message}`);
+
+        const scenarioId = this.getByEncodedId(speaker.id)?.id || await this.add(speaker.id);
+        const oldScenario = this.get(scenarioId)!;
+        
+        let scenario = JSON.parse(JSON.stringify(oldScenario));
+        scenario.action.type = isTTS ? "phrase_action" : "text_action";
+        scenario.action.value = message;
+
+        await this.edit(scenario);
+        await this.run(scenario);
+    }
+
+    async add(deviceId: string) {
         console.log(`[Сценарии] -> Добавление системного сценария -> ${deviceId}`);
 
         const name = encode(deviceId);
@@ -88,64 +101,48 @@ export default class YandexScenarios extends EventEmitter {
             }
         }
 
-        let response = await this.session.request({
-            method: "POST",
-            url: `${USER_URL}/scenarios`,
-            data: SCENARIO_BASE(data)
+        return this.yandex.post(`${USER_URL}/scenarios`, { data: SCENARIO_BASE(data) }).then(resp => {
+            if (resp.data?.status !== "ok") throw new Error();
+            this.updateData(<Scenario>{ ...data, id: resp.data.scenario_id });
+            return resp.data.scenario_id;
         });
-
-        if (response?.status !== "ok") throw `Ошибка: ${response}`;
-
-        this.updateData(<Scenario>{ ...data, id: response.scenario_id });
-        return response.scenario_id;
     }
 
     async edit(scenario: Scenario) {
         console.log(`[Сценарии] -> Изменение сценария -> ${scenario.name}`);
 
-        let response = await this.session.request({
-            method: "PUT",
-            url: `${USER_URL}/scenarios/${scenario.id}`,
-            data: SCENARIO_BASE(scenario)
+        return this.yandex.put(`${USER_URL}/scenarios/${scenario.id}`, { data: SCENARIO_BASE(scenario) }).then(resp => {
+            if (resp.data?.status !== "ok") throw new Error();
+            this.updateData(scenario);
         });
-
-        if (response?.status !== "ok") throw `Ошибка: ${response.message}`;
-        this.updateData(scenario);
     }
 
     async run(scenario: Scenario) {
         console.log(`[Сценарии] -> Запуск сценария -> ${scenario.name}`);
 
-        let response = await this.session.request({
-            method: "POST",
-            url: `${USER_URL}/scenarios/${scenario.id}/actions`
+        return this.yandex.post(`${USER_URL}/scenarios/${scenario.id}/actions`).then(resp => {
+            if (resp.data?.status !== "ok") throw new Error();
         });
+    }
 
-        if (response?.status !== "ok") throw `Ошибка: ${response}`;
+    async getRaw() {
+        return this.yandex.get(`${USER_URL}/scenarios`).then(resp => {
+            if (resp.data?.status !== "ok") throw new Error();
+            return <any[]>resp.data.scenarios;
+        });
     }
 
     async update(scenarios: any[] = []) {
         console.log(`[Сценарии] -> Обновление сценариев`);
 
-        // Получение сценариев
-        if (scenarios.length === 0) {
-            let response = await this.session.request({
-                method: "GET",
-                url: `${USER_URL}/scenarios`
-            });
-            if (response?.status !== "ok") throw `Ошибка: ${response}`;
-            scenarios = response.scenarios;
-        }
-        
-        // Получение полных сценариев
-        let ids = scenarios.map(s => s.id);
+        if (scenarios.length === 0) await this.getRaw().then(s => scenarios = s);
 
-        let rawScenarios = await Promise.all(ids.map(async (id) => {
-            let response = await this.session.request({
-                method: "GET",
-                url: `${USER_URL}/scenarios/${id}/edit`
+        const ids = scenarios.map(s => s.id);
+        let rawScenarios = await Promise.all(ids.map(id => {
+            return this.yandex.get(`${USER_URL}/scenarios/${id}/edit`).then(resp => {
+                if (resp.data?.status !== "ok") throw new Error();
+                return resp.data.scenario;
             });
-            return response?.status === "ok" ? response.scenario: {};
         }));
 
         this.scenarios = rawScenarios.map(s => ({
@@ -153,9 +150,9 @@ export default class YandexScenarios extends EventEmitter {
             trigger: s.triggers[0]?.value,
             action: {
                 type: s.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.instance ||
-                      s.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.instance,
+                    s.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.instance,
                 value: s.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.value ||
-                       s.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.value
+                    s.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.value
             },
             icon: s.icon_url,
             device_id: s.steps[0]?.parameters?.launch_devices[0]?.id,
@@ -172,82 +169,41 @@ export default class YandexScenarios extends EventEmitter {
             let start: number, missing: any;
             if (converted.length > 0) {
                 missing = missingNumbers(converted);
-                start = missing && missing.length === 0 ? 0 : converted[converted.length - 1];
-            }
-            else start = 0;
-            
+                start = converted[converted.length - 1];
+            } else start = 0;
+
             convert.forEach(async s => {
                 s.action.type = "text_action";
-                s.action.value = "Сделай громче на 0" + "?".repeat(missing && missing.length > 0 ? missing.shift() : start = start + 1);
+                s.action.value = "Сделай громче на 0" + "?".repeat(missing && missing.length > 0 ? missing.shift() : start += 1);
                 await this.edit(s);
             });
         }
     }
 
     async connect() {
-        console.log(`[Сценарии] -> Запуск получения команд`);
-
-        // Получение ссылки
-        let response = await this.session.request({
-            method: "GET",
-            url: "https://iot.quasar.yandex.ru/m/v3/user/devices"
-        });
-        if (response?.status !== "ok") throw `Ошибка: ${response}`;
-
-        // Подключение
-        if (this.connection?.connected) this.connection.close();
-        const ws = new client();
-
-        ws.on("connect", (connection: connection) => {
-            this.connection = connection;
-            
-            this.connection.on("message", async (message) => {
-                if (message.type === "utf8") {
-                    let response = JSON.parse(message.utf8Data);
-
-                    if (response.operation === "update_scenario_list") {
-                        if (this.scenarioTimer) clearTimeout(this.scenarioTimer);
-                        this.scenarioTimer = setTimeout(async () => {
-                            await this.update(JSON.parse(response.message).scenarios);
-                        }, 5000);
-                    }
-                    
-                    if (response.operation === "update_states") {
-                        (<any[]>JSON.parse(response.message).updated_devices)
-                            .filter(d => {
-                                if (!d.hasOwnProperty("capabilities")) return false;
-                                return (<any[]>d.capabilities).every(c => {
-                                    if (!c.hasOwnProperty("state")) return false;
-                                    if (c.type !== "devices.capabilities.quasar.server_action") return false;
-                                    return true;
-                                })
-                            })
-                            .forEach(d => this.emit("scenario_started", d));
-                    }
-                }
+        const urlProvider = async () => {
+            return this.yandex.get("https://iot.quasar.yandex.ru/m/v3/user/devices").then(resp => {
+                if (resp.data?.status !== "ok") throw new Error();
+                return <string>resp.data.updates_url;
             });
-
-            this.connection.on("error", async () => await this.reConnect());
-        });
-
-        ws.on("connectFailed", async () => await this.reConnect());
-
-        ws.connect(response.updates_url);
-    }
-
-    async reConnect() {
-        console.log(`[Quasar] -> Перезапуск получения команд`);
-
-        if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-        this.reconnectTimer = setTimeout(async () => {
-            await this.connect();
-        }, 10000);
-    }
-
-    async close() {
-        if (this.connection?.connected) {
-            console.log(`[Quasar] -> Остановка получения команд`);
-            this.connection.close();
         }
+
+        const rws = new ReconnectingWebSocket(urlProvider, [], { WebSocket: WebSocket });
+        //@ts-ignore
+        rws.addEventListener("message", async (event) => {
+            const data = JSON.parse(event.data);
+            if (data.operation === "update_scenario_list") await this.update(JSON.parse(data.message).scenarios);
+            if (data.operation === "update_states") {
+                const devices: any[] = JSON.parse(data.message).updated_devices;
+                devices.filter(d => {
+                    if (!d.hasOwnProperty("capabilities")) return false;
+                    return (<any[]>d.capabilities).every(c => {
+                        if (!c.hasOwnProperty("state")) return false;
+                        if (c.type !== "devices.capabilities.quasar.server_action") return false;
+                        return true;
+                    })
+                }).forEach(d => this.emit("scenario_started", d));
+            }
+        });
     }
 }

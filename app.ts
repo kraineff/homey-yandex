@@ -1,58 +1,42 @@
 import Homey from "homey";
 
-import YandexSession from "./lib/session";
-import YandexQuasar from "./lib/quasar";
 import { YandexApp } from "./lib/types";
+import Yandex from "./lib/yandex";
 
 module.exports = class YandexAlice extends Homey.App implements YandexApp {
-    session!: YandexSession;
-    quasar!: YandexQuasar;
+    yandex!: Yandex;
     discoveryStrategy = this.homey.discovery.getStrategy("yandex_station");
 
     async onInit() {
-        this.session = new YandexSession();
-        this.quasar = new YandexQuasar(this.session);
-
-        // При обновлении статуса сессии
-        this.session.on("available", async (status) => {
-            console.log(status ? "[Session] -> Успешная авторизация" : "[Приложение] -> Требуется повторная авторизация");
-
-            if (!status) {
-                if (this.quasar.ready) await this.quasar.close();
-                ["x_token", "cookie", "music_token"].forEach(key => this.homey.settings.set(key, ""));
-            }
-        });
-
-        // При обновлении данных сессии
-        this.session.on("update", (data) => {
-            if (data) {
-                Object.keys(data).forEach(key => {
-                    console.log(`[Приложение] -> Сохранение ${key}`);
-                    this.homey.settings.set(key, data[key]);
-                });
-            }
-        });
-
-        // Подключение к сессии
-        await this.session.init(
+        this.yandex = new Yandex(
             this.homey.settings.get("x_token") || "",
             this.homey.settings.get("cookie") || "",
             this.homey.settings.get("music_token") || ""
-        ).then(async (status) => {
-            if (status) await this.quasar.init();
+        );
+
+        this.yandex.on("authRequired", () => {
+            // ["x_token", "cookie", "music_token"].forEach(key => this.homey.settings.set(key, ""));
         });
 
+        this.yandex.on("update", data => {
+            Object.keys(data).forEach(key => {
+                console.log(`[Приложение] -> Сохранение ${key}`);
+                this.homey.settings.set(key, data[key])
+            });
+        });
+
+        await this.yandex.connect();
 
         // Действия: ТТС и команда
         this.homey.flow.getActionCard("text_to_speech").registerRunListener(async (args, state) => {
-            await this.quasar.send(args.device.speaker, args["text"], true);
+            await this.yandex.scenarios.send(args.device.speaker, args["text"], true);
         });
 
         this.homey.flow.getActionCard("send_command").registerRunListener(async (args, state) => {
             const device = args.device;
             const command = args["command"];
 
-            if (!device.isLocal) await this.quasar.send(device.speaker, command);
+            if (!device.isLocal) await this.yandex.scenarios.send(device.speaker, command);
             else await device.glagol.send({ command: "sendText", text: command });
         });
 
@@ -60,7 +44,7 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
         const scenarioStartedTrigger = this.homey.flow.getTriggerCard("scenario_started");
         scenarioStartedTrigger.registerRunListener(async (args, state) => args.scenario.name === state.name);
         scenarioStartedTrigger.registerArgumentAutocompleteListener("scenario", async (query, args) => {
-            const scenarios = this.quasar.scenarios.scenarios
+            const scenarios = this.yandex.scenarios.scenarios
                 .filter(s => !s.name.startsWith("ХОМЯК")).map(s => ({
                     name: s.name,
                     description: `${this.homey.__("scenario_phrase")}: ${s.trigger}`,
@@ -70,8 +54,8 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             return <any>scenarios.filter(result => result.name.toLowerCase().includes(query.toLowerCase()));
         })
 
-        this.quasar.scenarios.on("scenario_started", (data) => {
-            const scenario = this.quasar.scenarios.getByAction(data.capabilities[0].state.value);
+        this.yandex.scenarios.on("scenario_started", (data) => {
+            const scenario = this.yandex.scenarios.getByAction(data.capabilities[0].state.value);
             if (scenario) scenarioStartedTrigger.trigger(undefined, scenario);
         });
     }

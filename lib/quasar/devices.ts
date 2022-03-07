@@ -1,15 +1,15 @@
-import YandexSession from "../session";
 import { Device, Speaker, SpeakerConfig } from "../types";
+import Yandex from "../yandex";
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
 export default class YandexDevices {
-    session: YandexSession;
+    yandex: Yandex;
     devices!: Device[];
     speakers!: Speaker[];
 
-    constructor(session: YandexSession) {
-        this.session = session;
+    constructor(yandex: Yandex) {
+        this.yandex = yandex;
     }
 
     async init() {
@@ -19,34 +19,32 @@ export default class YandexDevices {
     getSpeaker = (deviceId: string) => this.speakers.find(s => s.id === deviceId);
 
     async update() {
-        console.log("[Устройства] -> Обновление устройств");
+        console.log("[Устройства] Обновление устройств");
 
-        let response = await this.session.request({
-            method: "GET",
-            url: `${USER_URL}/devices`
+        return this.yandex.get(`${USER_URL}/devices`).then(resp => {
+            if (resp.data?.status !== "ok") throw new Error();
+
+            let rawDevices: any[] = [];
+            (<any[]>resp.data.rooms).forEach(room => (<any[]>room["devices"]).forEach(device => rawDevices.push(device)));
+
+            const all = [...rawDevices, ...resp.data.speakers, ...resp.data.unconfigured_devices].map(device => {
+                let data: any = {
+                    id: device.id,
+                    name: device.name,
+                    type: device.type,
+                    icon: device.icon_url
+                }
+    
+                if ("quasar_info" in device) data.quasar = {
+                    id: device.quasar_info.device_id,
+                    platform: device.quasar_info.platform
+                }
+                return data;
+            });
+
+            this.devices = all.filter(d => !("quasar" in d));
+            this.speakers = all.filter(d => d.type.startsWith("devices.types.smart_speaker") && "quasar" in d);
         });
-        if (response?.status !== "ok") throw `Ошибка: ${response}`;
-
-        let rawDevices: any[] = [];
-        (<any[]>response.rooms).forEach(room => (<any[]>room["devices"]).forEach(device => rawDevices.push(device)));
-
-        const all = [...rawDevices, ...response.speakers, ...response.unconfigured_devices].map(device => {
-            let data: any = {
-                id: device.id,
-                name: device.name,
-                type: device.type,
-                icon: device.icon_url
-            }
-
-            if ("quasar_info" in device) data.quasar = {
-                id: device.quasar_info.device_id,
-                platform: device.quasar_info.platform
-            }
-            return data;
-        });
-        
-        this.devices = all.filter(d => !("quasar" in d));
-        this.speakers = all.filter(d => d.type.startsWith("devices.types.smart_speaker") && "quasar" in d);
     }
 
     async action(deviceId: string, actions: any ) {
@@ -81,46 +79,32 @@ export default class YandexDevices {
             _actions.push({ "type": type, "state": state });
         })
 
-        let response = await this.session.request({
-            method: "POST",
-            url: `${USER_URL}/devices/${deviceId}/actions`,
+        return this.yandex.post(`${USER_URL}/devices/${deviceId}/actions`, {
             data: { "actions": _actions }
+        }).then(resp => {
+            if (resp.data?.status !== "ok") throw new Error();
         });
-        if (response?.status !== "ok") throw `Ошибка: ${response}`;
     }
 
     async getSpeakerConfig(speaker: Speaker) {
         console.log(`[Устройства: ${speaker.id}] -> Получение настроек`);
-        
-        let response = await this.session.request({
-            method: "GET",
-            url: "https://quasar.yandex.ru/get_device_config",
-            params: { "device_id": speaker.quasar.id, "platform": speaker.quasar.platform }
-        });
-        if (response?.status !== "ok") throw `Ошибка: ${response}`;
 
-        return <SpeakerConfig>response.config;
+        return this.yandex.get("https://quasar.yandex.ru/get_device_config", {
+            params: { "device_id": speaker.quasar.id, "platform": speaker.quasar.platform }
+        }).then(resp => {
+            if (resp.data?.status !== "ok") throw new Error();
+            return <SpeakerConfig>resp.data.config;
+        });
     }
 
     async setSpeakerConfig(speaker: Speaker, config: SpeakerConfig) {
         console.log(`[Устройства: ${speaker.id}] -> Установка настроек`);
 
-        let response = await this.session.request({
-            method: "POST",
-            url: "https://quasar.yandex.ru/set_device_config",
+        return this.yandex.post("https://quasar.yandex.ru/set_device_config", {
             params: { "device_id": speaker.quasar.id, "platform": speaker.quasar.platform },
             data: config
+        }).then(resp => {
+            if (resp.data?.status !== "ok") throw new Error();
         });
-        if (response?.status !== "ok") throw `Ошибка: ${response}`;
     }
-
-    // async getDevice(deviceId: string) {
-    //     let response = await this.session.request({
-    //         method: "GET",
-    //         url: `${USER_URL}/devices/${deviceId}`
-    //     });
-    //     if (response?.status !== "ok") throw `Ошибка: ${response}`;
-
-    //     return response;
-    // }
 }

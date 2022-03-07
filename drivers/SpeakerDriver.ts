@@ -1,15 +1,15 @@
 import Homey from "homey";
 
-import YandexSession from "../lib/session";
 import { YandexApp } from "../lib/types";
+import Yandex from "../lib/yandex";
 
 export default class SpeakerDriver extends Homey.Driver {
     app!: YandexApp;
-    session!: YandexSession;
+    yandex!: Yandex;
 
     async onInit(): Promise<void> {
         this.app = <YandexApp>this.homey.app;
-        this.session = this.app.session;
+        this.yandex = this.app.yandex;
     }
     
     onPair(pair: Homey.Driver.PairSession) {
@@ -17,20 +17,20 @@ export default class SpeakerDriver extends Homey.Driver {
 
         // Начальный экран
         pair.setHandler("start", async () => {
-            return !this.session.ready ? await this.session.getAuthUrl() : "list_devices";
+            return !this.yandex.ready ? await this.yandex.getAuthUrl() : "list_devices";
         });
 
         // Проверка авторизации
         pair.setHandler("check", async () => {
-            ready = await this.session.checkAuth();
+            ready = await this.yandex.checkAuth();
             return ready;
         });
 
         pair.setHandler("list_devices", async () => {
-            if (ready) await this.app.quasar.init().then(() => this.app.session.emit("available", true));
-            else await this.app.quasar.devices.update();
+            if (ready) await this.yandex.connect();
+            else await this.yandex.devices.update();
             
-            return this.app.quasar.devices.speakers
+            return this.yandex.devices.speakers
                 .filter(speaker => speaker.quasar.platform === this.id)
                 .map(speaker => {
                     // Основа
