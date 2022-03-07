@@ -10,12 +10,12 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
     async onInit() {
         this.yandex = new Yandex(
             this.homey.settings.get("x_token") || "",
-            this.homey.settings.get("cookie") || "",
+            this.homey.settings.get("cookies") || "",
             this.homey.settings.get("music_token") || ""
         );
 
         this.yandex.on("authRequired", () => {
-            // ["x_token", "cookie", "music_token"].forEach(key => this.homey.settings.set(key, ""));
+            ["x_token", "cookies", "music_token"].forEach(key => this.homey.settings.set(key, ""));
         });
 
         this.yandex.on("update", data => {

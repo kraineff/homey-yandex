@@ -60,7 +60,7 @@ export default class SpeakerDevice extends Homey.Device {
         
         await this.setSettings({
             x_token: this.homey.settings.get("x_token"),
-            cookies: this.homey.settings.get("cookie")
+            cookies: this.homey.settings.get("cookies")
         });
     }
     
