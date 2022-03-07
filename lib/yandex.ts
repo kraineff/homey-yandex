@@ -35,7 +35,10 @@ export default class Yandex extends EventEmitter {
         });
 
         this.on("ready", () => this.ready = true);
-        this.on("authRequired", async () => this.ready = false);
+        this.on("authRequired", async () => {
+            this.scenarios.close();
+            this.ready = false;
+        });
     }
 
     async connect() {

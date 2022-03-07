@@ -52,7 +52,7 @@ export default class YandexScenarios extends EventEmitter {
 
     rawScenarios?: any[];
     scenarios!: Scenario[];
-    updateTimer?: NodeJS.Timeout;
+    rws!: ReconnectingWebSocket;
 
     constructor(yandex: Yandex) {
         super();
@@ -61,7 +61,7 @@ export default class YandexScenarios extends EventEmitter {
 
     async init() {
         await this.update();
-        await this.connect()
+        this.connect()
     }
 
     get = (scenarioId: string) => this.scenarios.find(s => s.id === scenarioId);
@@ -180,7 +180,9 @@ export default class YandexScenarios extends EventEmitter {
         }
     }
 
-    async connect() {
+    connect() {
+        console.log(`[Сценарии] -> Запуск получения команд`);
+
         const urlProvider = async () => {
             return this.yandex.get("https://iot.quasar.yandex.ru/m/v3/user/devices").then(resp => {
                 if (resp.data?.status !== "ok") throw new Error();
@@ -188,9 +190,9 @@ export default class YandexScenarios extends EventEmitter {
             });
         }
 
-        const rws = new ReconnectingWebSocket(urlProvider, [], { WebSocket: WebSocket });
+        this.rws = new ReconnectingWebSocket(urlProvider, [], { WebSocket: WebSocket });
         //@ts-ignore
-        rws.addEventListener("message", async (event) => {
+        this.rws.addEventListener("message", async (event) => {
             const data = JSON.parse(event.data);
             if (data.operation === "update_scenario_list") await this.update(JSON.parse(data.message).scenarios);
             if (data.operation === "update_states") {
@@ -205,5 +207,10 @@ export default class YandexScenarios extends EventEmitter {
                 }).forEach(d => this.emit("scenario_started", d));
             }
         });
+    }
+
+    close() {
+        console.log(`[Сценарии] -> Остановка получения команд`);
+        if (this.rws) this.rws.close();
     }
 }

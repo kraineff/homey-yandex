@@ -43,6 +43,11 @@ export default class YandexGlagol extends EventEmitter {
         });
     }
 
+    close() {
+        console.log(`[Glagol: ${this.speaker.id}] -> Остановка получения данных`);
+        if (this.rws) this.rws.close();
+    }
+
     send(payload: any) {
         console.log(`[Glagol: ${this.speaker.id}] -> Выполнение действия -> ${JSON.stringify(payload)}`);
 
@@ -52,11 +57,6 @@ export default class YandexGlagol extends EventEmitter {
             id: v4(),
             sentTime: Math.floor(new Date().getTime() / 1000)
         }));
-    }
-
-    close() {
-        console.log(`[Glagol: ${this.speaker.id}] -> Остановка получения данных`);
-        this.rws.close();
     }
 
     async getToken() {
