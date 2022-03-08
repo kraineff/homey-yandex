@@ -1,0 +1,52 @@
+{   
+    "highlight": true,
+    "title": {
+        "en": "Local Text-to-Speech",
+        "ru": "Локальный синтез речи"
+    },
+    "titleFormatted": {
+        "en": "Say [[text]] with volume [[volume]]",
+        "ru": "Произнести [[text]] с громкостью [[volume]]"
+    },
+    "args": [
+        {
+            "type": "text",
+            "name": "text",
+            "title": {
+                "en": "Text",
+                "ru": "Текст"
+            },
+            "placeholder": {
+                "en": "Text",
+                "ru": "Текст"
+            }
+        },
+        {
+            "type": "dropdown",
+            "name": "volume",
+            "title": {
+                "en": "Volume",
+                "ru": "Громкость"
+            },
+            "values": [
+                { "id": "-1", "label": { "en": "Default", "ru": "По умолчанию" } },
+                { "id": "0", "label": { "en": "0" } },
+                { "id": "1", "label": { "en": "1" } },
+                { "id": "2", "label": { "en": "2" } },
+                { "id": "3", "label": { "en": "3" } },
+                { "id": "4", "label": { "en": "4" } },
+                { "id": "5", "label": { "en": "5" } },
+                { "id": "6", "label": { "en": "6" } },
+                { "id": "7", "label": { "en": "7" } },
+                { "id": "8", "label": { "en": "8" } },
+                { "id": "9", "label": { "en": "9" } },
+                { "id": "10", "label": { "en": "10" } }
+            ]
+        },
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
+        }
+    ]
+}

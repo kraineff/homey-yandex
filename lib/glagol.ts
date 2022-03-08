@@ -39,7 +39,11 @@ export default class YandexGlagol extends EventEmitter {
         this.rws.addEventListener("open", () => this.send({ command: "softwareVersion" }));
         this.rws.addEventListener("message", event => {
             const data = JSON.parse(event.data);
-            if (data) this.emit(this.speaker.id, data);
+            if (data?.state) this.emit(this.speaker.id, data.state);
+        });
+        //@ts-ignore
+        this.rws.addEventListener("close", async event => {
+            if (event.code === 4000) await this.getToken();
         });
     }
 
@@ -55,8 +59,27 @@ export default class YandexGlagol extends EventEmitter {
             conversationToken: this.local_token,
             payload: payload,
             id: v4(),
-            sentTime: Math.floor(new Date().getTime() / 1000)
+            sentTime: Date.now()
         }));
+    }
+
+    say(text: string) {
+        const payload = {
+            command: "serverAction",
+            serverActionEventPayload: {
+                type: "server_action",
+                name: "update_form",
+                payload: {
+                    form_update: {
+                        name: "personal_assistant.scenarios.repeat_after_me",
+                        slots: [{type: "string", name: "request", value: text}]
+                    },
+                    resubmit: true
+                }
+            }
+        }
+
+        this.send(payload);
     }
 
     async getToken() {

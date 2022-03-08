@@ -3,6 +3,7 @@ import Homey, { DiscoveryResultMDNSSD } from "homey";
 import YandexGlagol from "../lib/glagol";
 import { YandexApp, Speaker } from "../lib/types";
 import Yandex from "../lib/yandex";
+import { diff } from "deep-object-diff";
 
 export default class SpeakerDevice extends Homey.Device {
     app!: YandexApp;
@@ -11,15 +12,19 @@ export default class SpeakerDevice extends Homey.Device {
 
     speaker!: Speaker;
     isLocal: boolean = false;
+    lastState: any = {};
+
+    waitForIdle: boolean = false;
+    savedVolumeLevel?: number;
 
     image!: Homey.Image;
-    latestImageUrl: string = "";
 
     async onInit(): Promise<void> {
         this.app = <YandexApp>this.homey.app;
         this.yandex = this.app.yandex;
         this.glagol = new YandexGlagol(this.yandex);
         this.image = await this.app.homey.images.createImage();
+        await this.setAlbumArtImage(this.image);
 
         await this.onDataListener();
         await this.onMultipleCapabilityListener();
@@ -71,7 +76,9 @@ export default class SpeakerDevice extends Homey.Device {
                 this.setStoreValue("address", address);
                 this.setStoreValue("port", port);
             }
-            await this.glagol.init(this.speaker, localUrl);
+            await this.glagol.init(this.speaker, localUrl).then(() => {
+                this.isLocal = true;
+            });
 
             try {
                 let discoveryResult = <DiscoveryResultMDNSSD>this.app.discoveryStrategy.getDiscoveryResult(this.getData()["local_id"]);
@@ -86,36 +93,29 @@ export default class SpeakerDevice extends Homey.Device {
 
     // При получении данных
     async onDataListener() {
-        this.glagol.on(this.getData()["id"], async data => {
-            let state = data?.state;
-            if (state) {
-                if ("volume" in state) await this.setCapabilityValue("volume_set", state.volume * 10);
-                if ("playing" in state) await this.setCapabilityValue("speaker_playing", state.playing);
-                if ("subtitle" in state.playerState) await this.setCapabilityValue("speaker_artist", state.playerState.subtitle);
-                if ("title" in state.playerState) await this.setCapabilityValue("speaker_track", state.playerState.title);
-                if ("duration" in state.playerState) await this.setCapabilityValue("speaker_duration", state.playerState.duration);
-                if ("progress" in state.playerState) await this.setCapabilityValue("speaker_position", state.playerState.progress);
+        this.glagol.on(this.getData()["id"], async state => {
+            delete state.timeSinceLastVoiceActivity;
+            delete state.playerState.duration;
+            delete state.playerState.progress;
+            const difference: any = diff(this.lastState, state);
+            if (!Object.keys(difference).length) return;
+            this.lastState = state;
 
-                if (state.playerState?.extra?.coverURI) {
-                    const url = `https://${(<string>data.state.playerState.extra.coverURI).replace("%%", "400x400")}`;
-                    if (this.latestImageUrl !== url) {
-                        this.image.setUrl(url);
-                        await this.image.update();
-                        
-                        if (!this.latestImageUrl) await this.setAlbumArtImage(this.image);
-                        this.latestImageUrl = url;
-                    }
-                }
-
-                if (!this.getAvailable()) await this.setAvailable();
-                this.isLocal = true;
+            if (this.lastState.aliceState === "LISTENING" && this.waitForIdle) {
+                if (this.savedVolumeLevel !== undefined) this.glagol.send({ command: "setVolume", volume: this.savedVolumeLevel });
+                this.waitForIdle = false;
             }
-        });
 
-        this.glagol.on(this.getData()["id"] + "_error", error => {
-            console.log("Поймал ошибку")
-            console.log(error);
-            this.isLocal = false;
+            if (difference.volume !== undefined) await this.setCapabilityValue("volume_set", difference.volume * 10);
+            if (difference.playing !== undefined) await this.setCapabilityValue("speaker_playing", difference.playing);
+            if (difference.playerState?.subtitle !== undefined) await this.setCapabilityValue("speaker_artist", difference.playerState.subtitle);
+            if (difference.playerState?.title !== undefined) await this.setCapabilityValue("speaker_track", difference.playerState.title);
+            if (difference.playerState?.duration !== undefined) await this.setCapabilityValue("speaker_duration", difference.playerState.duration);
+            if (difference.playerState?.progress !== undefined) await this.setCapabilityValue("speaker_position", difference.playerState.progress);
+            if (difference.playerState?.extra?.coverURI !== undefined) {
+                this.image.setUrl(`https://${(<string>difference.playerState.extra.coverURI).replace("%%", "400x400")}`);
+                await this.image.update();
+            }
         });
     }
 
@@ -123,40 +123,40 @@ export default class SpeakerDevice extends Homey.Device {
     async onMultipleCapabilityListener() {
         this.registerCapabilityListener("volume_set", async (value) => {
             if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, `громкость на ${value / 10}`);
-            else await this.glagol!.send({ command: "setVolume", volume: value / 10 });
+            else this.glagol.send({ command: "setVolume", volume: value / 10 });
         });
         this.registerCapabilityListener("volume_up", async () => {
             if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, `громче`);
             else {
                 let volume = (this.getCapabilityValue("volume_set") + 1) / 10
-                if (volume <= 1) await this.glagol!.send({ command: "setVolume", volume: volume });
+                if (volume <= 1) this.glagol.send({ command: "setVolume", volume: volume });
             }
         });
         this.registerCapabilityListener("volume_down", async () => {
             if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, `тише`);
             else {
                 let volume = (this.getCapabilityValue("volume_set") - 1) / 10
-                if (volume >= 0) await this.glagol!.send({ command: "setVolume", volume: volume });
+                if (volume >= 0) this.glagol.send({ command: "setVolume", volume: volume });
             }
         });
 
         this.registerCapabilityListener("speaker_playing", async (value) => {
             if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, value ? "продолжить" : "пауза");
-            else await this.glagol!.send({ command: value ? "play" : "stop" });
+            else this.glagol.send({ command: value ? "play" : "stop" });
         });
         this.registerCapabilityListener("speaker_next", async () => {
             if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, "следующий трек");
-            else await this.glagol!.send({ command: "next" });
+            else this.glagol.send({ command: "next" });
         });
         this.registerCapabilityListener("speaker_prev", async () => {
             if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, "прошлый трек");
-            else await this.glagol!.send({ command: "prev" });
+            else this.glagol.send({ command: "prev" });
         });
     }
 
     // При удалении устройства
     async onDeleted(): Promise<void> {
-        await this.glagol.close();
+        this.glagol.close();
     }
 
     // При изменении настроек

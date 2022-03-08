@@ -1,7 +1,8 @@
 {
+    "highlight": true,
     "title": {
         "en": "Text-to-Speech",
-        "ru": "Синтез речи (TTS)"
+        "ru": "Синтез речи"
     },
     "titleFormatted": {
         "en": "Say [[text]]",

@@ -26,10 +26,23 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
         });
 
         await this.yandex.connect();
-
+        
         // Действия: ТТС и команда
-        this.homey.flow.getActionCard("text_to_speech").registerRunListener(async (args, state) => {
-            await this.yandex.scenarios.send(args.device.speaker, args["text"], true);
+        this.homey.flow.getActionCard("cloud_tts").registerRunListener(async (args, state) => {
+            await this.yandex.scenarios.send(args.device.speaker, args.text, true);
+        });
+
+        this.homey.flow.getActionCard("local_tts").registerRunListener(async (args, state) => {
+            const device = args.device;
+            const volume = Number(args.volume);
+
+            if (volume !== -1) {
+                device.savedVolumeLevel = device.lastState.volume;
+                device.waitForIdle = true;
+                device.glagol.send({ command: "setVolume", volume: volume / 10 });
+            }
+
+            device.glagol.say(args.text);
         });
 
         this.homey.flow.getActionCard("send_command").registerRunListener(async (args, state) => {
