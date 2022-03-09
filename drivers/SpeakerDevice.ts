@@ -88,7 +88,7 @@ export default class SpeakerDevice extends Homey.Device {
                 if (difference.playerState?.duration !== undefined) await this.setCapabilityValue("speaker_duration", difference.playerState.duration);
                 if (difference.playerState?.progress !== undefined) await this.setCapabilityValue("speaker_position", difference.playerState.progress);
                 if (difference.playerState?.extra?.coverURI !== undefined) {
-                    this.image.setUrl(`https://${(<string>difference.playerState.extra.coverURI).replace("%%", "400x400")}`);
+                    this.image.setUrl(`https://${(<string>difference.playerState.extra.coverURI).replace("%%", "600x600")}`);
                     await this.image.update();
                 }
             });
