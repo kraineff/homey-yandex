@@ -30,9 +30,9 @@
     ]
   },
   "images": {
-    "small": "/assets/images/small.png",
-    "large": "/assets/images/large.png",
-    "xlarge": "/assets/images/xlarge.png"
+    "small": "/assets/images/small.jpg",
+    "large": "/assets/images/large.jpg",
+    "xlarge": "/assets/images/xlarge.jpg"
   },
   "permissions": [],
   "author": {
@@ -64,8 +64,8 @@
               "ru": "Сценарий"
             },
             "placeholder": {
-              "en": "Sleep",
-              "ru": "Сон"
+              "en": "I'm home",
+              "ru": "Я дома"
             }
           }
         ],
@@ -123,8 +123,8 @@
               "ru": "Текст"
             },
             "placeholder": {
-              "en": "Text",
-              "ru": "Текст"
+              "en": "<speaker is_whisper=\"true\">I'm talking quietly!",
+              "ru": "<speaker is_whisper=\"true\">Я говорю тихо-тихо!"
             }
           },
           {

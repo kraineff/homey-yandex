@@ -17,8 +17,8 @@
                 "ru": "Текст"
             },
             "placeholder": {
-                "en": "Text",
-                "ru": "Текст"
+                "en": "<speaker is_whisper=\"true\">I'm talking quietly!",
+                "ru": "<speaker is_whisper=\"true\">Я говорю тихо-тихо!"
             }
         },
         {
