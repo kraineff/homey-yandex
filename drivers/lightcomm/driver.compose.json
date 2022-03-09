@@ -25,9 +25,8 @@
         }
     },
     "images": {
-        "small": "/drivers/lightcomm/assets/images/small.png",
-        "large": "/drivers/lightcomm/assets/images/large.png",
-        "xlarge": "/drivers/lightcomm/assets/images/xlarge.png"
+        "small": "/drivers/lightcomm/assets/images/small.jpg",
+        "large": "/drivers/lightcomm/assets/images/large.jpg"
     },
     "platforms": ["local"],
     "connectivity": ["cloud"],

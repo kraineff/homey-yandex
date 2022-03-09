@@ -28,9 +28,8 @@
         }
     },
     "images": {
-        "small": "/drivers/yandexmini/assets/images/small.png",
-        "large": "/drivers/yandexmini/assets/images/large.png",
-        "xlarge": "/drivers/yandexmini/assets/images/xlarge.png"
+        "small": "/drivers/yandexmini/assets/images/small.jpg",
+        "large": "/drivers/yandexmini/assets/images/large.jpg"
     },
     "platforms": ["local"],
     "connectivity": ["cloud", "lan"],

@@ -25,9 +25,8 @@
         }
     },
     "images": {
-        "small": "/drivers/wk7y/assets/images/small.png",
-        "large": "/drivers/wk7y/assets/images/large.png",
-        "xlarge": "/drivers/wk7y/assets/images/xlarge.png"
+        "small": "/drivers/wk7y/assets/images/small.jpg",
+        "large": "/drivers/wk7y/assets/images/large.jpg"
     },
     "platforms": ["local"],
     "connectivity": ["cloud"],

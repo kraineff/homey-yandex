@@ -25,9 +25,8 @@
         }
     },
     "images": {
-        "small": "/drivers/jbl_link_music/assets/images/small.png",
-        "large": "/drivers/jbl_link_music/assets/images/large.png",
-        "xlarge": "/drivers/jbl_link_music/assets/images/xlarge.png"
+        "small": "/drivers/jbl_link_music/assets/images/small.jpg",
+        "large": "/drivers/jbl_link_music/assets/images/large.jpg"
     },
     "platforms": ["local"],
     "connectivity": ["cloud"],

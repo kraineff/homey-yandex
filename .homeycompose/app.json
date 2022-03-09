@@ -10,7 +10,8 @@
     "ru": "Яндекс Алиса"
   },
   "description": {
-    "en": "Enhances your Voice Control experience."
+    "en": "Enhances your voice control experience",
+    "ru": "Расширьте возможности голосового управления"
   },
   "category": ["appliances"],
   "tags": {
@@ -18,9 +19,9 @@
     "ru": ["яндекс", "алиса"]
   },
   "images": {
-    "small": "/assets/images/small.png",
-    "large": "/assets/images/large.png",
-    "xlarge": "/assets/images/xlarge.png"
+    "small": "/assets/images/small.jpg",
+    "large": "/assets/images/large.jpg",
+    "xlarge": "/assets/images/xlarge.jpg"
   },
   "permissions": [],
   "author": {

@@ -28,9 +28,8 @@
         }
     },
     "images": {
-        "small": "/drivers/yandexmicro/assets/images/small.png",
-        "large": "/drivers/yandexmicro/assets/images/large.png",
-        "xlarge": "/drivers/yandexmicro/assets/images/xlarge.png"
+        "small": "/drivers/yandexmicro/assets/images/small.jpg",
+        "large": "/drivers/yandexmicro/assets/images/large.jpg"
     },
     "platforms": ["local"],
     "connectivity": ["cloud", "lan"],

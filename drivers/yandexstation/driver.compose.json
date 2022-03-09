@@ -28,9 +28,8 @@
         }
     },
     "images": {
-        "small": "/drivers/yandexstation/assets/images/small.png",
-        "large": "/drivers/yandexstation/assets/images/large.png",
-        "xlarge": "/drivers/yandexstation/assets/images/xlarge.png"
+        "small": "/drivers/yandexstation/assets/images/small.jpg",
+        "large": "/drivers/yandexstation/assets/images/large.jpg"
     },
     "platforms": ["local"],
     "connectivity": ["cloud", "lan"],

@@ -25,9 +25,8 @@
         }
     },
     "images": {
-        "small": "/drivers/prestigio_smart_mate/assets/images/small.png",
-        "large": "/drivers/prestigio_smart_mate/assets/images/large.png",
-        "xlarge": "/drivers/prestigio_smart_mate/assets/images/xlarge.png"
+        "small": "/drivers/prestigio_smart_mate/assets/images/small.jpg",
+        "large": "/drivers/prestigio_smart_mate/assets/images/large.jpg"
     },
     "platforms": ["local"],
     "connectivity": ["cloud"],

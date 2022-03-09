@@ -25,9 +25,8 @@
         }
     },
     "images": {
-        "small": "/drivers/linkplay_a98/assets/images/small.png",
-        "large": "/drivers/linkplay_a98/assets/images/large.png",
-        "xlarge": "/drivers/linkplay_a98/assets/images/xlarge.png"
+        "small": "/drivers/linkplay_a98/assets/images/small.jpg",
+        "large": "/drivers/linkplay_a98/assets/images/large.jpg"
     },
     "platforms": ["local"],
     "connectivity": ["cloud"],

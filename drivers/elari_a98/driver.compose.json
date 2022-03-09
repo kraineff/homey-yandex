@@ -25,9 +25,8 @@
         }
     },
     "images": {
-        "small": "/drivers/elari_a98/assets/images/small.png",
-        "large": "/drivers/elari_a98/assets/images/large.png",
-        "xlarge": "/drivers/elari_a98/assets/images/xlarge.png"
+        "small": "/drivers/elari_a98/assets/images/small.jpg",
+        "large": "/drivers/elari_a98/assets/images/large.jpg"
     },
     "platforms": ["local"],
     "connectivity": ["cloud"],
