@@ -63,7 +63,8 @@ export default class SpeakerDevice extends Homey.Device {
             let config = await this.yandex.devices.getSpeakerConfig(this.speaker);
             if (config.led) {
                 await this.setSettings({
-                    brightness: config.led.brightness.auto ? -1 : config.led.brightness.value,
+                    auto_brightness: config.led.brightness.auto,
+                    brightness: config.led.brightness.value,
                     music_equalizer_visualization: config.led.music_equalizer_visualization.auto ? "auto" : config.led.music_equalizer_visualization.style,
                     time_visualization: config.led.time_visualization.size
                 });
@@ -172,17 +173,13 @@ export default class SpeakerDevice extends Homey.Device {
     async onSettings({ oldSettings, newSettings, changedKeys }: { oldSettings: any; newSettings: any; changedKeys: string[]; }): Promise<string | void> {
         if (this.yandex.ready) {
             if (["yandexstation_2", "yandexmini_2"].includes(this.driver.id)) {
-                let config = await this.yandex.devices.getSpeakerConfig(this.speaker);
+                const config = await this.yandex.devices.getSpeakerConfig(this.speaker);
 
                 changedKeys.forEach(key => {
-                    let value = newSettings[key];
-                    if (key === "brightness") {
-                        if (value === -1) config.led!.brightness.auto = true;
-                        else {
-                            config.led!.brightness.auto = false;
-                            config.led!.brightness.value = value / 100;
-                        }
-                    }
+                    const value = newSettings[key];
+                    if (key === "auto_brightness") config.led!.brightness.auto = value;
+                    if (key === "brightness") config.led!.brightness.value = value / 100;
+                    if (key === "time_visualization") config.led!.time_visualization.size = value;
                     if (key === "music_equalizer_visualization") {
                         if (value === "auto") config.led!.music_equalizer_visualization.auto = true;
                         else {
@@ -190,12 +187,10 @@ export default class SpeakerDevice extends Homey.Device {
                             config.led!.music_equalizer_visualization.style = value;
                         }
                     }
-                    if (key === "time_visualization") config.led!.time_visualization.size = value;
                 });
     
                 await this.yandex.devices.setSpeakerConfig(this.speaker, config);
             }
-
             return this.homey.__("device.save_settings");
         }
     }
