@@ -189,7 +189,11 @@ export default class Yandex extends EventEmitter {
                 config.headers = {...config.headers, "x-csrf-token": this.csrf_token};
             }
     
-            return this.session(config);
+            return this.session(config).then(async resp => {
+                if (resp.status === 401) await this.checkCookies();
+                if (resp.status === 403) throw new Error();
+                return resp;
+            });
         }, { retries: 3 }).catch(err => {
             if (err.message === "Требуется повторная авторизация") this.emit("authRequired");
             return err;
