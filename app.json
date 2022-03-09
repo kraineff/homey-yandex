@@ -1585,7 +1585,6 @@
           ]
         },
         {
-          "maintenanceAction": true,
           "type": "group",
           "label": {
             "en": "Authorization Data",
