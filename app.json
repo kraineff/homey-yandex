@@ -265,13 +265,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -316,10 +328,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -329,10 +337,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -353,13 +357,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -404,10 +420,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -417,10 +429,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -441,13 +449,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -492,10 +512,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -505,10 +521,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -529,13 +541,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -580,10 +604,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -593,10 +613,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -617,13 +633,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -668,10 +696,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -681,10 +705,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -705,13 +725,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -756,10 +788,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -769,10 +797,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -793,13 +817,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -844,10 +880,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -857,10 +889,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -884,13 +912,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -936,10 +976,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -949,10 +985,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -976,13 +1008,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -1028,10 +1072,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -1041,10 +1081,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -1068,13 +1104,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -1239,10 +1287,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -1252,10 +1296,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -1279,13 +1319,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -1331,10 +1383,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -1344,10 +1392,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]
@@ -1371,13 +1415,25 @@
         "speaker_position",
         "volume_set",
         "volume_up",
-        "volume_down"
+        "volume_down",
+        "button.reauth"
       ],
       "capabilitiesOptions": {
         "volume_set": {
           "min": 0,
           "max": 10,
           "step": 1
+        },
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
         }
       },
       "images": {
@@ -1529,6 +1585,7 @@
           ]
         },
         {
+          "maintenanceAction": true,
           "type": "group",
           "label": {
             "en": "Authorization Data",
@@ -1542,10 +1599,6 @@
               "label": {
                 "en": "General Token",
                 "ru": "Основной токен"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             },
             {
@@ -1555,10 +1608,6 @@
               "label": {
                 "en": "Cookies",
                 "ru": "Файлы Cookie"
-              },
-              "hint": {
-                "en": "Remove to reauthorize",
-                "ru": "Удалите для повторной авторизации"
               }
             }
           ]

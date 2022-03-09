@@ -22,7 +22,7 @@ export default class YandexDevices {
         console.log("[Устройства] Обновление устройств");
 
         return this.yandex.get(`${USER_URL}/devices`).then(resp => {
-            if (resp.data?.status !== "ok") throw new Error();
+            if (resp.data?.status !== "ok") throw new Error(resp.data.message);
 
             let rawDevices: any[] = [];
             (<any[]>resp.data.rooms).forEach(room => (<any[]>room["devices"]).forEach(device => rawDevices.push(device)));
@@ -82,7 +82,7 @@ export default class YandexDevices {
         return this.yandex.post(`${USER_URL}/devices/${deviceId}/actions`, {
             data: { "actions": _actions }
         }).then(resp => {
-            if (resp.data?.status !== "ok") throw new Error();
+            if (resp.data?.status !== "ok") throw new Error(resp.data.message);
         });
     }
 
@@ -92,7 +92,7 @@ export default class YandexDevices {
         return this.yandex.get("https://quasar.yandex.ru/get_device_config", {
             params: { "device_id": speaker.quasar.id, "platform": speaker.quasar.platform }
         }).then(resp => {
-            if (resp.data?.status !== "ok") throw new Error();
+            if (resp.data?.status !== "ok") throw new Error(resp.data.message);
             return <SpeakerConfig>resp.data.config;
         });
     }
@@ -104,7 +104,7 @@ export default class YandexDevices {
             params: { "device_id": speaker.quasar.id, "platform": speaker.quasar.platform },
             data: config
         }).then(resp => {
-            if (resp.data?.status !== "ok") throw new Error();
+            if (resp.data?.status !== "ok") throw new Error(resp.data.message);
         });
     }
 }

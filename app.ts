@@ -13,7 +13,7 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             this.homey.settings.get("cookies") || "",
             this.homey.settings.get("music_token") || ""
         );
-
+        
         this.yandex.on("authRequired", () => {
             ["x_token", "cookies", "music_token"].forEach(key => this.homey.settings.set(key, ""));
         });
@@ -24,7 +24,7 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
                 this.homey.settings.set(key, data[key])
             });
         });
-
+        
         await this.yandex.connect();
         
         // Действия: ТТС и команда

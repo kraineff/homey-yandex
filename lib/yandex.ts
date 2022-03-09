@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import EventEmitter from "events";
 import qs from "qs";
 import promiseRetry from "promise-retry";
@@ -43,14 +43,13 @@ export default class Yandex extends EventEmitter {
 
     async connect() {
         await this.checkCookies()
-            .then(status => {
-                if (!status) throw new Error();
-                console.log("[Yandex] -> Успешная авторизация");
-            })
+            .then(() => console.log("[Yandex] -> Успешная авторизация"))
             .then(() => this.devices.init())
             .then(() => this.scenarios.init())
             .then(() => this.emit("ready"))
-            .catch(err => this.emit("authRequired"));
+            .catch(err => {
+                if (err.message === "Требуется повторная авторизация") this.emit("authRequired");
+            });
     }
 
     async getAuthUrl() {
@@ -58,7 +57,7 @@ export default class Yandex extends EventEmitter {
         
         return this.session.get("https://passport.yandex.ru/am?app_platform=android").then(resp => {
             const match = resp.data.match('"csrf_token" value="([^"]+)"');
-            if (!match) throw new Error();
+            if (!match) throw new Error("Требуется повторная авторизация");
 
             return this.session({
                 method: "POST",
@@ -69,7 +68,7 @@ export default class Yandex extends EventEmitter {
                     with_code: 1
                 })
             }).then(resp => {
-                if (resp.data?.status !== "ok") throw new Error();
+                if (resp.data?.status !== "ok") throw new Error("Требуется повторная авторизация");
                 this.auth_payload = {
                     csrf_token: resp.data.csrf_token,
                     track_id: resp.data.track_id
@@ -108,7 +107,7 @@ export default class Yandex extends EventEmitter {
                 "Ya-Client-Cookie": this.cookies
             }
         }).then(resp => {
-            if (!resp.data?.access_token) throw new Error();
+            if (!resp.data?.access_token) throw new Error("Требуется повторная авторизация");
             this.setProperties({ "x_token": resp.data.access_token });
         });
     }
@@ -119,7 +118,7 @@ export default class Yandex extends EventEmitter {
         return this.session.get("https://yandex.ru/quasar?storage=1").then(resp => {
             if (resp.data?.storage?.user?.uid) return true;
             return this.updateCookies().then(status => {
-                if (!status) throw new Error();
+                if (!status) throw new Error("Требуется повторная авторизация");
                 return true;
             })
         });
@@ -164,7 +163,7 @@ export default class Yandex extends EventEmitter {
             grant_type: "x-token",
             access_token: this.x_token
         })).then(resp => {
-            if (!resp.data?.access_token) throw new Error();
+            if (!resp.data?.access_token) throw new Error("Требуется повторная авторизация");
             this.setProperties({ "music_token": resp.data.access_token });
             return this.music_token;
         });
@@ -175,7 +174,7 @@ export default class Yandex extends EventEmitter {
     put = async (url: string, config: AxiosRequestConfig = {}) => this.request({...config, method: "PUT", url});
 
     async request(config: AxiosRequestConfig) {
-        return promiseRetry(async () => {
+        return <Promise<AxiosResponse<any, any>>>promiseRetry(async () => {
             if (config.url!.includes("/glagol/")) {
                 if (!this.music_token) await this.updateMusicToken();
                 config.headers = { ...config.headers, "Authorization": `Oauth ${this.music_token}` };
@@ -192,7 +191,7 @@ export default class Yandex extends EventEmitter {
     
             return this.session(config);
         }, { retries: 3 }).catch(err => {
-            this.emit("authRequired");
+            if (err.message === "Требуется повторная авторизация") this.emit("authRequired");
             return err;
         });
     }

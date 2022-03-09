@@ -102,7 +102,7 @@ export default class YandexScenarios extends EventEmitter {
         }
 
         return this.yandex.post(`${USER_URL}/scenarios`, { data: SCENARIO_BASE(data) }).then(resp => {
-            if (resp.data?.status !== "ok") throw new Error();
+            if (resp.data?.status !== "ok") throw new Error(resp.data.message);
             this.updateData(<Scenario>{ ...data, id: resp.data.scenario_id });
             return resp.data.scenario_id;
         });
@@ -112,7 +112,7 @@ export default class YandexScenarios extends EventEmitter {
         console.log(`[Сценарии] -> Изменение сценария -> ${scenario.name}`);
 
         return this.yandex.put(`${USER_URL}/scenarios/${scenario.id}`, { data: SCENARIO_BASE(scenario) }).then(resp => {
-            if (resp.data?.status !== "ok") throw new Error();
+            if (resp.data?.status !== "ok") throw new Error(resp.data.message);
             this.updateData(scenario);
         });
     }
@@ -121,13 +121,13 @@ export default class YandexScenarios extends EventEmitter {
         console.log(`[Сценарии] -> Запуск сценария -> ${scenario.name}`);
 
         return this.yandex.post(`${USER_URL}/scenarios/${scenario.id}/actions`).then(resp => {
-            if (resp.data?.status !== "ok") throw new Error();
+            if (resp.data?.status !== "ok") throw new Error(resp.data.message);
         });
     }
 
     async getRaw() {
         return this.yandex.get(`${USER_URL}/scenarios`).then(resp => {
-            if (resp.data?.status !== "ok") throw new Error();
+            if (resp.data?.status !== "ok") throw new Error(resp.data.message);
             return <any[]>resp.data.scenarios;
         });
     }
@@ -140,7 +140,7 @@ export default class YandexScenarios extends EventEmitter {
         const ids = scenarios.map(s => s.id);
         let rawScenarios = await Promise.all(ids.map(id => {
             return this.yandex.get(`${USER_URL}/scenarios/${id}/edit`).then(resp => {
-                if (resp.data?.status !== "ok") throw new Error();
+                if (resp.data?.status !== "ok") throw new Error(resp.data.message);
                 return resp.data.scenario;
             });
         }));
@@ -185,7 +185,7 @@ export default class YandexScenarios extends EventEmitter {
 
         const urlProvider = async () => {
             return this.yandex.get("https://iot.quasar.yandex.ru/m/v3/user/devices").then(resp => {
-                if (resp.data?.status !== "ok") throw new Error();
+                if (resp.data?.status !== "ok") throw new Error(resp.data.message);
                 return <string>resp.data.updates_url;
             });
         }
@@ -210,7 +210,9 @@ export default class YandexScenarios extends EventEmitter {
     }
 
     close() {
-        console.log(`[Сценарии] -> Остановка получения команд`);
-        if (this.rws) this.rws.close();
+        if (this.rws) {
+            console.log(`[Сценарии] -> Остановка получения команд`);
+            this.rws.close();
+        }
     }
 }

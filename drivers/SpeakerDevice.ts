@@ -152,6 +152,8 @@ export default class SpeakerDevice extends Homey.Device {
             if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, "прошлый трек");
             else this.glagol.send({ command: "prev" });
         });
+
+        this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("authRequired") });
     }
 
     // При удалении устройства
@@ -187,7 +189,6 @@ export default class SpeakerDevice extends Homey.Device {
                 await this.yandex.devices.setSpeakerConfig(this.speaker, config);
             }
 
-            if (!newSettings["x_token"] || !newSettings["cookies"]) this.yandex.emit("authRequired");
             return this.homey.__("device.save_settings");
         } else {
             throw Error(this.homey.__("device.auth_required"));

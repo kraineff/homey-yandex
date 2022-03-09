@@ -7,13 +7,24 @@
     "class": "speaker",
     "capabilities": [
         "speaker_artist", "speaker_track", "speaker_playing", "speaker_next", "speaker_prev",
-        "speaker_duration", "speaker_position", "volume_set", "volume_up", "volume_down"
+        "speaker_duration", "speaker_position", "volume_set", "volume_up", "volume_down", "button.reauth"
     ],
     "capabilitiesOptions": {
         "volume_set": {
             "min": 0,
             "max": 10,
             "step": 1
+        },
+        "button.reauth": {
+            "maintenanceAction": true,
+            "title": {
+                "en": "Re-authorize",
+                "ru": "Повторная авторизация"
+            },
+            "desc": {
+                "en": "Re-authorize of the Yandex account.",
+                "ru": "Повторная авторизация аккаунта Яндекс."
+            }
         }
     },
     "images": {
