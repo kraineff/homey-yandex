@@ -14,13 +14,8 @@ export default class SpeakerDriver extends Homey.Driver {
     
     onPair(pair: Homey.Driver.PairSession) {
         let ready = false;
-
-        // Начальный экран
-        pair.setHandler("start", async () => {
-            return !this.yandex.ready ? await this.yandex.getAuthUrl() : "list_devices";
-        });
-
-        // Проверка авторизации
+        
+        pair.setHandler("start", async () => !this.yandex.ready ? await this.yandex.getAuthUrl() : "list_devices");
         pair.setHandler("check", async () => {
             ready = await this.yandex.checkAuth();
             return ready;
@@ -42,7 +37,7 @@ export default class SpeakerDriver extends Homey.Driver {
                     };
 
                     // Локальный режим
-                    let discoveryResult: any = this.app.discoveryStrategy.getDiscoveryResults();
+                    const discoveryResult: any = this.app.discoveryStrategy.getDiscoveryResults();
                     if (Object.keys(discoveryResult).includes(speaker.quasar.id)) {
                         let data: any = discoveryResult[speaker.quasar.id];
                         base.data["local_id"] = data.txt.deviceid;

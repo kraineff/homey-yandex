@@ -37,6 +37,10 @@ export default class SpeakerDevice extends Homey.Device {
         });
     }
 
+    async onDeleted(): Promise<void> {
+        this.glagol.close();
+    }
+
     async init() {
         await this.setAvailable();
         
@@ -166,10 +170,5 @@ export default class SpeakerDevice extends Homey.Device {
             }
             return this.homey.__("device.save_settings");
         }
-    }
-
-    // Остальное
-    async onDeleted(): Promise<void> {
-        this.glagol.close();
     }
 }
