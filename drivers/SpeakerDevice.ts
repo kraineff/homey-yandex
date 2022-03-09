@@ -40,6 +40,13 @@ export default class SpeakerDevice extends Homey.Device {
             await this.setUnavailable(this.homey.__("device.auth_required"));
             this.glagol.close();
         });
+
+        this.yandex.on("update", async data => {
+            await this.setSettings({
+                x_token: data.x_token,
+                cookies: data.cookies
+            });
+        });
     }
 
     async init() {
