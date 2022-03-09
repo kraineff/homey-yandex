@@ -174,7 +174,7 @@ export default class Yandex extends EventEmitter {
     put = async (url: string, config: AxiosRequestConfig = {}) => this.request({...config, method: "PUT", url});
 
     async request(config: AxiosRequestConfig) {
-        return <Promise<AxiosResponse<any, any>>>promiseRetry(async () => {
+        return <Promise<AxiosResponse<any, any>>>promiseRetry(async (retry, attempt) => {
             if (config.url!.includes("/glagol/")) {
                 if (!this.music_token) await this.updateMusicToken();
                 config.headers = { ...config.headers, "Authorization": `Oauth ${this.music_token}` };
@@ -193,6 +193,7 @@ export default class Yandex extends EventEmitter {
                 if (resp.status === 401) await this.checkCookies();
                 if (resp.status === 403) {
                     config.url!.includes("/glagol/") ? this.music_token = "" : this.csrf_token = "";
+                    if (attempt === 2) await this.updateCookies();
                     throw new Error(resp.data.message);
                 }
                 if (resp.data?.status !== "ok") throw new Error(resp.data.message);
