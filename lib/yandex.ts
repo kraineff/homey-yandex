@@ -35,7 +35,7 @@ export default class Yandex extends EventEmitter {
         });
 
         this.on("ready", () => this.ready = true);
-        this.on("authRequired", async () => {
+        this.on("reauth_required", async () => {
             this.scenarios.close();
             this.ready = false;
         });
@@ -48,7 +48,7 @@ export default class Yandex extends EventEmitter {
             .then(() => this.scenarios.init())
             .then(() => this.emit("ready"))
             .catch(err => {
-                if (err.message === "Требуется повторная авторизация") this.emit("authRequired");
+                if (err.message === "REAUTH_REQUIRED") this.emit("reauth_required");
             });
     }
 
@@ -57,7 +57,7 @@ export default class Yandex extends EventEmitter {
         
         return this.session.get("https://passport.yandex.ru/am?app_platform=android").then(resp => {
             const match = resp.data.match('"csrf_token" value="([^"]+)"');
-            if (!match) throw new Error("Требуется повторная авторизация");
+            if (!match) throw new Error("REAUTH_REQUIRED");
 
             return this.session({
                 method: "POST",
@@ -68,7 +68,7 @@ export default class Yandex extends EventEmitter {
                     with_code: 1
                 })
             }).then(resp => {
-                if (resp.data?.status !== "ok") throw new Error("Требуется повторная авторизация");
+                if (resp.data?.status !== "ok") throw new Error("REAUTH_REQUIRED");
                 this.auth_payload = {
                     csrf_token: resp.data.csrf_token,
                     track_id: resp.data.track_id
@@ -107,7 +107,7 @@ export default class Yandex extends EventEmitter {
                 "Ya-Client-Cookie": this.cookies
             }
         }).then(resp => {
-            if (!resp.data?.access_token) throw new Error("Требуется повторная авторизация");
+            if (!resp.data?.access_token) throw new Error("REAUTH_REQUIRED");
             this.setProperties({ "x_token": resp.data.access_token });
         });
     }
@@ -118,7 +118,7 @@ export default class Yandex extends EventEmitter {
         return this.session.get("https://yandex.ru/quasar?storage=1").then(resp => {
             if (resp.data?.storage?.user?.uid) return true;
             return this.updateCookies().then(status => {
-                if (!status) throw new Error("Требуется повторная авторизация");
+                if (!status) throw new Error("REAUTH_REQUIRED");
                 return true;
             })
         });
@@ -163,7 +163,7 @@ export default class Yandex extends EventEmitter {
             grant_type: "x-token",
             access_token: this.x_token
         })).then(resp => {
-            if (!resp.data?.access_token) throw new Error("Требуется повторная авторизация");
+            if (!resp.data?.access_token) throw new Error("REAUTH_REQUIRED");
             this.setProperties({ "music_token": resp.data.access_token });
             return this.music_token;
         });
@@ -191,12 +191,19 @@ export default class Yandex extends EventEmitter {
     
             return this.session(config).then(async resp => {
                 if (resp.status === 401) await this.checkCookies();
-                if (resp.status === 403) throw new Error();
+                if (resp.status === 403) {
+                    config.url!.includes("/glagol/") ? this.music_token = "" : this.csrf_token = "";
+                    throw new Error(resp.data.message);
+                }
+                if (resp.data?.status !== "ok") throw new Error(resp.data.message);
                 return resp;
             });
         }, { retries: 3 }).catch(err => {
-            if (err.message === "Требуется повторная авторизация") this.emit("authRequired");
-            return err;
+            if (["REAUTH_REQUIRED", "CSRF_TOKEN_INVALID"].includes(err.message)) {
+                this.emit("reauth_required");
+                err = new Error("Требуется повторная авторизация");
+            }
+            throw err;
         });
     }
 

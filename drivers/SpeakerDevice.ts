@@ -30,14 +30,14 @@ export default class SpeakerDevice extends Homey.Device {
         await this.onMultipleCapabilityListener();
 
         if (this.yandex.ready) await this.init();
-        else await this.setUnavailable(this.homey.__("device.auth_required"));
+        else await this.setUnavailable(this.homey.__("device.reauth_required"));
 
         this.yandex.on("ready", async () => {
             await this.init();
         });
 
-        this.yandex.on("authRequired", async () => {
-            await this.setUnavailable(this.homey.__("device.auth_required"));
+        this.yandex.on("reauth_required", async () => {
+            await this.setUnavailable(this.homey.__("device.reauth_required"));
             this.glagol.close();
         });
 
@@ -160,7 +160,7 @@ export default class SpeakerDevice extends Homey.Device {
             else this.glagol.send({ command: "prev" });
         });
 
-        this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("authRequired") });
+        this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("reauth_required") });
     }
 
     // При удалении устройства
@@ -197,8 +197,6 @@ export default class SpeakerDevice extends Homey.Device {
             }
 
             return this.homey.__("device.save_settings");
-        } else {
-            throw Error(this.homey.__("device.auth_required"));
         }
     }
 }

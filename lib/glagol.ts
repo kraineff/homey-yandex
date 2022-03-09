@@ -90,9 +90,6 @@ export default class YandexGlagol extends EventEmitter {
                 device_id: this.speaker.quasar.id,
                 platform: this.speaker.quasar.platform
             }
-        }).then(resp => {
-            if (resp.data?.status !== "ok") throw new Error();
-            this.local_token = resp.data.token;
-        });
+        }).then(resp => this.local_token = resp.data.token);
     }
 }

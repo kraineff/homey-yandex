@@ -1,7 +1,7 @@
 {
     "scenario_phrase": "Phrase",
     "device": {
-        "auth_required": "Re-authorization required",
+        "reauth_required": "Re-authorization required",
         "save_settings": "Settings successfully updated"
     }
 }
