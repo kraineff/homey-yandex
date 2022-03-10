@@ -142,39 +142,39 @@ export default class SpeakerDevice extends Homey.Device {
         await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
         
         if (["yandexstation_2", "yandexmini_2"].includes(this.driver.id)) {
-            let config = await this.yandex.devices.getSpeakerConfig(this.speaker);
+            const config = await this.yandex.devices.getSpeakerConfig(this.speaker);
+            const { brightness, music_equalizer_visualization, time_visualization } = config.led!;
             if (config.led) {
                 await this.setSettings({
-                    auto_brightness: config.led.brightness.auto,
-                    brightness: config.led.brightness.value,
-                    music_equalizer_visualization: config.led.music_equalizer_visualization.auto ? "auto" : config.led.music_equalizer_visualization.style,
-                    time_visualization: config.led.time_visualization.size
+                    auto_brightness: brightness.auto,
+                    brightness: brightness.value,
+                    music_equalizer_visualization: music_equalizer_visualization.auto ? "auto" : music_equalizer_visualization.style,
+                    time_visualization: time_visualization.size
                 });
             }
         }
     }
 
     async onSettings({ newSettings, changedKeys }: { oldSettings: any; newSettings: any; changedKeys: string[]; }): Promise<string | void> {
-        if (this.yandex.ready) {
-            if (["yandexstation_2", "yandexmini_2"].includes(this.driver.id)) {
-                const config = await this.yandex.devices.getSpeakerConfig(this.speaker);
+        if (["yandexstation_2", "yandexmini_2"].includes(this.driver.id)) {
+            const config = await this.yandex.devices.getSpeakerConfig(this.speaker);
+            const { brightness, music_equalizer_visualization, time_visualization } = config.led!;
 
-                changedKeys.forEach(key => {
-                    const value = newSettings[key];
-                    if (key === "auto_brightness") config.led!.brightness.auto = value;
-                    if (key === "brightness") config.led!.brightness.value = value / 100;
-                    if (key === "time_visualization") config.led!.time_visualization.size = value;
-                    if (key === "music_equalizer_visualization") {
-                        if (value === "auto") config.led!.music_equalizer_visualization.auto = true;
-                        else {
-                            config.led!.music_equalizer_visualization.auto = false;
-                            config.led!.music_equalizer_visualization.style = value;
-                        }
+            changedKeys.forEach(key => {
+                const value = newSettings[key];
+                if (key === "auto_brightness") brightness.auto = value;
+                if (key === "brightness") brightness.value = value / 100;
+                if (key === "time_visualization") time_visualization.size = value;
+                if (key === "music_equalizer_visualization") {
+                    if (value === "auto") music_equalizer_visualization.auto = true;
+                    else {
+                        music_equalizer_visualization.auto = false;
+                        music_equalizer_visualization.style = value;
                     }
-                });
-    
-                await this.yandex.devices.setSpeakerConfig(this.speaker, config);
-            }
+                }
+            });
+            
+            await this.yandex.devices.setSpeakerConfig(this.speaker, config);
             return this.homey.__("device.save_settings");
         }
     }
