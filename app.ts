@@ -13,15 +13,18 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             this.homey.settings.get("cookies") || "",
             this.homey.settings.get("music_token") || ""
         );
-        
-        this.yandex.on("reauth_required", () => {
-            ["x_token", "cookies", "music_token"].forEach(key => this.homey.settings.set(key, ""));
-        });
 
         this.yandex.on("update", data => {
             Object.keys(data).forEach(key => {
                 console.log(`[Приложение] -> Сохранение ${key}`);
                 this.homey.settings.set(key, data[key])
+            });
+        });
+
+        this.yandex.on("reauth_required", () => {
+            ["x_token", "cookies", "music_token"].forEach(key => {
+                console.log(`[Приложение] -> Удаление ${key}`);
+                this.homey.settings.set(key, "");
             });
         });
         
