@@ -5,6 +5,5 @@
         "small": "/drivers/prestigio_smart_mate/assets/images/small.jpg",
         "large": "/drivers/prestigio_smart_mate/assets/images/large.jpg"
     },
-    "$extends": ["speaker"],
-    "connectivity": ["cloud"]
+    "$extends": ["speaker"]
 }

@@ -8,6 +8,5 @@
         "small": "/drivers/yandexmicro/assets/images/small.jpg",
         "large": "/drivers/yandexmicro/assets/images/large.jpg"
     },
-    "$extends": ["speaker"],
-    "connectivity": ["cloud"]
+    "$extends": ["speaker"]
 }

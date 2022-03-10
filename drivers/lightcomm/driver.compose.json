@@ -5,6 +5,5 @@
         "small": "/drivers/lightcomm/assets/images/small.jpg",
         "large": "/drivers/lightcomm/assets/images/large.jpg"
     },
-    "$extends": ["speaker"],
-    "connectivity": ["cloud"]
+    "$extends": ["speaker"]
 }

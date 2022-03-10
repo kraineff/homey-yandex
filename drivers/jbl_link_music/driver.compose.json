@@ -5,6 +5,5 @@
         "small": "/drivers/jbl_link_music/assets/images/small.jpg",
         "large": "/drivers/jbl_link_music/assets/images/large.jpg"
     },
-    "$extends": ["speaker"],
-    "connectivity": ["cloud"]
+    "$extends": ["speaker"]
 }
