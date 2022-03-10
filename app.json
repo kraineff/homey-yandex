@@ -257,6 +257,9 @@
       "platforms": [
         "local"
       ],
+      "connectivity": [
+        "cloud"
+      ],
       "capabilities": [
         "speaker_artist",
         "speaker_track",
@@ -339,15 +342,15 @@
       "images": {
         "small": "/drivers/elari_a98/assets/images/small.jpg",
         "large": "/drivers/elari_a98/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud"
       ],
       "capabilities": [
         "speaker_artist",
@@ -431,15 +434,15 @@
       "images": {
         "small": "/drivers/jbl_link_music/assets/images/small.jpg",
         "large": "/drivers/jbl_link_music/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud"
       ],
       "capabilities": [
         "speaker_artist",
@@ -523,15 +526,15 @@
       "images": {
         "small": "/drivers/jbl_link_portable/assets/images/small.jpg",
         "large": "/drivers/jbl_link_portable/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud"
       ],
       "capabilities": [
         "speaker_artist",
@@ -615,15 +618,15 @@
       "images": {
         "small": "/drivers/lightcomm/assets/images/small.jpg",
         "large": "/drivers/lightcomm/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud"
       ],
       "capabilities": [
         "speaker_artist",
@@ -707,15 +710,15 @@
       "images": {
         "small": "/drivers/linkplay_a98/assets/images/small.jpg",
         "large": "/drivers/linkplay_a98/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud"
       ],
       "capabilities": [
         "speaker_artist",
@@ -799,15 +802,15 @@
       "images": {
         "small": "/drivers/prestigio_smart_mate/assets/images/small.jpg",
         "large": "/drivers/prestigio_smart_mate/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud"
       ],
       "capabilities": [
         "speaker_artist",
@@ -891,15 +894,15 @@
       "images": {
         "small": "/drivers/wk7y/assets/images/small.jpg",
         "large": "/drivers/wk7y/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud"
       ],
       "capabilities": [
         "speaker_artist",
@@ -986,15 +989,15 @@
       "images": {
         "small": "/drivers/yandexmicro/assets/images/small.jpg",
         "large": "/drivers/yandexmicro/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud"
       ],
       "capabilities": [
         "speaker_artist",
@@ -1081,15 +1084,16 @@
       "images": {
         "small": "/drivers/yandexmini/assets/images/small.jpg",
         "large": "/drivers/yandexmini/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud",
+        "lan"
       ],
       "capabilities": [
         "speaker_artist",
@@ -1303,16 +1307,15 @@
       "images": {
         "small": "/drivers/yandexmini_2/assets/images/small.jpg",
         "large": "/drivers/yandexmini_2/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud",
-        "lan"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud"
       ],
       "capabilities": [
         "speaker_artist",
@@ -1399,15 +1402,16 @@
       "images": {
         "small": "/drivers/yandexstation/assets/images/small.jpg",
         "large": "/drivers/yandexstation/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud"
-      ]
+      }
     },
     {
       "class": "speaker",
       "platforms": [
         "local"
+      ],
+      "connectivity": [
+        "cloud",
+        "lan"
       ],
       "capabilities": [
         "speaker_artist",
@@ -1621,11 +1625,7 @@
       "images": {
         "small": "/drivers/yandexstation_2/assets/images/small.jpg",
         "large": "/drivers/yandexstation_2/assets/images/large.jpg"
-      },
-      "connectivity": [
-        "cloud",
-        "lan"
-      ]
+      }
     }
   ],
   "discovery": {
