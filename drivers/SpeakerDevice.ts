@@ -44,29 +44,32 @@ export default class SpeakerDevice extends Homey.Device {
     async init() {
         await this.setAvailable();
         
-        this.speaker = this.yandex.devices.getSpeaker(this.getData()["id"])!;
+        this.speaker = this.yandex.devices.getSpeaker(this.getData().id)!;
         await this.onMultipleCapabilityListener();
         await this.initSettings();
         await this.localConnection();
     }
     
     async localConnection() {
-        if (this.getData()["local_id"]) {
-            const localUrl = () => `wss://${this.getStoreValue("address")}:${this.getStoreValue("port")}`;
-            const updateData = (address: string, port: string) => {
+        const discoveryResults = this.app.discoveryStrategy.getDiscoveryResults();
+        if (discoveryResults && Object.keys(discoveryResults).includes(this.getData().device_id)) {
+            const result = discoveryResults[this.getData().device_id];
+            const url = () => `wss://${this.getStoreValue("address")}:${this.getStoreValue("port")}`;
+
+            const update = (address: string, port: string) => {
                 this.setStoreValue("address", address);
                 this.setStoreValue("port", port);
-            }
-            await this.glagol.init(this.speaker, localUrl).then(() => this.isLocal = true);
-
-            try {
-                let discoveryResult = <DiscoveryResultMDNSSD>this.app.discoveryStrategy.getDiscoveryResult(this.getData()["local_id"]);
-                if (discoveryResult) updateData(discoveryResult.address, discoveryResult.port);
-            } catch (e) {}
+            };
 
             this.app.discoveryStrategy.on("result", async (discoveryResult: DiscoveryResultMDNSSD) => {
-                if (discoveryResult.id === this.getData()["local_id"]) updateData(discoveryResult.address, discoveryResult.port);
+                if (discoveryResult.id === this.getData().device_id) {
+                    update(discoveryResult.address, discoveryResult.port);
+                }
             });
+
+            //@ts-ignore
+            update(result.address, result.port);
+            await this.glagol.init(this.speaker, url).then(() => this.isLocal = true);
 
             this.glagol.on(this.getData()["id"], async state => {
                 delete state.timeSinceLastVoiceActivity;
@@ -80,16 +83,20 @@ export default class SpeakerDevice extends Homey.Device {
                     if (this.savedVolumeLevel !== undefined) this.glagol.send({ command: "setVolume", volume: this.savedVolumeLevel });
                     this.waitForIdle = false;
                 }
-    
-                if (difference.volume !== undefined) await this.setCapabilityValue("volume_set", difference.volume * 10);
-                if (difference.playing !== undefined) await this.setCapabilityValue("speaker_playing", difference.playing);
-                if (difference.playerState?.subtitle !== undefined) await this.setCapabilityValue("speaker_artist", difference.playerState.subtitle);
-                if (difference.playerState?.title !== undefined) await this.setCapabilityValue("speaker_track", difference.playerState.title);
-                if (difference.playerState?.duration !== undefined) await this.setCapabilityValue("speaker_duration", difference.playerState.duration);
-                if (difference.playerState?.progress !== undefined) await this.setCapabilityValue("speaker_position", difference.playerState.progress);
-                if (difference.playerState?.extra?.coverURI !== undefined) {
-                    this.image.setUrl(`https://${(<string>difference.playerState.extra.coverURI).replace("%%", "600x600")}`);
-                    await this.image.update();
+                
+                const { volume, playing, playerState } = difference;
+                if (volume !== undefined) await this.setCapabilityValue("volume_set", volume * 10);
+                if (playing !== undefined) await this.setCapabilityValue("speaker_playing", playing);
+                if (playerState) {
+                    const { title, subtitle, duration, progress, extra } = playerState;
+                    if (title !== undefined) await this.setCapabilityValue("speaker_track", title);
+                    if (subtitle !== undefined) await this.setCapabilityValue("speaker_artist", subtitle);
+                    if (duration !== undefined) await this.setCapabilityValue("speaker_duration", duration);
+                    if (progress !== undefined) await this.setCapabilityValue("speaker_position", progress);
+                    if (extra?.coverURI !== undefined) {
+                        this.image.setUrl(`https://${(<string>extra.coverURI).replace("%%", "600x600")}`);
+                        await this.image.update();
+                    }
                 }
             });
         }

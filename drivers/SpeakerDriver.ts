@@ -28,26 +28,13 @@ export default class SpeakerDriver extends Homey.Driver {
             return this.yandex.devices.speakers
                 .filter(speaker => speaker.quasar.platform === this.id)
                 .map(speaker => {
-                    // Основа
-                    let base: any = {
+                    return {
                         name: speaker.name,
                         data: {
-                            id: speaker.id
+                            id: speaker.id,
+                            device_id: speaker.quasar.id
                         }
                     };
-
-                    // Локальный режим
-                    const discoveryResult: any = this.app.discoveryStrategy.getDiscoveryResults();
-                    if (Object.keys(discoveryResult).includes(speaker.quasar.id)) {
-                        let data: any = discoveryResult[speaker.quasar.id];
-                        base.data["local_id"] = data.txt.deviceid;
-                        base.store = {
-                            address: data.address,
-                            port: data.port
-                        }
-                    }
-
-                    return base;
                 });
         });
     }
