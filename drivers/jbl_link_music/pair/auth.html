@@ -3,7 +3,7 @@
         if (view === "list_devices") {
             Homey.showView(view);
         } else {
-            Homey.setTitle("Авторизация");
+            Homey.setTitle(Homey.__("auth.title"));
             document.getElementById("wrapper").style.display = "flex";
             document.getElementById("ya-button").href = view;
 
@@ -29,6 +29,6 @@
 </style>
 
 <div id="wrapper">
-    <p style="height: 100%;">Для авторизации нажмите на кнопку "Открыть", затем авторизуйтесь на сайте Яндекса и вернитесь в Homey.</p>
-    <a id="ya-button" class="button" style="text-decoration: none; text-align: center; background-color: #00c139; color: white;" href="#">Открыть</a>
+    <p style="height: 100%;" data-i18n="auth.desc"></p>
+    <a id="ya-button" class="button" data-i18n="auth.button" style="text-decoration: none; text-align: center; background-color: #00c139; color: white;" href="#"></a>
 </div>

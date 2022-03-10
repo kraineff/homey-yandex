@@ -14,7 +14,7 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             this.homey.settings.get("music_token") || ""
         );
         
-        this.yandex.on("authRequired", () => {
+        this.yandex.on("reauth_required", () => {
             ["x_token", "cookies", "music_token"].forEach(key => this.homey.settings.set(key, ""));
         });
 

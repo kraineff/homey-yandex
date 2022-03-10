@@ -3,5 +3,10 @@
     "device": {
         "reauth_required": "Re-authorization required",
         "save_settings": "Settings successfully updated"
+    },
+    "auth": {
+        "title": "Authorization",
+        "desc": "To authorize, click the button \"Open\", then log in on the Yandex website and go back to Homey.",
+        "button": "Open"
     }
 }
