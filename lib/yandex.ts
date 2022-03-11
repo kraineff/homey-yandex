@@ -127,6 +127,7 @@ export default class Yandex extends EventEmitter {
     async updateCookies() {
         console.log("[Yandex] -> Обновление куки");
 
+        this.cookies = "";
         let response = await this.session({
             method: "POST",
             url: "https://mobileproxy.passport.yandex.net/1/bundle/auth/x_token/",
