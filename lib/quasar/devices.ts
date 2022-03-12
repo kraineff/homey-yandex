@@ -1,12 +1,24 @@
-import { Device, Speaker, SpeakerConfig } from "../types";
+import { Device, DeviceTypes, SpeakerConfig } from "../types";
 import Yandex from "../yandex";
+
+import ReconnectingWebSocket from "reconnecting-websocket";
+import WebSocket from 'ws';
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
-export default class YandexDevices {
+export default class YandexDevices implements DeviceTypes {
     yandex: Yandex;
-    devices!: Device[];
-    speakers!: Speaker[];
+    rws!: ReconnectingWebSocket;
+
+    speakers?: Device[];
+    lights?: Device[];
+    switches?: Device[];
+    thermostats?: Device[];
+    vacuums?: Device[];
+    heaters?: Device[];
+    remotes?: Device[];
+
+    updateInterval?: NodeJS.Timer;
 
     constructor(yandex: Yandex) {
         this.yandex = yandex;
@@ -14,39 +26,63 @@ export default class YandexDevices {
 
     async init() {
         await this.update();
+        await this.connect();
     }
 
-    getSpeaker = (deviceId: string) => this.speakers.find(s => s.id === deviceId);
+    getSpeaker = (deviceId: string) => this.speakers!.find(s => s.id === deviceId);
 
     async update() {
         console.log("[Устройства] Обновление устройств");
 
-        return this.yandex.get(`${USER_URL}/devices`).then(resp => {
-            let rawDevices: any[] = [];
-            (<any[]>resp.data.rooms).forEach(room => (<any[]>room["devices"]).forEach(device => rawDevices.push(device)));
+        return this.yandex.get(`${USER_URL}/devices`).then(async resp => {
+            const { rooms, speakers, unconfigured_devices }: { rooms: any[], speakers: any[], unconfigured_devices: any[] } = resp.data;
+            const all: Device[] = [...[].concat.apply([], rooms.map(({ devices }) => devices)), ...speakers, ...unconfigured_devices];
 
-            const all = [...rawDevices, ...resp.data.speakers, ...resp.data.unconfigured_devices].map(device => {
-                let data: any = {
-                    id: device.id,
-                    name: device.name,
-                    type: device.type,
-                    icon: device.icon_url
-                }
-    
-                if ("quasar_info" in device) data.quasar = {
-                    id: device.quasar_info.device_id,
-                    platform: device.quasar_info.platform
-                }
-                return data;
-            });
-
-            this.devices = all.filter(d => !("quasar" in d));
-            this.speakers = all.filter(d => d.type.startsWith("devices.types.smart_speaker") && "quasar" in d);
+            this.speakers = all.filter(device => device.type.startsWith("devices.types.smart_speaker"));
+            this.lights = all.filter(device => ["devices.types.light"].includes(device.type));
+            this.switches = all.filter(device => ["devices.types.switch", "devices.types.socket"].includes(device.type));
+            this.thermostats = all.filter(device => ["devices.types.thermostat.ac", "devices.types.thermostat"].includes(device.type));
+            this.vacuums = all.filter(device => ["devices.types.vacuum_cleaner"].includes(device.type));
+            this.heaters = all.filter(device => ["devices.types.cooking.kettle"].includes(device.type));
+            this.remotes = await Promise.all(all
+                .filter(device => ["devices.types.other"].includes(device.type))
+                .map(async device => (await this.yandex.get(`https://iot.quasar.yandex.ru/m/user/devices/${device.id}`)).data));
         });
     }
 
+    async connect() {
+        console.log(`[Устройства] -> Запуск обновления устройств`);
+
+        const urlProvider = async () => {
+            return this.yandex.get("https://iot.quasar.yandex.ru/m/v3/user/devices").then(resp => <string>resp.data.updates_url);
+        }
+
+        this.rws = new ReconnectingWebSocket(urlProvider, [], { WebSocket: WebSocket });
+        //@ts-ignore
+        this.rws.addEventListener("message", async (event) => {
+            const data = JSON.parse(event.data);
+            if (data.operation === "update_device_list")
+                this.yandex.emit("update_devices");
+            if (data.operation === "update_scenario_list")
+                await this.yandex.scenarios.update(JSON.parse(data.message).scenarios);
+            if (data.operation === "update_states") {
+                JSON.parse(data.message).updated_devices.forEach((device: any) => this.yandex.emit("update_state", device));
+            }
+        });
+
+        this.updateInterval = setInterval(() => this.rws.reconnect(), 1 * 60 * 60 * 1000);
+    }
+
+    close() {
+        if (this.rws) {
+            console.log(`[Устройства] -> Остановка обновления устройств`);
+            if (this.updateInterval) clearInterval(this.updateInterval);
+            this.rws.close();
+        }
+    }
+
     async action(deviceId: string, actions: any ) {
-        console.log(`[Устройства ${deviceId}] -> Выполнение действия (не колонка)`);
+        console.log(`[Устройства ${deviceId}] -> Выполнение действия -> ${JSON.stringify(actions)}`);
 
         const IOT_TYPES: any = {
             "on": "devices.capabilities.on_off",
@@ -82,19 +118,19 @@ export default class YandexDevices {
         });
     }
 
-    async getSpeakerConfig(speaker: Speaker) {
+    async getSpeakerConfig(speaker: Device) {
         console.log(`[Устройства: ${speaker.id}] -> Получение настроек`);
 
         return this.yandex.get("https://quasar.yandex.ru/get_device_config", {
-            params: { "device_id": speaker.quasar.id, "platform": speaker.quasar.platform }
+            params: { "device_id": speaker.quasar_info!.device_id, "platform": speaker.quasar_info!.platform }
         }).then(resp => <SpeakerConfig>resp.data.config);
     }
 
-    async setSpeakerConfig(speaker: Speaker, config: SpeakerConfig) {
+    async setSpeakerConfig(speaker: Device, config: SpeakerConfig) {
         console.log(`[Устройства: ${speaker.id}] -> Установка настроек`);
 
         return this.yandex.post("https://quasar.yandex.ru/set_device_config", {
-            params: { "device_id": speaker.quasar.id, "platform": speaker.quasar.platform },
+            params: { "device_id": speaker.quasar_info!.device_id, "platform": speaker.quasar_info!.platform },
             data: config
         });
     }

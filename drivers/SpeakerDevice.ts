@@ -1,7 +1,7 @@
 import Homey, { DiscoveryResultMDNSSD } from "homey";
 
 import YandexGlagol from "../lib/glagol";
-import { YandexApp, Speaker } from "../lib/types";
+import { Device, YandexApp } from "../lib/types";
 import Yandex from "../lib/yandex";
 import { diff } from "deep-object-diff";
 
@@ -10,7 +10,7 @@ export default class SpeakerDevice extends Homey.Device {
     yandex!: Yandex;
     glagol!: YandexGlagol;
 
-    speaker!: Speaker;
+    speaker!: Device;
     isLocal: boolean = false;
     lastState: any = {};
 

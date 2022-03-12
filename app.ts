@@ -29,7 +29,7 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
         });
         
         await this.yandex.connect();
-        
+
         // Действия: ТТС и команда
         this.homey.flow.getActionCard("cloud_tts").registerRunListener(async (args, state) => {
             await this.yandex.scenarios.send(args.device.speaker, args.text, true);
@@ -70,9 +70,11 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             return <any>scenarios.filter(result => result.name.toLowerCase().includes(query.toLowerCase()));
         })
 
-        this.yandex.scenarios.on("scenario_started", (data) => {
-            const scenario = this.yandex.scenarios.getByAction(data.capabilities[0].state.value);
-            if (scenario) scenarioStartedTrigger.trigger(undefined, scenario);
+        this.yandex.on("update_state", (data) => {
+            if (data.capabilities[0]?.type === "devices.capabilities.quasar.server_action") {
+                const scenario = this.yandex.scenarios.getByAction(data.capabilities[0].state?.value);
+                if (scenario) scenarioStartedTrigger.trigger(undefined, scenario);
+            }
         });
     }
 }

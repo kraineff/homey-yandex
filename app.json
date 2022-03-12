@@ -253,6 +253,166 @@
   },
   "drivers": [
     {
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "cloud"
+      ],
+      "capabilities": [
+        "button.reauth"
+      ],
+      "capabilitiesOptions": {
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "auth_data",
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              }
+            }
+          ]
+        }
+      ],
+      "class": "remote",
+      "name": {
+        "en": "Remote",
+        "ru": "Пульт"
+      },
+      "images": {
+        "small": "/drivers/device_remote/assets/images/small.jpg",
+        "large": "/drivers/device_remote/assets/images/large.jpg"
+      },
+      "id": "device_remote"
+    },
+    {
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "cloud"
+      ],
+      "capabilities": [
+        "button.reauth"
+      ],
+      "capabilitiesOptions": {
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "auth_data",
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              }
+            }
+          ]
+        }
+      ],
+      "class": "socket",
+      "name": {
+        "en": "Socket",
+        "ru": "Розетка"
+      },
+      "images": {
+        "small": "/drivers/device_socket/assets/images/small.jpg",
+        "large": "/drivers/device_socket/assets/images/large.jpg"
+      },
+      "id": "device_socket"
+    },
+    {
       "class": "speaker",
       "platforms": [
         "local"
@@ -1628,6 +1788,33 @@
       }
     }
   ],
+  "capabilities": {
+    "measure_amperage": {
+      "type": "number",
+      "title": {
+        "en": "Amperage",
+        "ru": "Потребление тока"
+      },
+      "uiComponent": "sensor",
+      "getable": true,
+      "setable": false,
+      "units": "A"
+    },
+    "measure_voltage": {
+      "type": "number",
+      "title": {
+        "en": "Voltage",
+        "ru": "Текущее напряжение"
+      },
+      "uiComponent": "sensor",
+      "getable": true,
+      "setable": false,
+      "units": {
+        "en": "V",
+        "ru": "В"
+      }
+    }
+  },
   "discovery": {
     "yandex_station": {
       "type": "mdns-sd",

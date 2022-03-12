@@ -3,7 +3,7 @@ import { v4 } from "uuid";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import WebSocket from 'ws';
 
-import { Speaker } from "./types";
+import { Device } from "./types";
 import Yandex from "./yandex";
 
 class GlagolWebSocket extends WebSocket {
@@ -16,7 +16,7 @@ class GlagolWebSocket extends WebSocket {
 
 export default class YandexGlagol extends EventEmitter {
     yandex: Yandex;
-    speaker!: Speaker;
+    speaker!: Device;
     local_token: string = "";
     rws!: ReconnectingWebSocket;
 
@@ -25,7 +25,7 @@ export default class YandexGlagol extends EventEmitter {
         this.yandex = yandex;
     }
     
-    async init(speaker: Speaker, url: () => string) {
+    async init(speaker: Device, url: () => string) {
         console.log(`[Glagol: ${speaker.id}] -> Инициализация глагола`);
 
         this.speaker = speaker;
@@ -87,8 +87,8 @@ export default class YandexGlagol extends EventEmitter {
 
         return this.yandex.get("https://quasar.yandex.net/glagol/token", {
             params: {
-                device_id: this.speaker.quasar.id,
-                platform: this.speaker.quasar.platform
+                device_id: this.speaker.quasar_info!.device_id,
+                platform: this.speaker.quasar_info!.platform
             }
         }).then(resp => this.local_token = resp.data.token);
     }

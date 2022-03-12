@@ -1,3 +1,3 @@
-import SpeakerDriver from "../SpeakerDriver";
+import YandexDriver from "../YandexDriver";
 
-module.exports = class ElariSmartBeatDriver extends SpeakerDriver {}
+module.exports = class ElariSmartBeatDriver extends YandexDriver {}

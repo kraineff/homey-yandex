@@ -1,0 +1,12 @@
+{
+    "class": "socket",
+    "name": {
+        "en": "Socket",
+        "ru": "Розетка"
+    },
+    "images": {
+        "small": "/drivers/device_socket/assets/images/small.jpg",
+        "large": "/drivers/device_socket/assets/images/large.jpg"
+    },
+    "$extends": ["device"]
+}

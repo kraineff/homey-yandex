@@ -1,0 +1,11 @@
+{
+    "type": "number",
+    "title": {
+        "en": "Amperage",
+        "ru": "Потребление тока"
+    },
+    "uiComponent": "sensor",
+    "getable": true,
+    "setable": false,
+    "units": "A"
+  }

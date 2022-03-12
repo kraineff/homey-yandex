@@ -1,0 +1,38 @@
+{
+    "platforms": ["local"],
+    "connectivity": ["cloud"],
+    "capabilities": ["button.reauth"],
+    "capabilitiesOptions": {
+        "button.reauth": {
+            "maintenanceAction": true,
+            "title": {
+                "en": "Re-authorize",
+                "ru": "Повторная авторизация"
+            },
+            "desc": {
+                "en": "Re-authorize of the Yandex account.",
+                "ru": "Повторная авторизация аккаунта Яндекс."
+            }
+        }
+    },
+    "pair": [
+        {
+            "id": "auth",
+            "$template": "auth"
+        },
+        {
+            "id": "list_devices",
+            "template": "list_devices",
+            "navigation": { "next": "add_devices" }
+        },
+        {
+            "id": "add_devices",
+            "template": "add_devices"
+        }
+    ],
+    "settings": [
+        {
+            "$extends": "auth_data"
+        }
+    ]
+}

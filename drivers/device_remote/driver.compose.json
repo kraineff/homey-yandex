@@ -1,0 +1,12 @@
+{
+    "class": "remote",
+    "name": {
+        "en": "Remote",
+        "ru": "Пульт"
+    },
+    "images": {
+        "small": "/drivers/device_remote/assets/images/small.jpg",
+        "large": "/drivers/device_remote/assets/images/large.jpg"
+    },
+    "$extends": ["device"]
+}

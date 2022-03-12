@@ -1,3 +1,3 @@
-import SpeakerDriver from "../SpeakerDriver";
+import YandexDriver from "../YandexDriver";
 
-module.exports = class YandexStationMiniTwoDriver extends SpeakerDriver {}
+module.exports = class YandexStationMiniTwoDriver extends YandexDriver {}

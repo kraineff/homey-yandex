@@ -1,8 +1,5 @@
-import EventEmitter from "events";
-import { Scenario, Speaker } from "../types";
+import { Device, Scenario } from "../types";
 import Yandex from "../yandex";
-import ReconnectingWebSocket from "reconnecting-websocket";
-import WebSocket from 'ws';
 
 const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
@@ -47,21 +44,18 @@ const SCENARIO_BASE = (data: any) => ({
     }]
 });
 
-export default class YandexScenarios extends EventEmitter {
+export default class YandexScenarios {
     yandex: Yandex;
 
     rawScenarios?: any[];
     scenarios!: Scenario[];
-    rws!: ReconnectingWebSocket;
 
     constructor(yandex: Yandex) {
-        super();
         this.yandex = yandex;
     }
 
     async init() {
         await this.update();
-        await this.connect();
     }
 
     get = (scenarioId: string) => this.scenarios.find(s => s.id === scenarioId);
@@ -73,7 +67,7 @@ export default class YandexScenarios extends EventEmitter {
         found !== -1 ? this.scenarios[found] = scenario : this.scenarios.push(scenario);
     }
 
-    async send(speaker: Speaker, message: string, isTTS: boolean = false) {
+    async send(speaker: Device, message: string, isTTS: boolean = false) {
         console.log(`[Quasar: ${speaker.id}] -> Выполнение команды -> ${message}`);
 
         const scenarioId = this.getByEncodedId(speaker.id)?.id || await this.add(speaker.id);
@@ -165,39 +159,6 @@ export default class YandexScenarios extends EventEmitter {
                 s.action.value = "Сделай громче на 0" + "?".repeat(missing && missing.length > 0 ? missing.shift() : start += 1);
                 await this.edit(s);
             });
-        }
-    }
-
-    async connect() {
-        console.log(`[Сценарии] -> Запуск получения команд`);
-
-        const urlProvider = async () => {
-            return this.yandex.get("https://iot.quasar.yandex.ru/m/v3/user/devices").then(resp => <string>resp.data.updates_url);
-        }
-
-        this.rws = new ReconnectingWebSocket(urlProvider, [], { WebSocket: WebSocket });
-        //@ts-ignore
-        this.rws.addEventListener("message", async (event) => {
-            const data = JSON.parse(event.data);
-            if (data.operation === "update_scenario_list") await this.update(JSON.parse(data.message).scenarios);
-            if (data.operation === "update_states") {
-                const devices: any[] = JSON.parse(data.message).updated_devices;
-                devices.filter(d => {
-                    if (!d.hasOwnProperty("capabilities")) return false;
-                    return (<any[]>d.capabilities).every(c => {
-                        if (!c.hasOwnProperty("state")) return false;
-                        if (c.type !== "devices.capabilities.quasar.server_action") return false;
-                        return true;
-                    })
-                }).forEach(d => this.emit("scenario_started", d));
-            }
-        });
-    }
-
-    close() {
-        if (this.rws) {
-            console.log(`[Сценарии] -> Остановка получения команд`);
-            this.rws.close();
         }
     }
 }
