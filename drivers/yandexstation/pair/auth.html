@@ -12,7 +12,6 @@
                 Homey.emit("check").then((result) => {
                     if (result) {
                         clearInterval(check);
-                        clipboard.destroy();
                         Homey.showView("list_devices");
                     }
                 });
