@@ -36,8 +36,8 @@ export default class YandexDevices implements DeviceTypes {
 
         return this.yandex.get(`${USER_URL}/devices`).then(async resp => {
             const { rooms, speakers, unconfigured_devices }: { rooms: any[], speakers: any[], unconfigured_devices: any[] } = resp.data;
+            
             const all: Device[] = [...[].concat.apply([], rooms.map(({ devices }) => devices)), ...speakers, ...unconfigured_devices];
-
             this.speakers = all.filter(device => device.type.startsWith("devices.types.smart_speaker"));
             this.lights = all.filter(device => ["devices.types.light"].includes(device.type));
             this.switches = all.filter(device => ["devices.types.switch", "devices.types.socket"].includes(device.type));
@@ -53,11 +53,9 @@ export default class YandexDevices implements DeviceTypes {
     async connect() {
         console.log(`[Устройства] -> Запуск обновления устройств`);
 
-        const urlProvider = async () => {
-            return this.yandex.get("https://iot.quasar.yandex.ru/m/v3/user/devices").then(resp => <string>resp.data.updates_url);
-        }
-
-        this.rws = new ReconnectingWebSocket(urlProvider, [], { WebSocket: WebSocket });
+        const url = async () => this.yandex.get("https://iot.quasar.yandex.ru/m/v3/user/devices").then(resp => <string>resp.data.updates_url);
+        
+        this.rws = new ReconnectingWebSocket(url, [], { WebSocket: WebSocket });
         //@ts-ignore
         this.rws.addEventListener("message", async (event) => {
             const data = JSON.parse(event.data);

@@ -6,7 +6,7 @@
     },
     "auth": {
         "title": "Authorization",
-        "desc": "To authorize, click the button \"Open\", then log in on the Yandex website and go back to Homey.",
+        "desc": "Click the \"Open\" button, then log in to your account on the Yandex website and go back to Homey.",
         "button": "Open"
     }
 }
