@@ -1,22 +1,28 @@
 <script type="application/javascript">
+    var url = "";
     Homey.emit("start").then((view => {
         if (view === "list_devices") {
             Homey.showView(view);
         } else {
             Homey.setTitle(Homey.__("auth.title"));
             document.getElementById("wrapper").style.display = "flex";
-            document.getElementById("ya-button").href = view;
+            url = view;
 
             let check = setInterval(() => {
                 Homey.emit("check").then((result) => {
                     if (result) {
                         clearInterval(check);
+                        clipboard.destroy();
                         Homey.showView("list_devices");
                     }
                 });
             }, 5000);
         }
     }));
+
+    function auth() {
+        Homey.popup(url);
+    }
 </script>
 
 <style type="text/css">
@@ -30,5 +36,5 @@
 
 <div id="wrapper">
     <p style="height: 100%;" data-i18n="auth.desc"></p>
-    <a id="ya-button" class="button" target="_blank" style="text-decoration: none; text-align: center; background-color: #00c139; color: white;" data-i18n="auth.button"></a>
+    <button onclick="auth()" data-i18n="auth.button"></button>
 </div>
