@@ -82,7 +82,7 @@ export default class YandexDevices implements DeviceTypes {
     }
 
     async action(deviceId: string, actions: any ) {
-        console.log(`[Устройства ${deviceId}] -> Выполнение действия -> ${JSON.stringify(actions)}`);
+        console.log(`[Устройства: ${deviceId}] -> Выполнение действия -> ${JSON.stringify(actions)}`);
 
         const IOT_TYPES: any = {
             "on": "devices.capabilities.on_off",
