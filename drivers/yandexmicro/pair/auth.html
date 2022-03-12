@@ -1,5 +1,6 @@
 <script type="application/javascript">
-    var url = "";
+    let url = "";
+    
     Homey.emit("start").then((view => {
         if (view === "list_devices") {
             Homey.showView(view);
@@ -8,7 +9,7 @@
             document.getElementById("wrapper").style.display = "flex";
             url = view;
 
-            let check = setInterval(() => {
+            const check = setInterval(() => {
                 Homey.emit("check").then((result) => {
                     if (result) {
                         clearInterval(check);
