@@ -62,7 +62,6 @@ export default class SpeakerDevice extends Homey.Device {
             await this.speaker.init(url);
 
             this.speaker.on("update", async state => {
-                console.log(state);
                 const { volume, playing, playerState } = state;
                 if (volume !== undefined) await this.setCapabilityValue("volume_set", volume * 10);
                 if (playing !== undefined) await this.setCapabilityValue("speaker_playing", playing);
