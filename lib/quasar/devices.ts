@@ -4,6 +4,14 @@ import Yandex from "../yandex";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import WebSocket from 'ws';
 
+class DevicesWebSocket extends WebSocket {
+    constructor(address: string | URL, protocols?: string | string[]) {
+        super(address, protocols, {
+            perMessageDeflate: false
+        });
+    }
+}
+
 export default class YandexDevices implements DeviceTypes {
     yandex: Yandex;
     rws!: ReconnectingWebSocket;
@@ -54,7 +62,7 @@ export default class YandexDevices implements DeviceTypes {
 
         const url = async () => this.yandex.get("https://iot.quasar.yandex.ru/m/v3/user/devices").then(resp => <string>resp.data.updates_url);
         
-        this.rws = new ReconnectingWebSocket(url, [], { WebSocket: WebSocket });
+        this.rws = new ReconnectingWebSocket(url, [], { WebSocket: DevicesWebSocket });
         //@ts-ignore
         this.rws.addEventListener("message", async (event) => {
             const data = JSON.parse(event.data);

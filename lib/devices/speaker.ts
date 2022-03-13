@@ -23,6 +23,7 @@ type SpeakerConfigType = {
 class SpeakerWebSocket extends WebSocket {
     constructor(address: string | URL, protocols?: string | string[]) {
         super(address, protocols, {
+            perMessageDeflate: false,
             rejectUnauthorized: false
         });
     }
@@ -83,7 +84,7 @@ export default class Speaker extends EventEmitter {
 
     async say(mode: "cloud" | "local", message: string, volume: number = -1) {
         console.log(`[Колонка: ${this.speaker.id}] -> Синтез речи -> ${message}`);
-        
+
         if (volume !== -1) {
             if (mode === "cloud") await this.run(`громкость на ${volume}`);
             else {
@@ -102,7 +103,7 @@ export default class Speaker extends EventEmitter {
                     payload: {
                         form_update: {
                             name: "personal_assistant.scenarios.repeat_after_me",
-                            slots: [{type: "string", name: "request", value: message}]
+                            slots: [{ type: "string", name: "request", value: message }]
                         },
                         resubmit: true
                     }
