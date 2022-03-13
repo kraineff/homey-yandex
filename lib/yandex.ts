@@ -116,7 +116,7 @@ export default class Yandex extends EventEmitter {
         console.log("[Yandex] -> Проверка куки");
 
         return this.session.get("https://yandex.ru/quasar?storage=1").then(resp => {
-            if (resp.data?.storage?.user?.uid) return true;
+            if (resp.data.storage.user.uid) return true;
             return this.updateCookies().then(status => {
                 if (!status) throw new Error("REAUTH_REQUIRED");
                 return true;

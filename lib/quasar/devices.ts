@@ -1,10 +1,8 @@
-import { Device, DeviceTypes, SpeakerConfig } from "../types";
+import { Device, DeviceTypes } from "../types";
 import Yandex from "../yandex";
 
 import ReconnectingWebSocket from "reconnecting-websocket";
 import WebSocket from 'ws';
-
-const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
 
 export default class YandexDevices implements DeviceTypes {
     yandex: Yandex;
@@ -19,6 +17,7 @@ export default class YandexDevices implements DeviceTypes {
     remotes?: Device[];
 
     updateInterval?: NodeJS.Timer;
+    scenariosUpdateTimeout?: NodeJS.Timeout;
 
     constructor(yandex: Yandex) {
         this.yandex = yandex;
@@ -34,7 +33,7 @@ export default class YandexDevices implements DeviceTypes {
     async update() {
         console.log("[Устройства] Обновление устройств");
 
-        return this.yandex.get(`${USER_URL}/devices`).then(async resp => {
+        return this.yandex.get("https://iot.quasar.yandex.ru/m/user/devices").then(async resp => {
             const { rooms, speakers, unconfigured_devices }: { rooms: any[], speakers: any[], unconfigured_devices: any[] } = resp.data;
             
             const all: Device[] = [...[].concat.apply([], rooms.map(({ devices }) => devices)), ...speakers, ...unconfigured_devices];
@@ -61,8 +60,10 @@ export default class YandexDevices implements DeviceTypes {
             const data = JSON.parse(event.data);
             if (data.operation === "update_device_list")
                 this.yandex.emit("update_devices");
-            if (data.operation === "update_scenario_list")
-                await this.yandex.scenarios.update(JSON.parse(data.message).scenarios);
+            if (data.operation === "update_scenario_list") {
+                if (this.scenariosUpdateTimeout) clearTimeout(this.scenariosUpdateTimeout);
+                this.scenariosUpdateTimeout = setTimeout(async () => await this.yandex.scenarios.update(JSON.parse(data.message).scenarios), 1000);
+            }
             if (data.operation === "update_states") {
                 JSON.parse(data.message).updated_devices.forEach((device: any) => this.yandex.emit("update_state", device));
             }
@@ -78,7 +79,7 @@ export default class YandexDevices implements DeviceTypes {
             this.rws.close();
         }
     }
-
+    
     async action(deviceId: string, actions: any ) {
         console.log(`[Устройства: ${deviceId}] -> Выполнение действия -> ${JSON.stringify(actions)}`);
 
@@ -111,25 +112,8 @@ export default class YandexDevices implements DeviceTypes {
             _actions.push({ "type": type, "state": state });
         })
 
-        return this.yandex.post(`${USER_URL}/devices/${deviceId}/actions`, {
+        return this.yandex.post(`https://iot.quasar.yandex.ru/m/user/devices/${deviceId}/actions`, {
             data: { "actions": _actions }
-        });
-    }
-
-    async getSpeakerConfig(speaker: Device) {
-        console.log(`[Устройства: ${speaker.id}] -> Получение настроек`);
-
-        return this.yandex.get("https://quasar.yandex.ru/get_device_config", {
-            params: { "device_id": speaker.quasar_info!.device_id, "platform": speaker.quasar_info!.platform }
-        }).then(resp => <SpeakerConfig>resp.data.config);
-    }
-
-    async setSpeakerConfig(speaker: Device, config: SpeakerConfig) {
-        console.log(`[Устройства: ${speaker.id}] -> Установка настроек`);
-
-        return this.yandex.post("https://quasar.yandex.ru/set_device_config", {
-            params: { "device_id": speaker.quasar_info!.device_id, "platform": speaker.quasar_info!.platform },
-            data: config
         });
     }
 }

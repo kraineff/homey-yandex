@@ -28,6 +28,8 @@ export default class YandexDevice extends Homey.Device {
     }
 
     async init() {
+        await this.setAvailable();
+        
         this.device = this.yandex.devices[classNames[this.driver.manifest.class] as keyof DeviceTypes]!.find(device => device.id === this.getData().id)!;
         await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
         await this.setCapabilities(this.device);

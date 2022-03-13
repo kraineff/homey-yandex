@@ -1,7 +1,6 @@
-import { Device, Scenario } from "../types";
+import { Scenario } from "../types";
 import Yandex from "../yandex";
-
-const USER_URL: string = "https://iot.quasar.yandex.ru/m/user";
+import Queue from "promise-queue";
 
 const missingNumbers = (a: number[], l: boolean = true) => Array.from(Array(Math.max(...a)).keys())
     .map((n, i) => a.indexOf(i) < 0  && (!l || i > Math.min(...a)) ? i : null)
@@ -49,9 +48,11 @@ export default class YandexScenarios {
 
     rawScenarios?: any[];
     scenarios!: Scenario[];
+    queue: Queue;
 
     constructor(yandex: Yandex) {
         this.yandex = yandex;
+        this.queue = new Queue(1);
     }
 
     async init() {
@@ -65,20 +66,6 @@ export default class YandexScenarios {
     updateData(scenario: Scenario) {
         const found = this.scenarios.findIndex(s => s.id === scenario.id);
         found !== -1 ? this.scenarios[found] = scenario : this.scenarios.push(scenario);
-    }
-
-    async send(speaker: Device, message: string, isTTS: boolean = false) {
-        console.log(`[Quasar: ${speaker.id}] -> Выполнение команды -> ${message}`);
-
-        const scenarioId = this.getByEncodedId(speaker.id)?.id || await this.add(speaker.id);
-        const oldScenario = this.get(scenarioId)!;
-        
-        let scenario = JSON.parse(JSON.stringify(oldScenario));
-        scenario.action.type = isTTS ? "phrase_action" : "text_action";
-        scenario.action.value = message;
-
-        await this.edit(scenario);
-        await this.run(scenario);
     }
 
     async add(deviceId: string) {
@@ -95,7 +82,7 @@ export default class YandexScenarios {
             }
         }
 
-        return this.yandex.post(`${USER_URL}/scenarios`, { data: SCENARIO_BASE(data) }).then(resp => {
+        return this.yandex.post("https://iot.quasar.yandex.ru/m/user/scenarios", { data: SCENARIO_BASE(data) }).then(resp => {
             this.updateData(<Scenario>{ ...data, id: resp.data.scenario_id });
             return resp.data.scenario_id;
         });
@@ -104,17 +91,17 @@ export default class YandexScenarios {
     async edit(scenario: Scenario) {
         console.log(`[Сценарии] -> Изменение сценария -> ${scenario.name}`);
 
-        return this.yandex.put(`${USER_URL}/scenarios/${scenario.id}`, { data: SCENARIO_BASE(scenario) }).then(resp => this.updateData(scenario));
+        return this.yandex.put(`https://iot.quasar.yandex.ru/m/user/scenarios/${scenario.id}`, { data: SCENARIO_BASE(scenario) }).then(resp => this.updateData(scenario));
     }
 
     async run(scenario: Scenario) {
         console.log(`[Сценарии] -> Запуск сценария -> ${scenario.name}`);
 
-        return this.yandex.post(`${USER_URL}/scenarios/${scenario.id}/actions`);
+        return this.yandex.post(`https://iot.quasar.yandex.ru/m/user/scenarios/${scenario.id}/actions`);
     }
 
     async getRaw() {
-        return this.yandex.get(`${USER_URL}/scenarios`).then(resp => <any[]>resp.data.scenarios);
+        return this.yandex.get("https://iot.quasar.yandex.ru/m/user/scenarios").then(resp => <any[]>resp.data.scenarios);
     }
 
     async update(scenarios: any[] = []) {
@@ -123,8 +110,8 @@ export default class YandexScenarios {
         if (scenarios.length === 0) await this.getRaw().then(s => scenarios = s);
 
         const ids = scenarios.map(s => s.id);
-        let rawScenarios = await Promise.all(ids.map(id => {
-            return this.yandex.get(`${USER_URL}/scenarios/${id}/edit`).then(resp => resp.data.scenario);
+        const rawScenarios = await Promise.all(ids.map(id => {
+            return this.yandex.get(`https://iot.quasar.yandex.ru/m/user/scenarios/${id}/edit`).then(resp => resp.data.scenario);
         }));
 
         this.scenarios = rawScenarios.map(s => ({

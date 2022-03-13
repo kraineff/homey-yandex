@@ -56,15 +56,3 @@ export type Device = {
     item_type: string
     groups: any[]
 }
-
-export type SpeakerConfig = {
-    allow_non_self_calls: boolean
-    beta: boolean
-    led?: {
-        brightness: { auto: boolean, value: number }
-        music_equalizer_visualization: { auto: boolean, style: string }
-        time_visualization: { size: string }
-    }
-    location: any
-    name: string
-}

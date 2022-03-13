@@ -80,8 +80,8 @@
           "ru": "Синтез речи"
         },
         "titleFormatted": {
-          "en": "Say [[text]]",
-          "ru": "Произнести [[text]]"
+          "en": "Say [[text]] with [[mode]] mode with volume [[volume]]",
+          "ru": "Произнести [[text]] с режимом [[mode]] с громкостью [[volume]]"
         },
         "args": [
           {
@@ -97,35 +97,28 @@
             }
           },
           {
-            "type": "device",
-            "name": "device",
-            "filter": "driver_id=elari_a98|jbl_link_music|jbl_link_portable|lightcomm|linkplay_a98|prestigio_smart_mate|wk7y|yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
-          }
-        ],
-        "id": "cloud_tts"
-      },
-      {
-        "highlight": true,
-        "title": {
-          "en": "Local Text-to-Speech",
-          "ru": "Локальный синтез речи"
-        },
-        "titleFormatted": {
-          "en": "Say [[text]] with volume [[volume]]",
-          "ru": "Произнести [[text]] с громкостью [[volume]]"
-        },
-        "args": [
-          {
-            "type": "text",
-            "name": "text",
+            "type": "dropdown",
+            "name": "mode",
             "title": {
-              "en": "Text",
-              "ru": "Текст"
+              "en": "Mode",
+              "ru": "Режим"
             },
-            "placeholder": {
-              "en": "Hello, world!",
-              "ru": "Привет, мир!"
-            }
+            "values": [
+              {
+                "id": "cloud",
+                "label": {
+                  "en": "Cloud",
+                  "ru": "Облачный"
+                }
+              },
+              {
+                "id": "local",
+                "label": {
+                  "en": "Local",
+                  "ru": "Локальный"
+                }
+              }
+            ]
           },
           {
             "type": "dropdown",
@@ -213,10 +206,10 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
+            "filter": "driver_id=elari_a98|jbl_link_music|jbl_link_portable|lightcomm|linkplay_a98|prestigio_smart_mate|wk7y|yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
           }
         ],
-        "id": "local_tts"
+        "id": "say_tts"
       },
       {
         "highlight": true,

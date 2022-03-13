@@ -1,28 +1,18 @@
 import Homey, { DiscoveryResultMDNSSD } from "homey";
 
-import YandexGlagol from "../lib/glagol";
-import { Device, YandexApp } from "../lib/types";
+import { YandexApp } from "../lib/types";
 import Yandex from "../lib/yandex";
-import { diff } from "deep-object-diff";
+import Speaker from "../lib/devices/speaker";
 
 export default class SpeakerDevice extends Homey.Device {
     app!: YandexApp;
     yandex!: Yandex;
-    glagol!: YandexGlagol;
-
-    speaker!: Device;
-    isLocal: boolean = false;
-    lastState: any = {};
-
-    waitForIdle: boolean = false;
-    savedVolumeLevel?: number;
-
+    speaker!: Speaker;
     image!: Homey.Image;
 
     async onInit(): Promise<void> {
         this.app = <YandexApp>this.homey.app;
         this.yandex = this.app.yandex;
-        this.glagol = new YandexGlagol(this.yandex);
         this.image = await this.app.homey.images.createImage();
         await this.setAlbumArtImage(this.image);
 
@@ -33,21 +23,21 @@ export default class SpeakerDevice extends Homey.Device {
         this.yandex.on("ready", async () => await this.init());
         this.yandex.on("reauth_required", async () => {
             await this.setUnavailable(this.homey.__("device.reauth_required"));
-            this.glagol.close();
+            this.speaker.close();
         });
     }
 
     async onDeleted(): Promise<void> {
-        this.glagol.close();
+        this.speaker.close();
     }
 
     async init() {
         await this.setAvailable();
         
-        this.speaker = this.yandex.devices.getSpeaker(this.getData().id)!;
-        await this.onMultipleCapabilityListener();
-        await this.initSettings();
+        this.speaker = new Speaker(this.yandex, this.yandex.devices.getSpeaker(this.getData().id)!);
         await this.localConnection();
+        await this.initSettings();
+        await this.onMultipleCapabilityListener();
     }
     
     async localConnection() {
@@ -69,22 +59,11 @@ export default class SpeakerDevice extends Homey.Device {
 
             //@ts-ignore
             update(result.address, result.port);
-            await this.glagol.init(this.speaker, url).then(() => this.isLocal = true);
+            await this.speaker.init(url);
 
-            this.glagol.on(this.getData()["id"], async state => {
-                delete state.timeSinceLastVoiceActivity;
-                delete state.playerState.duration;
-                delete state.playerState.progress;
-                const difference: any = diff(this.lastState, state);
-                if (!Object.keys(difference).length) return;
-                this.lastState = state;
-    
-                if (this.lastState.aliceState === "LISTENING" && this.waitForIdle) {
-                    if (this.savedVolumeLevel !== undefined) this.glagol.send({ command: "setVolume", volume: this.savedVolumeLevel });
-                    this.waitForIdle = false;
-                }
-                
-                const { volume, playing, playerState } = difference;
+            this.speaker.on("update", async state => {
+                console.log(state);
+                const { volume, playing, playerState } = state;
                 if (volume !== undefined) await this.setCapabilityValue("volume_set", volume * 10);
                 if (playing !== undefined) await this.setCapabilityValue("speaker_playing", playing);
                 if (playerState) {
@@ -99,66 +78,37 @@ export default class SpeakerDevice extends Homey.Device {
                     }
                 }
             });
-        }
+        } else await this.speaker.init();
     }
 
     async onMultipleCapabilityListener() {
         this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("reauth_required") });
-        
-        this.registerCapabilityListener("volume_set", async (value) => {
-            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, `громкость на ${value / 10}`);
-            else this.glagol.send({ command: "setVolume", volume: value / 10 });
-        });
-        this.registerCapabilityListener("volume_up", async () => {
-            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, `громче`);
-            else {
-                let volume = (this.getCapabilityValue("volume_set") + 1) / 10
-                if (volume <= 1) this.glagol.send({ command: "setVolume", volume: volume });
-            }
-        });
-        this.registerCapabilityListener("volume_down", async () => {
-            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, `тише`);
-            else {
-                let volume = (this.getCapabilityValue("volume_set") - 1) / 10
-                if (volume >= 0) this.glagol.send({ command: "setVolume", volume: volume });
-            }
-        });
-        this.registerCapabilityListener("speaker_playing", async (value) => {
-            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, value ? "продолжить" : "пауза");
-            else this.glagol.send({ command: value ? "play" : "stop" });
-        });
-        this.registerCapabilityListener("speaker_next", async () => {
-            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, "следующий трек");
-            else this.glagol.send({ command: "next" });
-        });
-        this.registerCapabilityListener("speaker_prev", async () => {
-            if (!this.isLocal) await this.yandex.scenarios.send(this.speaker, "прошлый трек");
-            else this.glagol.send({ command: "prev" });
-        });
+        this.registerCapabilityListener("volume_set", async (volume) => await this.speaker.volumeSet(volume));
+        this.registerCapabilityListener("volume_up", async () => await this.speaker.volumeUp(this.getCapabilityValue("volume_set")));
+        this.registerCapabilityListener("volume_down", async () => await this.speaker.volumeDown(this.getCapabilityValue("volume_set")));
+        this.registerCapabilityListener("speaker_playing", async (value) => value ? await this.speaker.play() : await this.speaker.pause());
+        this.registerCapabilityListener("speaker_next", async () => await this.speaker.next());
+        this.registerCapabilityListener("speaker_prev", async () => await this.speaker.prev());
     }
 
     // Настройки
     async initSettings() {
         await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
         
-        if (["yandexstation_2", "yandexmini_2"].includes(this.driver.id)) {
-            const config = await this.yandex.devices.getSpeakerConfig(this.speaker);
-            const { brightness, music_equalizer_visualization, time_visualization } = config.led!;
-            if (config.led) {
-                await this.setSettings({
-                    auto_brightness: brightness.auto,
-                    brightness: brightness.value,
-                    music_equalizer_visualization: music_equalizer_visualization.auto ? "auto" : music_equalizer_visualization.style,
-                    time_visualization: time_visualization.size
-                });
-            }
+        if (this.speaker.settings.led) {
+            const { brightness, music_equalizer_visualization, time_visualization } = this.speaker.settings.led;
+            await this.setSettings({
+                auto_brightness: brightness.auto,
+                brightness: brightness.value,
+                music_equalizer_visualization: music_equalizer_visualization.auto ? "auto" : music_equalizer_visualization.style,
+                time_visualization: time_visualization.size
+            })
         }
     }
 
     async onSettings({ newSettings, changedKeys }: { oldSettings: any; newSettings: any; changedKeys: string[]; }): Promise<string | void> {
-        if (["yandexstation_2", "yandexmini_2"].includes(this.driver.id)) {
-            const config = await this.yandex.devices.getSpeakerConfig(this.speaker);
-            const { brightness, music_equalizer_visualization, time_visualization } = config.led!;
+        if (this.speaker.settings.led) {
+            const { brightness, music_equalizer_visualization, time_visualization } = this.speaker.settings.led;
 
             changedKeys.forEach(key => {
                 const value = newSettings[key];
@@ -173,9 +123,10 @@ export default class SpeakerDevice extends Homey.Device {
                     }
                 }
             });
-            
-            await this.yandex.devices.setSpeakerConfig(this.speaker, config);
-            return this.homey.__("device.save_settings");
+
+            await this.speaker.setSettings(this.speaker.settings);
         }
+
+        return this.homey.__("device.save_settings");
     }
 }
