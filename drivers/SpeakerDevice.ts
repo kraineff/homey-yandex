@@ -1,17 +1,16 @@
 import Homey, { DiscoveryResultMDNSSD } from "homey";
-
-import { YandexApp } from "../lib/types";
 import Yandex from "../lib/yandex";
-import Speaker from "../lib/devices/speaker";
+import YandexSpeaker from "../lib/devices/speaker";
 
 export default class SpeakerDevice extends Homey.Device {
-    app!: YandexApp;
+    app!: Homey.App;
     yandex!: Yandex;
-    speaker!: Speaker;
+    speaker!: YandexSpeaker;
     image!: Homey.Image;
 
     async onInit(): Promise<void> {
-        this.app = <YandexApp>this.homey.app;
+        this.app = this.homey.app;
+        //@ts-ignore
         this.yandex = this.app.yandex;
         this.image = await this.app.homey.images.createImage();
         await this.setAlbumArtImage(this.image);
@@ -21,26 +20,24 @@ export default class SpeakerDevice extends Homey.Device {
 
         this.yandex.on("update", async data => await this.setSettings({ x_token: data.x_token, cookies: data.cookies }));
         this.yandex.on("ready", async () => await this.init());
-        this.yandex.on("reauth_required", async () => {
-            await this.setUnavailable(this.homey.__("device.reauth_required"));
-            this.speaker.close();
-        });
+        this.yandex.on("reauth_required", async () => await this.setUnavailable(this.homey.__("device.reauth_required")));
     }
 
     async onDeleted(): Promise<void> {
-        this.speaker.close();
+        await this.speaker.close();
     }
 
     async init() {
         await this.setAvailable();
         
-        this.speaker = new Speaker(this.yandex, this.yandex.devices.getSpeaker(this.getData().id)!);
+        this.speaker = this.yandex.createSpeaker(this.getData().id);
         await this.localConnection();
         await this.initSettings();
         await this.onMultipleCapabilityListener();
     }
     
     async localConnection() {
+        //@ts-ignore
         const discoveryResults = this.app.discoveryStrategy.getDiscoveryResults();
         if (discoveryResults && Object.keys(discoveryResults).includes(this.getData().device_id)) {
             const result = discoveryResults[this.getData().device_id];
@@ -51,13 +48,13 @@ export default class SpeakerDevice extends Homey.Device {
                 this.setStoreValue("port", port);
             };
 
+            //@ts-ignore
             this.app.discoveryStrategy.on("result", async (discoveryResult: DiscoveryResultMDNSSD) => {
                 if (discoveryResult.id === this.getData().device_id) {
                     update(discoveryResult.address, discoveryResult.port);
                 }
             });
-
-            //@ts-ignore
+            
             update(result.address, result.port);
             await this.speaker.init(url);
 

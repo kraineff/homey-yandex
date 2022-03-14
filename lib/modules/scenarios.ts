@@ -1,6 +1,4 @@
-import { Scenario } from "../types";
 import Yandex from "../yandex";
-import Queue from "promise-queue";
 
 const missingNumbers = (a: number[], l: boolean = true) => Array.from(Array(Math.max(...a)).keys())
     .map((n, i) => a.indexOf(i) < 0  && (!l || i > Math.min(...a)) ? i : null)
@@ -43,16 +41,26 @@ const SCENARIO_BASE = (data: any) => ({
     }]
 });
 
+export type Scenario = {
+    id: string
+    name: string
+    icon: string
+    trigger: string
+    action: {
+        type: string
+        value: string
+    }
+    device_id?: string
+}
+
 export default class YandexScenarios {
     yandex: Yandex;
 
     rawScenarios?: any[];
     scenarios!: Scenario[];
-    queue: Queue;
 
     constructor(yandex: Yandex) {
         this.yandex = yandex;
-        this.queue = new Queue(1);
     }
 
     async init() {

@@ -1,14 +1,13 @@
 import Yandex from "../yandex";
-import YandexScenarios from "../quasar/scenarios";
-import { Device } from "../types";
-
+import { RawDevice } from "../modules/devices";
 import EventEmitter from "events";
 import WebSocket from 'ws';
 import ReconnectingWebSocket from "reconnecting-websocket";
-import { v4 } from "uuid";
+import Queue from "promise-queue";
 import { diff } from "deep-object-diff";
+import { v4 } from "uuid";
 
-type SpeakerConfigType = {
+type SpeakerConfig = {
     allow_non_self_calls: boolean
     beta: boolean
     led?: {
@@ -29,30 +28,34 @@ class SpeakerWebSocket extends WebSocket {
     }
 }
 
-export default class Speaker extends EventEmitter {
+export default class YandexSpeaker extends EventEmitter {
     yandex: Yandex;
-    scenarios: YandexScenarios;
-    speaker: Device;
-
-    settings!: SpeakerConfigType;
-
+    queue: Queue;
+    raw: RawDevice;
+    
     rws?: ReconnectingWebSocket;
     localToken?: string;
-    isLocal: boolean = false;
-    
-    lastState: any = {};
-    waitForIdle: boolean = false;
-    savedVolumeLevel?: number;
+    isLocal: boolean;
 
-    constructor(yandex: Yandex, speaker: Device) {
+    settings!: SpeakerConfig;
+    lastState: any;
+    savedVolumeLevel?: number;
+    waitForIdle: boolean;
+
+    constructor(yandex: Yandex, id: string) {
         super();
         this.yandex = yandex;
-        this.scenarios = yandex.scenarios;
-        this.speaker = speaker;
+        this.raw = this.yandex.devices.speakers.find(s => s.id === id)!;
+        this.yandex.speakers_.push(this);
+
+        this.queue = new Queue(1);
+        this.isLocal = false;
+        this.lastState = {};
+        this.waitForIdle = false;
     }
 
     async init(url?: () => string) {
-        console.log(`[Колонка: ${this.speaker.id}] -> Инициализация`);
+        console.log(`[Колонка: ${this.raw.id}] -> Инициализация`);
 
         this.settings = await this.getSettings();
         
@@ -64,13 +67,14 @@ export default class Speaker extends EventEmitter {
     }
 
     async close() {
-        console.log(`[Колонка: ${this.speaker.id}] -> Остановка получения данных`);
+        console.log(`[Колонка: ${this.raw.id}] -> Остановка получения данных`);
 
         if (this.rws) this.rws.close();
+        this.removeAllListeners("update");
     }
 
     async run(command: any) {
-        console.log(`[Колонка: ${this.speaker.id}] -> Выполнение действия -> ${typeof command === "object" ? JSON.stringify(command) : command}`);
+        console.log(`[Колонка: ${this.raw.id}] -> Выполнение действия -> ${typeof command === "object" ? JSON.stringify(command) : command}`);
 
         if (typeof command === "object") {
             this.rws!.send(JSON.stringify({
@@ -83,7 +87,7 @@ export default class Speaker extends EventEmitter {
     }
 
     async say(mode: "cloud" | "local", message: string, volume: number = -1) {
-        console.log(`[Колонка: ${this.speaker.id}] -> Синтез речи -> ${message}`);
+        console.log(`[Колонка: ${this.raw.id}] -> Синтез речи -> ${message}`);
 
         if (volume !== -1) {
             if (mode === "cloud") await this.run(`громкость на ${volume}`);
@@ -132,38 +136,38 @@ export default class Speaker extends EventEmitter {
     }
 
     async getSettings() {
-        console.log(`[Колонка: ${this.speaker.id}] -> Получение настроек`);
+        console.log(`[Колонка: ${this.raw.id}] -> Получение настроек`);
 
         return this.yandex.get("https://quasar.yandex.ru/get_device_config", {
-            params: { "device_id": this.speaker.quasar_info!.device_id, "platform": this.speaker.quasar_info!.platform }
-        }).then(resp => <SpeakerConfigType>resp.data.config);
+            params: { "device_id": this.raw.quasar_info!.device_id, "platform": this.raw.quasar_info!.platform }
+        }).then(resp => <SpeakerConfig>resp.data.config);
     }
 
-    async setSettings(config: SpeakerConfigType) {
-        console.log(`[Колонка: ${this.speaker.id}] -> Установка настроек`);
+    async setSettings(config: SpeakerConfig) {
+        console.log(`[Колонка: ${this.raw.id}] -> Установка настроек`);
 
         return this.yandex.post("https://quasar.yandex.ru/set_device_config", {
-            params: { "device_id": this.speaker.quasar_info!.device_id, "platform": this.speaker.quasar_info!.platform },
+            params: { "device_id": this.raw.quasar_info!.device_id, "platform": this.raw.quasar_info!.platform },
             data: config
         });
     }
 
     async _command(message: string, isTTS: boolean = false) {
-        const scenarioId = this.scenarios.getByEncodedId(this.speaker.id)?.id || await this.scenarios.add(this.speaker.id);
-        const oldScenario = this.scenarios.get(scenarioId)!;
+        const scenarioId = this.yandex.scenarios.getByEncodedId(this.raw.id)?.id || await this.yandex.scenarios.add(this.raw.id);
+        const oldScenario = this.yandex.scenarios.get(scenarioId)!;
         
         let scenario = JSON.parse(JSON.stringify(oldScenario));
         scenario.action.type = isTTS ? "phrase_action" : "text_action";
         scenario.action.value = message;
 
-        this.scenarios.queue.add(async () => {
-            await this.scenarios.edit(scenario);
-            await this.scenarios.run(scenario);
+        this.queue.add(async () => {
+            await this.yandex.scenarios.edit(scenario);
+            await this.yandex.scenarios.run(scenario);
         });
     }
 
     async connect(url: () => string) {
-        console.log(`[Колонка: ${this.speaker.id}] -> Запуск получения данных`);
+        console.log(`[Колонка: ${this.raw.id}] -> Запуск получения данных`);
 
         this.rws = new ReconnectingWebSocket(url, [], { WebSocket: SpeakerWebSocket });
         //@ts-ignore
@@ -195,12 +199,12 @@ export default class Speaker extends EventEmitter {
     }
 
     async updateToken() {
-        console.log(`[Колонка: ${this.speaker.id}] -> Обновление локального токена`);
+        console.log(`[Колонка: ${this.raw.id}] -> Обновление локального токена`);
 
         return this.yandex.get("https://quasar.yandex.net/glagol/token", {
             params: {
-                device_id: this.speaker.quasar_info!.device_id,
-                platform: this.speaker.quasar_info!.platform
+                device_id: this.raw.quasar_info!.device_id,
+                platform: this.raw.quasar_info!.platform
             }
         }).then(resp => this.localToken = resp.data.token);
     }

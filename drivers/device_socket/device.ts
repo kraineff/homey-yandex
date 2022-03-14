@@ -1,3 +1,3 @@
-import YandexDevice from "../YandexDevice";
+import BaseDevice from "../BaseDevice";
 
-module.exports = class SocketDevice extends YandexDevice {}
+module.exports = class SocketDevice extends BaseDevice {}

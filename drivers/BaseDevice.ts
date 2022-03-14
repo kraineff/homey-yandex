@@ -1,43 +1,41 @@
 import Homey from "homey";
-import { classNames, Device, DeviceTypes, YandexApp } from "../lib/types";
 import Yandex from "../lib/yandex"
+import YandexDevice from "../lib/devices/base";
+import { RawDevice } from "../lib/modules/devices";
 
-export default class YandexDevice extends Homey.Device {
-    app!: YandexApp;
+export default class BaseDevice extends Homey.Device {
+    app!: Homey.App;
     yandex!: Yandex;
-    device!: Device;
-
-    dataListener!: (data: any) => void;
+    device!: YandexDevice;
 
     async onInit(): Promise<void> {
-        this.app = <YandexApp>this.homey.app;
+        this.app = this.homey.app;
+        //@ts-ignore
         this.yandex = this.app.yandex;
 
         if (this.yandex.ready) await this.init();
         else await this.setUnavailable(this.homey.__("device.reauth_required"));
 
         this.yandex.on("ready", async () => await this.init());
-        this.yandex.on("reauth_required", async () => {
-            this.yandex.removeListener("update_state", this.dataListener);
-            await this.setUnavailable(this.homey.__("device.reauth_required"));
-        });
+        this.yandex.on("reauth_required", async () => await this.setUnavailable(this.homey.__("device.reauth_required")));
     }
 
-    onDeleted(): void {
-        this.yandex.removeListener("update_state", this.dataListener);
+    async onDeleted(): Promise<void> {
+        await this.device.close();
     }
 
     async init() {
         await this.setAvailable();
-        
-        this.device = this.yandex.devices[classNames[this.driver.manifest.class] as keyof DeviceTypes]!.find(device => device.id === this.getData().id)!;
-        await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
-        await this.setCapabilities(this.device);
 
-        this.dataListener = async (data: any) => {
-            if (data.id === this.getData().id) await this.setCapabilities(data);
-        };
-        this.yandex.addListener("update_state", this.dataListener);
+        let devices: RawDevice[] = [];
+        if (this.driver.manifest.class === "socket") devices = this.yandex.devices.getSwitches();
+        if (this.driver.manifest.class === "remote") devices = this.yandex.devices.getRemotes();
+        this.device = this.yandex.createDevice(this.getData().id);
+        this.device.init();
+
+        await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
+        await this.setCapabilities(this.device.raw);
+        this.device.on("update", async data => await this.setCapabilities(data));
         await this.onCapabilityListener();
     }
 
@@ -68,13 +66,13 @@ export default class YandexDevice extends Homey.Device {
 
     async onCapabilityListener() {
         if (this.hasCapability("onoff")) this.registerCapabilityListener("onoff", async (value) => {
-            await this.yandex.devices.action(this.device.id, { "on": value });
+            await this.device.action({ "on": value });
         });
 
         // Пульт
         const buttons = this.getCapabilities().filter(c => c.startsWith("button.") && c !== "button.reauth").map(c => c.replace("button.", ""));
         if (buttons.length > 0) buttons.forEach(button => this.registerCapabilityListener(`button.${button}`, async () => {
-            await this.yandex.devices.action(this.device.id, { [button]: true });
+            await this.device.action({ [button]: true });
         }));
 
         this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("reauth_required") });

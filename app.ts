@@ -1,18 +1,13 @@
 import Homey from "homey";
 
-import { YandexApp } from "./lib/types";
 import Yandex from "./lib/yandex";
 
-module.exports = class YandexAlice extends Homey.App implements YandexApp {
+module.exports = class YandexAlice extends Homey.App {
     yandex!: Yandex;
     discoveryStrategy = this.homey.discovery.getStrategy("yandex_station");
 
     async onInit() {
-        this.yandex = new Yandex(
-            this.homey.settings.get("x_token") || "",
-            this.homey.settings.get("cookies") || "",
-            this.homey.settings.get("music_token") || ""
-        );
+        this.yandex = new Yandex();
         
         this.yandex.on("update", data => {
             Object.keys(data).forEach(key => {
@@ -28,7 +23,11 @@ module.exports = class YandexAlice extends Homey.App implements YandexApp {
             });
         });
         
-        await this.yandex.connect();
+        await this.yandex.connect(
+            this.homey.settings.get("x_token") || "",
+            this.homey.settings.get("cookies") || "",
+            this.homey.settings.get("music_token") || ""
+        );
 
         // Действия: ТТС и команда
         this.homey.flow.getActionCard("say_tts").registerRunListener(async (args, state) => await args.device.speaker.say(args.mode, args.text, +args.volume));

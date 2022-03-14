@@ -1,23 +1,23 @@
 import Homey from "homey";
-
-import { classNames, Device, DeviceTypes, YandexApp } from "../lib/types";
 import Yandex from "../lib/yandex";
+import { RawDevice } from "../lib/modules/devices";
 
 export default class YandexDriver extends Homey.Driver {
-    app!: YandexApp;
+    app!: Homey.App;
     yandex!: Yandex;
     
     async onInit(): Promise<void> {
-        this.app = <YandexApp>this.homey.app;
+        this.app = this.homey.app;
+        //@ts-ignore
         this.yandex = this.app.yandex;
     }
     
     onPair(pair: Homey.Driver.PairSession) {
         let ready = false;
         
-        pair.setHandler("start", async () => !this.yandex.ready ? await this.yandex.getAuthUrl() : "list_devices");
+        pair.setHandler("start", async () => !this.yandex.ready ? await this.yandex.session.getAuthUrl() : "list_devices");
         pair.setHandler("check", async () => {
-            ready = await this.yandex.checkAuth();
+            ready = await this.yandex.session.checkAuth();
             return ready;
         });
 
@@ -38,7 +38,10 @@ export default class YandexDriver extends Homey.Driver {
                         }
                     })) : [];
             } else {
-                const devices = this.yandex.devices[classNames[this.manifest.class] as keyof DeviceTypes];
+                let devices;
+                if (manifest.class === "socket") devices = this.yandex.devices.getSwitches();
+                if (manifest.class === "remote") devices = this.yandex.devices.getRemotes();
+
                 return devices ? devices.map(device => ({
                     name: device.name,
                     data: {
@@ -50,7 +53,7 @@ export default class YandexDriver extends Homey.Driver {
         });
     }
 
-    capabilitiesBuilder(device: Device) {
+    capabilitiesBuilder(device: RawDevice) {
         const { capabilities, properties } = device;
         let _capabilities: string[] = [];
         let _capabilitiesOptions: any = {};
