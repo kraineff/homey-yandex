@@ -12,11 +12,9 @@ export default class YandexDriver extends Homey.Driver {
         this.yandex = this.app.yandex;
     }
     
-    onPair(pair: Homey.Driver.PairSession) {
-        let ready = false;
-        
+    onPair(pair: Homey.Driver.PairSession) {        
         pair.setHandler("start", async () => !this.yandex.ready ? await this.yandex.getAuthUrl() : "list_devices");
-        pair.setHandler("check", async () => await this.yandex.checkAuth().then(() => ready = true));
+        pair.setHandler("check", async () => await this.yandex.checkAuth());
 
         pair.setHandler("list_devices", async (after_auth: boolean) => {
             if (after_auth) await this.yandex.login();
