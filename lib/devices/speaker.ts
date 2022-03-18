@@ -1,11 +1,10 @@
 import Yandex from "../yandex";
-import { RawDevice } from "../modules/devices";
-import EventEmitter from "events";
 import WebSocket from 'ws';
 import ReconnectingWebSocket from "reconnecting-websocket";
 import Queue from "promise-queue";
 import { diff } from "deep-object-diff";
 import { v4 } from "uuid";
+import BaseDevice from "./base";
 
 type SpeakerConfig = {
     allow_non_self_calls: boolean
@@ -28,54 +27,49 @@ class SpeakerWebSocket extends WebSocket {
     }
 }
 
-export default class YandexSpeaker extends EventEmitter {
-    yandex: Yandex;
-    queue: Queue;
-    raw: RawDevice;
-    
-    rws?: ReconnectingWebSocket;
-    localToken?: string;
-    isLocal: boolean;
-
+export default class YandexSpeaker extends BaseDevice {
+    volume: number
     settings!: SpeakerConfig;
-    lastState: any;
-    savedVolumeLevel?: number;
-    waitForIdle: boolean;
+    
+    private local: boolean;
+    private lastState: any;
+    private savedVolumeLevel?: number;
 
-    constructor(yandex: Yandex, id: string) {
-        super();
-        this.yandex = yandex;
-        this.raw = this.yandex.devices.speakers.find(s => s.id === id)!;
-        this.yandex.speakers_.push(this);
+    private queue: Queue;
+    private rws?: ReconnectingWebSocket;
+    private localToken?: string;
 
-        this.queue = new Queue(1);
-        this.isLocal = false;
+    constructor(yandex: Yandex) {
+        super(yandex);
+        this.volume = 0;
+        this.local = false;
         this.lastState = {};
-        this.waitForIdle = false;
+        this.queue = new Queue(1);
+
+        this.on("newListener", (eventName, listener) => {
+            if (eventName === "state") listener(Object.keys(this.lastState).length ? this.lastState : this.raw);
+        });
+        this.on("unavailable", () => {
+            if (this.rws) this.rws.close();
+        });
     }
 
     async init(url?: () => string) {
-        console.log(`[Колонка: ${this.raw.id}] -> Инициализация`);
+        console.log(`[Колонка: ${this.raw.id}] -> Инициализация колонки`);
 
         this.settings = await this.getSettings();
         
         if (url !== undefined) {
-            this.isLocal = true;
+            this.local = true;
             if (!this.localToken) await this.updateToken();
             await this.connect(url);
         }
-    }
 
-    async close() {
-        console.log(`[Колонка: ${this.raw.id}] -> Остановка получения данных`);
-
-        if (this.rws) this.rws.close();
-        this.removeAllListeners("update");
+        this.emit("available");
+        this.initialized = true;
     }
 
     async run(command: any) {
-        console.log(`[Колонка: ${this.raw.id}] -> Выполнение действия -> ${typeof command === "object" ? JSON.stringify(command) : command}`);
-
         if (typeof command === "object") {
             this.rws!.send(JSON.stringify({
                 conversationToken: this.localToken,
@@ -90,12 +84,8 @@ export default class YandexSpeaker extends EventEmitter {
         console.log(`[Колонка: ${this.raw.id}] -> Синтез речи -> ${message}`);
 
         if (volume !== -1) {
-            if (mode === "cloud") await this.run(`громкость на ${volume}`);
-            else {
-                this.savedVolumeLevel = this.lastState.volume;
-                this.waitForIdle = true;
-                await this.run({ command: "setVolume", volume: volume / 10 });
-            }
+            if (mode === "local") this.savedVolumeLevel = Number(this.volume);
+            await this.volumeSet(volume, mode);
         } 
         
         if (mode === "local") {
@@ -115,24 +105,55 @@ export default class YandexSpeaker extends EventEmitter {
             });
         } else await this._command(message, true);
     }
-
-    play = () => this.run(this.isLocal ? { command: "play" } : "продолжить");
-    pause = () => this.run(this.isLocal ? { command: "stop" } : "пауза");
-    next = () => this.run(this.isLocal ? { command: "next" } : "следующий трек");
-    prev = () => this.run(this.isLocal ? { command: "prev" } : "предыдущий трек");
-
-    volumeSet = (volume: number) => this.run(this.isLocal ? { command: "setVolume", volume: volume / 10 } : `громкость на ${volume}`);
-
-    volumeUp = async (volume: number) => {
-        const _volume = (volume + 1) / 10;
-        if (!this.isLocal) return this.run("громче")
-        else if (_volume <= 1) return this.run({ command: "setVolume", volume: _volume });
+    
+    async play() {
+        console.log(`[Колонка: ${this.raw.id}] -> Продолжение музыки`);
+        return this.run(this.local ? { command: "play" } : "продолжить");
     }
 
-    volumeDown = async (volume: number) => {
-        const _volume = (volume - 1) / 10;
-        if (!this.isLocal) return this.run("громче")
-        else if (_volume >= 0) return this.run({ command: "setVolume", volume: _volume });
+    async pause() {
+        console.log(`[Колонка: ${this.raw.id}] -> Остановка музыки`);
+        return this.run(this.local ? { command: "stop" } : "пауза");
+    }
+
+    async next() {
+        console.log(`[Колонка: ${this.raw.id}] -> Следующий трек`);
+        return this.run(this.local ? { command: "next" } : "следующий трек");
+    }
+
+    async prev() {        
+        console.log(`[Колонка: ${this.raw.id}] -> Предыдущий трек`);
+        return this.run(this.local ? { command: "prev" } : "предыдущий трек");
+    }
+
+    async volumeSet(volume: number, mode: "auto" | "cloud" | "local" = "auto") {
+        console.log(`[Колонка: ${this.raw.id}] -> Установка громкости -> ${volume}`);
+
+        this.volume = volume;
+        await this.run((mode === "auto" ? this.local : mode === "local") ? { command: "setVolume", volume: volume / 10 } : `громкость на ${volume}`);
+        return this.volume;
+    }
+
+    async volumeUp(value: number = 1) {
+        console.log(`[Колонка: ${this.raw.id}] -> Повышение громкости`);
+
+        const newVolume = this.volume + value;
+        if (newVolume <= 10) {
+            await this.run(this.local ? { command: "setVolume", volume: newVolume / 10 } : `громкость на ${newVolume}`);
+            return newVolume;
+        }
+        return this.volume;
+    }
+
+    async volumeDown(value: number = 1) {
+        console.log(`[Колонка: ${this.raw.id}] -> Понижение громкости`);
+
+        const newVolume = this.volume + value;
+        if (newVolume >= 0) {
+            await this.run(this.local ? { command: "setVolume", volume: newVolume / 10 } : `громкость на ${newVolume}`);
+            return newVolume;
+        }
+        return this.volume;
     }
 
     async getSettings() {
@@ -152,9 +173,9 @@ export default class YandexSpeaker extends EventEmitter {
         });
     }
 
-    async _command(message: string, isTTS: boolean = false) {
+    private async _command(message: string, isTTS: boolean = false) {
         const scenarioId = this.yandex.scenarios.getByEncodedId(this.raw.id)?.id || await this.yandex.scenarios.add(this.raw.id);
-        const oldScenario = this.yandex.scenarios.get(scenarioId)!;
+        const oldScenario = this.yandex.scenarios.getById(scenarioId)!;
         
         let scenario = JSON.parse(JSON.stringify(oldScenario));
         scenario.action.type = isTTS ? "phrase_action" : "text_action";
@@ -166,7 +187,7 @@ export default class YandexSpeaker extends EventEmitter {
         });
     }
 
-    async connect(url: () => string) {
+    private async connect(url: () => string) {
         console.log(`[Колонка: ${this.raw.id}] -> Запуск получения данных`);
 
         this.rws = new ReconnectingWebSocket(url, [], { WebSocket: SpeakerWebSocket });
@@ -181,15 +202,16 @@ export default class YandexSpeaker extends EventEmitter {
                 delete state.playerState.duration;
                 delete state.playerState.progress;
 
-                if (this.lastState.aliceState === "LISTENING" && this.waitForIdle) {
-                    if (this.savedVolumeLevel !== undefined) await this.run({ command: "setVolume", volume: this.savedVolumeLevel });
-                    this.waitForIdle = false;
+                if (this.lastState.aliceState === "LISTENING" && this.savedVolumeLevel) {
+                    await this.volumeSet(this.savedVolumeLevel, "local")
+                    this.savedVolumeLevel = undefined;
                 }
 
                 const difference: any = diff(this.lastState, state);
                 if (!Object.keys(difference).length) return;
                 this.lastState = state;
-                this.emit("update", difference);
+                if (difference.volume !== undefined) this.volume = difference.volume * 10;
+                this.emit("state", difference);
             }
         });
         //@ts-ignore
@@ -198,7 +220,7 @@ export default class YandexSpeaker extends EventEmitter {
         });
     }
 
-    async updateToken() {
+    private async updateToken() {
         console.log(`[Колонка: ${this.raw.id}] -> Обновление локального токена`);
 
         return this.yandex.get("https://quasar.yandex.net/glagol/token", {

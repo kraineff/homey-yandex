@@ -5,7 +5,7 @@ import YandexSpeaker from "../lib/devices/speaker";
 export default class SpeakerDevice extends Homey.Device {
     app!: Homey.App;
     yandex!: Yandex;
-    speaker!: YandexSpeaker;
+    device!: YandexSpeaker;
     image!: Homey.Image;
 
     async onInit(): Promise<void> {
@@ -15,28 +15,41 @@ export default class SpeakerDevice extends Homey.Device {
         this.image = await this.app.homey.images.createImage();
         await this.setAlbumArtImage(this.image);
 
-        if (this.yandex.ready) await this.init();
-        else await this.setUnavailable(this.homey.__("device.reauth_required"));
-
-        this.yandex.on("update", async data => await this.setSettings({ x_token: data.x_token, cookies: data.cookies }));
-        this.yandex.on("ready", async () => await this.init());
-        this.yandex.on("reauth_required", async () => await this.setUnavailable(this.homey.__("device.reauth_required")));
+        const _device = this.yandex.devices.getById(this.getData().id);
+        if (_device) {
+            this.device = <YandexSpeaker>_device;
+            this.device.on("available", async () => {
+                await this.setAvailable();
+                await this.initSettings();
+                await this.onMultipleCapabilityListener();
+            });
+            this.device.on("state", async (state) => await this.setCapabilities(state));
+            await this.device.init(await this.connect());
+        } else await this.setUnavailable("Устройство больше не существует");
     }
 
     async onDeleted(): Promise<void> {
-        await this.speaker.close();
+        await this.device.destroy();
     }
 
-    async init() {
-        await this.setAvailable();
-        
-        this.speaker = this.yandex.createSpeaker(this.getData().id);
-        await this.localConnection();
-        await this.initSettings();
-        await this.onMultipleCapabilityListener();
+    async setCapabilities(state: any) {
+        const { volume, playing, playerState } = state;
+        if (volume !== undefined) await this.setCapabilityValue("volume_set", volume * 10);
+        if (playing !== undefined) await this.setCapabilityValue("speaker_playing", playing);
+        if (playerState) {
+            const { title, subtitle, duration, progress, extra } = playerState;
+            if (title !== undefined) await this.setCapabilityValue("speaker_track", title);
+            if (subtitle !== undefined) await this.setCapabilityValue("speaker_artist", subtitle);
+            if (duration !== undefined) await this.setCapabilityValue("speaker_duration", duration);
+            if (progress !== undefined) await this.setCapabilityValue("speaker_position", progress);
+            if (extra?.coverURI !== undefined) {
+                this.image.setUrl(`https://${(<string>extra.coverURI).replace("%%", "600x600")}`);
+                await this.image.update();
+            }
+        }
     }
     
-    async localConnection() {
+    async connect() {
         //@ts-ignore
         const discoveryResults = this.app.discoveryStrategy.getDiscoveryResults();
         if (discoveryResults && Object.keys(discoveryResults).includes(this.getData().device_id)) {
@@ -56,55 +69,38 @@ export default class SpeakerDevice extends Homey.Device {
             });
             
             update(result.address, result.port);
-            await this.speaker.init(url);
-
-            this.speaker.on("update", async state => {
-                const { volume, playing, playerState } = state;
-                if (volume !== undefined) await this.setCapabilityValue("volume_set", volume * 10);
-                if (playing !== undefined) await this.setCapabilityValue("speaker_playing", playing);
-                if (playerState) {
-                    const { title, subtitle, duration, progress, extra } = playerState;
-                    if (title !== undefined) await this.setCapabilityValue("speaker_track", title);
-                    if (subtitle !== undefined) await this.setCapabilityValue("speaker_artist", subtitle);
-                    if (duration !== undefined) await this.setCapabilityValue("speaker_duration", duration);
-                    if (progress !== undefined) await this.setCapabilityValue("speaker_position", progress);
-                    if (extra?.coverURI !== undefined) {
-                        this.image.setUrl(`https://${(<string>extra.coverURI).replace("%%", "600x600")}`);
-                        await this.image.update();
-                    }
-                }
-            });
-        } else await this.speaker.init();
+            return url
+        }
     }
 
     async onMultipleCapabilityListener() {
-        this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("reauth_required") });
-        this.registerCapabilityListener("volume_set", async (volume) => await this.speaker.volumeSet(volume));
-        this.registerCapabilityListener("volume_up", async () => await this.speaker.volumeUp(this.getCapabilityValue("volume_set")));
-        this.registerCapabilityListener("volume_down", async () => await this.speaker.volumeDown(this.getCapabilityValue("volume_set")));
-        this.registerCapabilityListener("speaker_playing", async (value) => value ? await this.speaker.play() : await this.speaker.pause());
-        this.registerCapabilityListener("speaker_next", async () => await this.speaker.next());
-        this.registerCapabilityListener("speaker_prev", async () => await this.speaker.prev());
+        this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("close") });
+        this.registerCapabilityListener("volume_set", async (volume) => { await this.device.volumeSet(volume) });
+        this.registerCapabilityListener("volume_up", async () => { await this.device.volumeUp() });
+        this.registerCapabilityListener("volume_down", async () => { await this.device.volumeDown() });
+        this.registerCapabilityListener("speaker_playing", async (value) => value ? await this.device.play() : await this.device.pause());
+        this.registerCapabilityListener("speaker_next", async () => await this.device.next());
+        this.registerCapabilityListener("speaker_prev", async () => await this.device.prev());
     }
 
     // Настройки
     async initSettings() {
         await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
         
-        if (this.speaker.settings.led) {
-            const { brightness, music_equalizer_visualization, time_visualization } = this.speaker.settings.led;
+        if (this.device.settings.led) {
+            const { brightness, music_equalizer_visualization, time_visualization } = this.device.settings.led;
             await this.setSettings({
                 auto_brightness: brightness.auto,
                 brightness: brightness.value,
                 music_equalizer_visualization: music_equalizer_visualization.auto ? "auto" : music_equalizer_visualization.style,
                 time_visualization: time_visualization.size
-            })
+            });
         }
     }
 
     async onSettings({ newSettings, changedKeys }: { oldSettings: any; newSettings: any; changedKeys: string[]; }): Promise<string | void> {
-        if (this.speaker.settings.led) {
-            const { brightness, music_equalizer_visualization, time_visualization } = this.speaker.settings.led;
+        if (this.device.settings.led) {
+            const { brightness, music_equalizer_visualization, time_visualization } = this.device.settings.led;
 
             changedKeys.forEach(key => {
                 const value = newSettings[key];
@@ -120,7 +116,7 @@ export default class SpeakerDevice extends Homey.Device {
                 }
             });
 
-            await this.speaker.setSettings(this.speaker.settings);
+            await this.device.setSettings(this.device.settings);
         }
 
         return this.homey.__("device.save_settings");

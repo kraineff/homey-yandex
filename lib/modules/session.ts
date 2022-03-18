@@ -57,18 +57,22 @@ export default class YandexSession {
         });
     }
 
-    async checkAuth() {
+    async checkAuth(timeout: number = 5000) {
         console.log("[Yandex] -> Проверка авторизации");
 
-        return this.session({
-            method: "POST",
-            url: "https://passport.yandex.ru/auth/new/magic/status/",
-            data: qs.stringify(this.auth_payload)
-        }).then(resp => {
-            if (resp.data?.status !== "ok") return false;
-            this.setProperties({ "cookies": resp.headers["set-cookie"]!.join('; ') });
-            return this.getTokenFromCookies().then(() => true);
-        });
+        return promiseRetry((retry, attempt) => {
+            return this.session({
+                method: "POST",
+                url: "https://passport.yandex.ru/auth/new/magic/status/",
+                data: qs.stringify(this.auth_payload)
+            }).then(resp => {
+                if (resp.data?.status !== "ok") throw new Error("AUTH_FAILED");
+                this.setProperties({ "cookies": resp.headers["set-cookie"]!.join('; ') });
+                return this.getTokenFromCookies().then(() => true);
+            });
+        }, { retries: 100, factor: 1, minTimeout: timeout })
+            .then(async () => await this.yandex.login())
+            .catch((error) => { throw error });
     }
 
     async getTokenFromCookies() {
@@ -86,7 +90,7 @@ export default class YandexSession {
                 "Ya-Client-Cookie": this.cookies
             }
         }).then(resp => {
-            if (!resp.data?.access_token) throw new Error("REAUTH_REQUIRED");
+            if (!resp.data?.access_token) throw new Error("INVALID_COOKIES");
             this.setProperties({ "x_token": resp.data.access_token });
         });
     }
@@ -177,7 +181,7 @@ export default class YandexSession {
             });
         }, { retries: 3 }).catch(err => {
             if (["REAUTH_REQUIRED", "CSRF_TOKEN_INVALID"].includes(err.message)) {
-                this.yandex.emit("reauth_required");
+                this.yandex.emit("close");
                 err = new Error("Требуется повторная авторизация");
             }
             throw err;

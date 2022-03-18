@@ -1,7 +1,6 @@
 import Homey from "homey";
 import Yandex from "../lib/yandex"
-import YandexDevice from "../lib/devices/base";
-import { RawDevice } from "../lib/modules/devices";
+import YandexDevice from "../lib/devices/device";
 
 export default class BaseDevice extends Homey.Device {
     app!: Homey.App;
@@ -13,30 +12,22 @@ export default class BaseDevice extends Homey.Device {
         //@ts-ignore
         this.yandex = this.app.yandex;
 
-        if (this.yandex.ready) await this.init();
-        else await this.setUnavailable(this.homey.__("device.reauth_required"));
-
-        this.yandex.on("ready", async () => await this.init());
-        this.yandex.on("reauth_required", async () => await this.setUnavailable(this.homey.__("device.reauth_required")));
+        const _device = this.yandex.devices.getById(this.getData().id);
+        if (_device) {
+            this.device = <YandexDevice>_device;
+            this.device.on("available", async () => {
+                await this.setAvailable();
+                await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
+                await this.onCapabilityListener();
+            });
+            this.device.on("unavailable", async () => await this.setUnavailable(this.homey.__("device.reauth_required")));
+            this.device.on("state", async (state) => await this.setCapabilities(state));
+            await this.device.init();
+        } else await this.setUnavailable("Устройство больше не существует");
     }
 
     async onDeleted(): Promise<void> {
-        await this.device.close();
-    }
-
-    async init() {
-        await this.setAvailable();
-
-        let devices: RawDevice[] = [];
-        if (this.driver.manifest.class === "socket") devices = this.yandex.devices.getSwitches();
-        if (this.driver.manifest.class === "remote") devices = this.yandex.devices.getRemotes();
-        this.device = this.yandex.createDevice(this.getData().id);
-        this.device.init();
-
-        await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
-        await this.setCapabilities(this.device.raw);
-        this.device.on("update", async data => await this.setCapabilities(data));
-        await this.onCapabilityListener();
+        await this.device.destroy();
     }
 
     async setCapabilities(data: any) {
@@ -75,6 +66,6 @@ export default class BaseDevice extends Homey.Device {
             await this.device.action({ [button]: true });
         }));
 
-        this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("reauth_required") });
+        this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("close") });
     }
 }

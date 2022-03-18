@@ -6,17 +6,9 @@
             Homey.showView(view);
         } else {
             Homey.setTitle(Homey.__("auth.title"));
+            Homey.emit("check").then(() => Homey.showView("list_devices"));
             document.getElementById("wrapper").style.display = "flex";
             url = view;
-
-            const check = setInterval(() => {
-                Homey.emit("check").then((result) => {
-                    if (result) {
-                        clearInterval(check);
-                        Homey.showView("list_devices");
-                    }
-                });
-            }, 5000);
         }
     }));
 

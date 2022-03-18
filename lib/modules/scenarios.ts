@@ -56,24 +56,23 @@ export type Scenario = {
 export default class YandexScenarios {
     yandex: Yandex;
 
-    rawScenarios?: any[];
-    scenarios!: Scenario[];
+    private _scenarios: Scenario[];
 
     constructor(yandex: Yandex) {
         this.yandex = yandex;
+        this._scenarios = [];
     }
 
-    async init() {
-        await this.update();
-    }
+    get = () => this._scenarios;
+    getById = (id: string) => this._scenarios.find(scenario => scenario.id === id);
+    getByActionName = (name: string) => this._scenarios.find(scenario => scenario.action.value === name);
+    getByActionValue = (value: string) => this._scenarios.find(scenario => scenario.action.value === value);
 
-    get = (scenarioId: string) => this.scenarios.find(s => s.id === scenarioId);
-    getByAction = (action: string) => this.scenarios.find(s => s.action.value === action);
-    getByEncodedId = (deviceId: string) => this.scenarios.find(s => s.name === encode(deviceId));
+    getByEncodedId = (deviceId: string) => this._scenarios.find(s => s.name === encode(deviceId));
 
     updateData(scenario: Scenario) {
-        const found = this.scenarios.findIndex(s => s.id === scenario.id);
-        found !== -1 ? this.scenarios[found] = scenario : this.scenarios.push(scenario);
+        const found = this._scenarios.findIndex(s => s.id === scenario.id);
+        found !== -1 ? this._scenarios[found] = scenario : this._scenarios.push(scenario);
     }
 
     async add(deviceId: string) {
@@ -108,21 +107,18 @@ export default class YandexScenarios {
         return this.yandex.post(`https://iot.quasar.yandex.ru/m/user/scenarios/${scenario.id}/actions`);
     }
 
-    async getRaw() {
-        return this.yandex.get("https://iot.quasar.yandex.ru/m/user/scenarios").then(resp => <any[]>resp.data.scenarios);
-    }
-
-    async update(scenarios: any[] = []) {
+    async refresh(scenarios: any[] = []) {
         console.log(`[Сценарии] -> Обновление сценариев`);
 
-        if (scenarios.length === 0) await this.getRaw().then(s => scenarios = s);
+        if (scenarios.length === 0) await this.yandex.get("https://iot.quasar.yandex.ru/m/user/scenarios")
+            .then(resp => scenarios = resp.data.scenarios);
 
         const ids = scenarios.map(s => s.id);
         const rawScenarios = await Promise.all(ids.map(id => {
             return this.yandex.get(`https://iot.quasar.yandex.ru/m/user/scenarios/${id}/edit`).then(resp => resp.data.scenario);
         }));
 
-        this.scenarios = rawScenarios.map(s => ({
+        this._scenarios = rawScenarios.map(s => ({
             name: s.name,
             trigger: s.triggers[0]?.value,
             action: {
@@ -137,9 +133,9 @@ export default class YandexScenarios {
         })).filter(s => ["text_action", "phrase_action"].includes(s.action.type));
 
         // Конвертация действий
-        const convert = this.scenarios.filter(s => s.action.value.toLowerCase() === "тихо");
+        const convert = this._scenarios.filter(s => s.action.value.toLowerCase() === "тихо");
         if (convert.length > 0) {
-            const converted = this.scenarios
+            const converted = this._scenarios
                 .filter(s => s.action.value.includes("Сделай громче на 0?"))
                 .map(s => s.action.value.replace("Сделай громче на 0", "").length).sort();
 

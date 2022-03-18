@@ -1,61 +1,72 @@
 import Yandex from "../yandex";
-import { RawDevice } from "../modules/devices";
 import EventEmitter from "events";
 
-export default class YandexDevice extends EventEmitter {
-    yandex: Yandex;
-    raw: RawDevice;
+export type RawDevice = {
+    id: string
+    name: string
+    names: string[]
+    type: string
+    icon_url: string
+    state: string
+    groups: any[]
+    room: string
+    capabilities: any[]
+    properties: any[]
+    skill_id: string
+    external_id: string
+    render_info?: {
+        icon: {
+            id: string
+        }
+    }
+    quasar_info?: {
+        device_id: string
+        platform: string
+        multiroom_available: boolean
+        multistep_scenarios_available: boolean
+        device_discovery_methods: any[]
+    }
+    favorite: boolean
+}
 
-    constructor (yandex: Yandex, id: string) {
+export interface SimpleDevice {
+    yandex: Yandex
+    initialized: boolean
+    raw: any
+
+    init(): Promise<void>
+    destroy(): Promise<void>
+    emit(eventName: string | symbol, ...args: any[]): boolean
+}
+
+export default class BaseDevice extends EventEmitter implements SimpleDevice {
+    yandex: Yandex;
+    initialized: boolean;
+    raw!: any;
+
+    constructor (yandex: Yandex) {
         super();
         this.yandex = yandex;
-        this.raw = this.yandex.devices.devices.find(d => d.id === id)!;
+        this.initialized = false;
+
+        this.on("raw_update", (raw: RawDevice) => this.raw = raw);
     }
 
     async init() {
-        this.yandex.on("update_state", (data: any) => {
-            if (data.id === this.raw.id) this.emit("update", data);
-        });
+        console.log(`[Устройство: ${this.raw.id}] -> Инициализация устройства`);
+
+        this.emit("available");
+        this.initialized = true;
     }
 
-    async close() {
-        this.removeAllListeners("update");
-    }
+    async destroy() {
+        console.log(`[Устройство: ${this.raw.id}] -> Удаление устройства`);
 
-    async action(actions: any) {
-        console.log(`[Устройства: ${this.raw.id}] -> Выполнение действия -> ${JSON.stringify(actions)}`);
+        this.emit("unavailable");
+        this.initialized = false;
 
-        const IOT_TYPES: any = {
-            "on": "devices.capabilities.on_off",
-            "temperature": "devices.capabilities.range",
-            "fan_speed": "devices.capabilities.mode",
-            "thermostat": "devices.capabilities.mode",
-            "heat": "devices.capabilities.mode",
-            "volume": "devices.capabilities.range",
-            "pause": "devices.capabilities.toggle",
-            "mute": "devices.capabilities.toggle",
-            "channel": "devices.capabilities.range",
-            "input_source": "devices.capabilities.mode",
-            "brightness": "devices.capabilities.range",
-            "color": "devices.capabilities.color_setting",
-            "work_speed": "devices.capabilities.mode",
-            "humidity": "devices.capabilities.range",
-            "ionization": "devices.capabilities.toggle",
-            "backlight": "devices.capabilities.toggle",
-            "keep_warm": "devices.capabilities.toggle",
-            "tea_mode": "devices.capabilities.mode"
-        }
-
-        let _actions: any[] = [];
-        Object.keys(actions).forEach(key => {
-            let value = actions[key];
-            let type = !isNaN(key as any) ? "devices.capabilities.custom.button" : IOT_TYPES[key];
-            let state = ["volume", "channel"].includes(key) ? { "instance": key, "value": value, "relative": true } : { "instance": key, "value": value };
-            _actions.push({ "type": type, "state": state });
-        })
-
-        return this.yandex.post(`https://iot.quasar.yandex.ru/m/user/devices/${this.raw.id}/actions`, {
-            data: { "actions": _actions }
-        });
+        this.removeAllListeners("available");
+        this.removeAllListeners("unavailable");
+        this.removeAllListeners("state");
     }
 }

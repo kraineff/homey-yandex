@@ -1,6 +1,6 @@
 import Homey from "homey";
+import { RawDevice } from "../lib/devices/base";
 import Yandex from "../lib/yandex";
-import { RawDevice } from "../lib/modules/devices";
 
 export default class YandexDriver extends Homey.Driver {
     app!: Homey.App;
@@ -15,41 +15,40 @@ export default class YandexDriver extends Homey.Driver {
     onPair(pair: Homey.Driver.PairSession) {
         let ready = false;
         
-        pair.setHandler("start", async () => !this.yandex.ready ? await this.yandex.session.getAuthUrl() : "list_devices");
-        pair.setHandler("check", async () => {
-            ready = await this.yandex.session.checkAuth();
-            return ready;
-        });
+        pair.setHandler("start", async () => !this.yandex.ready ? await this.yandex.getAuthUrl() : "list_devices");
+        pair.setHandler("check", async () => await this.yandex.checkAuth().then(() => ready = true));
 
-        pair.setHandler("list_devices", async () => {
-            if (ready) await this.yandex.connect();
-            else await this.yandex.devices.update();
+        pair.setHandler("list_devices", async (after_auth: boolean) => {
+            if (after_auth) await this.yandex.login();
+            else await this.yandex.devices.refresh();
 
             const manifest = this.manifest;
 
             if (manifest.class === "speaker") {
-                return this.yandex.devices.speakers ? this.yandex.devices.speakers
-                    .filter(speaker => speaker.quasar_info!.platform === this.id)
+                return this.yandex.devices.speakers
+                    .filter(speaker => speaker.raw.quasar_info!.platform === this.id)
                     .map(speaker => ({
-                        name: speaker.name,
+                        name: speaker.raw.name,
                         data: {
-                            id: speaker.id,
-                            device_id: speaker.quasar_info!.device_id
+                            id: speaker.raw.id,
+                            device_id: speaker.raw.quasar_info!.device_id
                         }
-                    })) : [];
+                    }));
             } else {
                 let devices;
-                if (manifest.class === "socket") devices = this.yandex.devices.getSwitches();
-                if (manifest.class === "remote") devices = this.yandex.devices.getRemotes();
+                if (manifest.class === "socket") devices = this.yandex.devices.switches;
+                if (manifest.class === "remote") devices = this.yandex.devices.remotes;
 
-                return devices ? devices.map(device => ({
-                    name: device.name,
+                if (devices) return devices.map(device => ({
+                    name: device.raw.name,
                     data: {
-                        id: device.id
+                        id: device.raw.id
                     },
-                    ...this.capabilitiesBuilder(device)
-                })) : [];
+                    ...this.capabilitiesBuilder(device.raw)
+                }));
             }
+
+            return [];
         });
     }
 
