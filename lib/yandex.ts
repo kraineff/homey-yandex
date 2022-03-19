@@ -6,7 +6,6 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import WebSocket from 'ws';
 import EventEmitter from "events";
 import { AxiosRequestConfig } from "axios";
-import { SimpleDevice } from "./devices/base";
 
 class UpdateWebSocket extends WebSocket {
     constructor(address: string | URL, protocols?: string | string[]) {
@@ -90,7 +89,7 @@ export default class Yandex extends EventEmitter {
                         this.emit("scenario_state", state);
                     } else {
                         const found = this.devices.getById(state.id);
-                        if (found) (<SimpleDevice>found).emit("state", state);
+                        if (found) found.emit("state", state);
                     }
                 });
         });
