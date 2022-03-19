@@ -1,5 +1,5 @@
 import Homey from "homey";
-import { RawDevice } from "../lib/devices/base";
+import { RawDevice } from "../lib/modules/devices";
 import Yandex from "../lib/yandex";
 
 export default class YandexDriver extends Homey.Driver {
