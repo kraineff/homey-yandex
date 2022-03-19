@@ -1,52 +1,17 @@
 import Yandex from "../yandex";
 import EventEmitter from "events";
+import { RawDevice } from "../modules/devices";
 
-export type RawDevice = {
-    id: string
-    name: string
-    names: string[]
-    type: string
-    icon_url: string
-    state: string
-    groups: any[]
-    room: string
-    capabilities: any[]
-    properties: any[]
-    skill_id: string
-    external_id: string
-    render_info?: {
-        icon: {
-            id: string
-        }
-    }
-    quasar_info?: {
-        device_id: string
-        platform: string
-        multiroom_available: boolean
-        multistep_scenarios_available: boolean
-        device_discovery_methods: any[]
-    }
-    favorite: boolean
-}
-
-export interface SimpleDevice {
-    yandex: Yandex
-    initialized: boolean
-    raw: any
-
-    init(): Promise<void>
-    destroy(): Promise<void>
-    emit(eventName: string | symbol, ...args: any[]): boolean
-}
-
-export default class BaseDevice extends EventEmitter implements SimpleDevice {
+export default class YandexDeviceBase extends EventEmitter {
     yandex: Yandex;
+    id: string
     initialized: boolean;
-    raw!: any;
+    raw!: RawDevice;
 
-    constructor (yandex: Yandex) {
+    constructor (yandex: Yandex, id: string) {
         super();
         this.yandex = yandex;
+        this.id = id;
         this.initialized = false;
 
         this.on("raw_update", (raw: RawDevice) => this.raw = raw);
@@ -60,7 +25,7 @@ export default class BaseDevice extends EventEmitter implements SimpleDevice {
     }
 
     async destroy() {
-        console.log(`[Устройство: ${this.raw.id}] -> Удаление устройства`);
+        console.log(`[Устройство: ${this.raw.id}] -> Завершение устройства`);
 
         this.emit("unavailable");
         this.initialized = false;
@@ -68,5 +33,19 @@ export default class BaseDevice extends EventEmitter implements SimpleDevice {
         this.removeAllListeners("available");
         this.removeAllListeners("unavailable");
         this.removeAllListeners("state");
+    }
+
+    async delete() {
+        console.log(`[Устройство: ${this.raw.id}] -> Удаление устройства`);
+
+        const url = `https://iot.quasar.yandex.ru/m/user/devices/${this.raw.id}`;
+        return this.yandex.options(url, {
+            headers: {
+                "Access-Control-Request-Method": "DELETE"
+            }
+        })
+        .then(() => this.yandex.delete(url))
+        .then(() => this.destroy())
+        .then(() => this.yandex.devices.remove(this.id));
     }
 }

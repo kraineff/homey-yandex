@@ -4,7 +4,7 @@ import ReconnectingWebSocket from "reconnecting-websocket";
 import Queue from "promise-queue";
 import { diff } from "deep-object-diff";
 import { v4 } from "uuid";
-import BaseDevice from "./base";
+import YandexDeviceBase from "./base";
 
 type SpeakerConfig = {
     allow_non_self_calls: boolean
@@ -27,7 +27,7 @@ class SpeakerWebSocket extends WebSocket {
     }
 }
 
-export default class YandexSpeaker extends BaseDevice {
+export default class YandexSpeaker extends YandexDeviceBase {
     volume: number
     settings!: SpeakerConfig;
     
@@ -39,8 +39,8 @@ export default class YandexSpeaker extends BaseDevice {
     private rws?: ReconnectingWebSocket;
     private localToken?: string;
 
-    constructor(yandex: Yandex) {
-        super(yandex);
+    constructor(yandex: Yandex, id: string) {
+        super(yandex, id);
         this.volume = 0;
         this.local = false;
         this.lastState = {};

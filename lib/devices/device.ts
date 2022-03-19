@@ -1,9 +1,9 @@
 import Yandex from "../yandex";
-import BaseDevice from "./base";
+import YandexDeviceBase from "./base";
 
-export default class YandexDevice extends BaseDevice {
-    constructor (yandex: Yandex) {
-        super(yandex);
+export default class YandexDevice extends YandexDeviceBase {
+    constructor (yandex: Yandex, id: string) {
+        super(yandex, id);
         
         this.on("newListener", (eventName, listener) => {
             if (eventName === "state") listener(this.raw);

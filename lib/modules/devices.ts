@@ -1,42 +1,66 @@
 import Yandex from "../yandex";
 import YandexSpeaker from "../devices/speaker";
-import { RawDevice, SimpleDevice } from "../devices/base";
 import YandexDevice from "../devices/device";
+
+type Device = YandexSpeaker | YandexDevice;
+
+export type RawDevice = {
+    id: string
+    name: string
+    names: string[]
+    type: string
+    icon_url: string
+    state: string
+    groups: any[]
+    room: string
+    capabilities: any[]
+    properties: any[]
+    skill_id: string
+    external_id: string
+    render_info?: {
+        icon: {
+            id: string
+        }
+    }
+    quasar_info?: {
+        device_id: string
+        platform: string
+        multiroom_available: boolean
+        multistep_scenarios_available: boolean
+        device_discovery_methods: any[]
+    }
+    favorite: boolean
+}
 
 export default class YandexDevices {
     yandex: Yandex;
-
-    private _devices: {
-        [id: string]: any
-    };
-    speakers: YandexSpeaker[];
-    lights: YandexDevice[];
-    switches: YandexDevice[];
-    thermostats: YandexDevice[];
-    vacuums: YandexDevice[];
-    kettles: YandexDevice[];
-    remotes: YandexDevice[];
-    tvs: YandexDevice[];
-    receivers: YandexDevice[];
-    hubs: YandexDevice[];
+    private _devices: Device[];
 
     constructor(yandex: Yandex) {
         this.yandex = yandex;
-        this._devices = {};
-        this.speakers = [];
-        this.lights = [];
-        this.switches = [];
-        this.thermostats = [];
-        this.vacuums = [];
-        this.kettles = [];
-        this.remotes = [];
-        this.tvs = [];
-        this.receivers = [];
-        this.hubs = [];
+        this._devices = [];
     }
 
-    get = (): SimpleDevice[] => Object.values(this._devices);
-    getById = (id: string) => Object.keys(this._devices).includes(id) ? <SimpleDevice>this._devices[id] : undefined;
+    speakers = (): YandexSpeaker[] => this._devices.filter((device): device is YandexSpeaker => device.raw.type.startsWith("devices.types.smart_speaker"));
+    remotes = (): YandexDevice[] => this._devices.filter((device): device is YandexDevice => device.raw.type === "devices.types.other");
+    switches = (): YandexDevice[] => this._devices.filter((device): device is YandexDevice => ["devices.types.switch", "devices.types.socket"].includes(device.raw.type));
+
+    get() {
+        return this._devices;
+    }
+
+    getById(id: string) {
+        return this._devices.find(device => device.id === id);
+    } 
+
+    add(device: Device) {
+        const found = this.getById(device.id);
+        if (!found) this._devices.push(device);
+    }
+
+    remove(id: string) {
+        this._devices.filter(device => device.id !== id);
+    }
 
     async refresh() {
         console.log("[Устройства] Обновление устройств");
@@ -49,24 +73,10 @@ export default class YandexDevices {
                     return this.yandex.get(`https://iot.quasar.yandex.ru/m/user/devices/${device.id}`).then(resp => resp.data);
                 })
             ).then(data => {
-                const currentDevices = Object.keys(this._devices);
                 data.forEach((raw: RawDevice) => {
-                    let device: any;
-
-                    if (!currentDevices.includes(raw.id)) {
-                        if (raw.type.startsWith("devices.types.smart_speaker")) {
-                            device = new YandexSpeaker(this.yandex);
-                            this.speakers.push(device);
-                        } else {
-                            device = new YandexDevice(this.yandex);
-                            if (["devices.types.switch", "devices.types.socket"].includes(raw.type)) this.switches.push(device);
-                            if (raw.type === "devices.types.other") this.remotes.push(device);
-                        }
-
-                        this._devices[raw.id] = device;
-                    } else device = this.getById(raw.id);
-
-                    (<SimpleDevice>device).emit("raw_update", raw);
+                    if (raw.type.startsWith("devices.types.smart_speaker")) this.add(new YandexSpeaker(this.yandex, raw.id));
+                    else this.add(new YandexDevice(this.yandex, raw.id));
+                    this.getById(raw.id)!.emit("raw_update", raw);
                 });
             });
         });

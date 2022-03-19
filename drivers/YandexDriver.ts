@@ -23,7 +23,7 @@ export default class YandexDriver extends Homey.Driver {
             const manifest = this.manifest;
 
             if (manifest.class === "speaker") {
-                return this.yandex.devices.speakers
+                return this.yandex.devices.speakers()
                     .filter(speaker => speaker.raw.quasar_info!.platform === this.id)
                     .map(speaker => ({
                         name: speaker.raw.name,
@@ -34,8 +34,8 @@ export default class YandexDriver extends Homey.Driver {
                     }));
             } else {
                 let devices;
-                if (manifest.class === "socket") devices = this.yandex.devices.switches;
-                if (manifest.class === "remote") devices = this.yandex.devices.remotes;
+                if (manifest.class === "socket") devices = this.yandex.devices.switches();
+                if (manifest.class === "remote") devices = this.yandex.devices.remotes();
 
                 if (devices) return devices.map(device => ({
                     name: device.raw.name,

@@ -176,7 +176,8 @@ export default class YandexSession {
                     if (attempt === 2) await this.updateCookies();
                     throw new Error(resp.data.message);
                 }
-                if (resp.data?.status !== "ok") throw new Error(resp.data.message);
+
+                if (resp.status === 200 && resp.data?.status !== "ok") throw new Error(resp.data.message);
                 return resp;
             });
         }, { retries: 3 }).catch(err => {

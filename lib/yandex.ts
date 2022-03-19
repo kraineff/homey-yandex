@@ -67,6 +67,8 @@ export default class Yandex extends EventEmitter {
     get = async (url: string, config: AxiosRequestConfig = {}) => this._session.request({...config, method: "GET", url});
     post = async (url: string, config: AxiosRequestConfig = {}) => this._session.request({...config, method: "POST", url});
     put = async (url: string, config: AxiosRequestConfig = {}) => this._session.request({...config, method: "PUT", url});
+    options = async (url: string, config: AxiosRequestConfig = {}) => this._session.request({...config, method: "OPTIONS", url});
+    delete = async (url: string, config: AxiosRequestConfig = {}) => this._session.request({...config, method: "DELETE", url});
 
     private async startUpdates() {
         console.log(`[Устройства] -> Запуск обновления устройств`);
