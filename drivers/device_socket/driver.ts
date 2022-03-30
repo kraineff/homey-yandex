@@ -1,3 +1,3 @@
-import YandexDriver from "../YandexDriver";
+import BaseDriver from "../BaseDriver";
 
-module.exports = class SocketDriver extends YandexDriver {}
+module.exports = class SocketDriver extends BaseDriver {}

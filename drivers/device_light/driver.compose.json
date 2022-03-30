@@ -1,0 +1,11 @@
+{
+    "name": {
+        "en": "Lights",
+        "ru": "Лампы"
+    },
+    "images": {
+        "small": "/drivers/device_light/assets/images/small.jpg",
+        "large": "/drivers/device_light/assets/images/large.jpg"
+    },
+    "$extends": ["device"]
+}

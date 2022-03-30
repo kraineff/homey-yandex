@@ -1,0 +1,16 @@
+{
+    "name": {
+        "en": "Station Mini 2",
+        "ru": "Станция Мини 2"
+    },
+    "images": {
+        "small": "/drivers/speaker_yandexmini_2/assets/images/small.jpg",
+        "large": "/drivers/speaker_yandexmini_2/assets/images/large.jpg"
+    },
+    "$extends": ["speaker"],
+    "connectivity": ["cloud", "lan"],
+    "settings": [
+        { "$extends": "led_screen" },
+        { "$extends": "auth_data" }
+    ]
+}

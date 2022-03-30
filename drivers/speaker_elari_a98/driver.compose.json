@@ -1,0 +1,8 @@
+{
+    "name": "Elari SmartBeat",
+    "images": {
+        "small": "/drivers/speaker_elari_a98/assets/images/small.jpg",
+        "large": "/drivers/speaker_elari_a98/assets/images/large.jpg"
+    },
+    "$extends": ["speaker"]
+}

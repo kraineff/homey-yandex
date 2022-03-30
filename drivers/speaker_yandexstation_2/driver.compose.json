@@ -1,0 +1,16 @@
+{
+    "name": {
+        "en": "Station Max",
+        "ru": "Станция Макс"
+    },
+    "images": {
+        "small": "/drivers/speaker_yandexstation_2/assets/images/small.jpg",
+        "large": "/drivers/speaker_yandexstation_2/assets/images/large.jpg"
+    },
+    "$extends": ["speaker"],
+    "connectivity": ["cloud", "lan"],
+    "settings": [
+        { "$extends": "led_screen" },
+        { "$extends": "auth_data" }
+    ]
+}

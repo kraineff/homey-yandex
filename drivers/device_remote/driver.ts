@@ -1,3 +1,3 @@
-import YandexDriver from "../YandexDriver";
+import BaseDriver from "../BaseDriver";
 
-module.exports = class RemoteDriver extends YandexDriver {}
+module.exports = class RemoteDriver extends BaseDriver {}

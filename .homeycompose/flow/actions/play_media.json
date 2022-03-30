@@ -1,0 +1,30 @@
+{
+    "highlight": true,
+    "title": {
+        "en": "Play music",
+        "ru": "Включить музыку"
+    },
+    "titleFormatted": {
+        "en": "Send a [[search]]",
+        "ru": "Включить [[search]]"
+    },
+    "args": [
+        {
+            "type": "autocomplete",
+            "name": "search",
+            "title": {
+                "en": "Search",
+                "ru": "Поиск"
+            },
+            "placeholder": {
+                "en": "Трек, альбом, исполнитель, подкаст",
+                "ru": "Трек, альбом, исполнитель, подкаст"
+            }
+        },
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=speaker_elari_a98|speaker_jbl_link_music|speaker_jbl_link_portable|speaker_lightcomm|speaker_linkplay_a98|speaker_prestigio_smart_mate|speaker_wk7y|speaker_yandexmicro|speaker_yandexmini|speaker_yandexmini_2|speaker_yandexstation|speaker_yandexstation_2"
+        }
+    ]
+}

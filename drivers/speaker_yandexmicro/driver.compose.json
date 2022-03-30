@@ -1,0 +1,11 @@
+{
+    "name": {
+        "en": "Station Lite",
+        "ru": "Станция Лайт"
+    },
+    "images": {
+        "small": "/drivers/speaker_yandexmicro/assets/images/small.jpg",
+        "large": "/drivers/speaker_yandexmicro/assets/images/large.jpg"
+    },
+    "$extends": ["speaker"]
+}

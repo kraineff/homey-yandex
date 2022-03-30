@@ -7,5 +7,6 @@
     "uiComponent": "sensor",
     "getable": true,
     "setable": false,
-    "units": "A"
+    "units": "A",
+    "decimals": 2
   }

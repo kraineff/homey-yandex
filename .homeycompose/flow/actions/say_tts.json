@@ -2,11 +2,11 @@
     "highlight": true,
     "title": {
         "en": "Text-to-Speech",
-        "ru": "Синтез речи"
+        "ru": "Произнести текст"
     },
     "titleFormatted": {
-        "en": "Say [[text]] with [[mode]] mode with volume [[volume]]",
-        "ru": "Произнести [[text]] с режимом [[mode]] с громкостью [[volume]]"
+        "en": "Say [[text]] with volume [[volume]]",
+        "ru": "Произнести [[text]] с громкостью [[volume]]"
     },
     "args": [
         {
@@ -20,18 +20,6 @@
                 "en": "Hello, world!",
                 "ru": "Привет, мир!"
             }
-        },
-        {
-            "type": "dropdown",
-            "name": "mode",
-            "title": {
-                "en": "Mode",
-                "ru": "Режим"
-            },
-            "values": [
-                { "id": "cloud", "label": { "en": "Cloud", "ru": "Облачный" } },
-                { "id": "local", "label": { "en": "Local", "ru": "Локальный" } }
-            ]
         },
         {
             "type": "dropdown",
@@ -58,7 +46,7 @@
         {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=elari_a98|jbl_link_music|jbl_link_portable|lightcomm|linkplay_a98|prestigio_smart_mate|wk7y|yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
+            "filter": "driver_id=speaker_elari_a98|speaker_jbl_link_music|speaker_jbl_link_portable|speaker_lightcomm|speaker_linkplay_a98|speaker_prestigio_smart_mate|speaker_wk7y|speaker_yandexmicro|speaker_yandexmini|speaker_yandexmini_2|speaker_yandexstation|speaker_yandexstation_2"
         }
     ]
 }

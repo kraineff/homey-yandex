@@ -1,0 +1,8 @@
+{
+    "name": "JBL Link Portable",
+    "images": {
+        "small": "/drivers/speaker_jbl_link_portable/assets/images/small.jpg",
+        "large": "/drivers/speaker_jbl_link_portable/assets/images/large.jpg"
+    },
+    "$extends": ["speaker"]
+}

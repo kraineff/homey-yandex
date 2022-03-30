@@ -76,12 +76,43 @@
       {
         "highlight": true,
         "title": {
-          "en": "Text-to-Speech",
-          "ru": "Синтез речи"
+          "en": "Play music",
+          "ru": "Включить музыку"
         },
         "titleFormatted": {
-          "en": "Say [[text]] with [[mode]] mode with volume [[volume]]",
-          "ru": "Произнести [[text]] с режимом [[mode]] с громкостью [[volume]]"
+          "en": "Send a [[search]]",
+          "ru": "Включить [[search]]"
+        },
+        "args": [
+          {
+            "type": "autocomplete",
+            "name": "search",
+            "title": {
+              "en": "Search",
+              "ru": "Поиск"
+            },
+            "placeholder": {
+              "en": "Трек, альбом, исполнитель, подкаст",
+              "ru": "Трек, альбом, исполнитель, подкаст"
+            }
+          },
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=speaker_elari_a98|speaker_jbl_link_music|speaker_jbl_link_portable|speaker_lightcomm|speaker_linkplay_a98|speaker_prestigio_smart_mate|speaker_wk7y|speaker_yandexmicro|speaker_yandexmini|speaker_yandexmini_2|speaker_yandexstation|speaker_yandexstation_2"
+          }
+        ],
+        "id": "play_media"
+      },
+      {
+        "highlight": true,
+        "title": {
+          "en": "Text-to-Speech",
+          "ru": "Произнести текст"
+        },
+        "titleFormatted": {
+          "en": "Say [[text]] with volume [[volume]]",
+          "ru": "Произнести [[text]] с громкостью [[volume]]"
         },
         "args": [
           {
@@ -95,30 +126,6 @@
               "en": "Hello, world!",
               "ru": "Привет, мир!"
             }
-          },
-          {
-            "type": "dropdown",
-            "name": "mode",
-            "title": {
-              "en": "Mode",
-              "ru": "Режим"
-            },
-            "values": [
-              {
-                "id": "cloud",
-                "label": {
-                  "en": "Cloud",
-                  "ru": "Облачный"
-                }
-              },
-              {
-                "id": "local",
-                "label": {
-                  "en": "Local",
-                  "ru": "Локальный"
-                }
-              }
-            ]
           },
           {
             "type": "dropdown",
@@ -206,7 +213,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=elari_a98|jbl_link_music|jbl_link_portable|lightcomm|linkplay_a98|prestigio_smart_mate|wk7y|yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
+            "filter": "driver_id=speaker_elari_a98|speaker_jbl_link_music|speaker_jbl_link_portable|speaker_lightcomm|speaker_linkplay_a98|speaker_prestigio_smart_mate|speaker_wk7y|speaker_yandexmicro|speaker_yandexmini|speaker_yandexmini_2|speaker_yandexstation|speaker_yandexstation_2"
           }
         ],
         "id": "say_tts"
@@ -237,7 +244,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=elari_a98|jbl_link_music|jbl_link_portable|lightcomm|linkplay_a98|prestigio_smart_mate|wk7y|yandexmicro|yandexmini|yandexmini_2|yandexstation|yandexstation_2"
+            "filter": "driver_id=speaker_elari_a98|speaker_jbl_link_music|speaker_jbl_link_portable|speaker_lightcomm|speaker_linkplay_a98|speaker_prestigio_smart_mate|speaker_wk7y|speaker_yandexmicro|speaker_yandexmini|speaker_yandexmini_2|speaker_yandexstation|speaker_yandexstation_2"
           }
         ],
         "id": "send_command"
@@ -246,6 +253,7 @@
   },
   "drivers": [
     {
+      "class": "other",
       "platforms": [
         "local"
       ],
@@ -314,10 +322,169 @@
           ]
         }
       ],
-      "class": "remote",
       "name": {
-        "en": "Remote",
-        "ru": "Пульт"
+        "en": "Kettles",
+        "ru": "Чайники"
+      },
+      "images": {
+        "small": "/drivers/device_kettle/assets/images/small.jpg",
+        "large": "/drivers/device_kettle/assets/images/large.jpg"
+      },
+      "id": "device_kettle"
+    },
+    {
+      "class": "other",
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "cloud"
+      ],
+      "capabilities": [
+        "button.reauth"
+      ],
+      "capabilitiesOptions": {
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "auth_data",
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              }
+            }
+          ]
+        }
+      ],
+      "name": {
+        "en": "Lights",
+        "ru": "Лампы"
+      },
+      "images": {
+        "small": "/drivers/device_light/assets/images/small.jpg",
+        "large": "/drivers/device_light/assets/images/large.jpg"
+      },
+      "id": "device_light"
+    },
+    {
+      "class": "other",
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "cloud"
+      ],
+      "capabilities": [
+        "button.reauth"
+      ],
+      "capabilitiesOptions": {
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "auth_data",
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              }
+            }
+          ]
+        }
+      ],
+      "name": {
+        "en": "Remotes",
+        "ru": "Пульты"
       },
       "images": {
         "small": "/drivers/device_remote/assets/images/small.jpg",
@@ -326,6 +493,7 @@
       "id": "device_remote"
     },
     {
+      "class": "other",
       "platforms": [
         "local"
       ],
@@ -394,10 +562,9 @@
           ]
         }
       ],
-      "class": "socket",
       "name": {
-        "en": "Socket",
-        "ru": "Розетка"
+        "en": "Sockets",
+        "ru": "Розетки"
       },
       "images": {
         "small": "/drivers/device_socket/assets/images/small.jpg",
@@ -406,6 +573,86 @@
       "id": "device_socket"
     },
     {
+      "class": "other",
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "cloud"
+      ],
+      "capabilities": [
+        "button.reauth"
+      ],
+      "capabilitiesOptions": {
+        "button.reauth": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Re-authorize",
+            "ru": "Повторная авторизация"
+          },
+          "desc": {
+            "en": "Re-authorize of the Yandex account.",
+            "ru": "Повторная авторизация аккаунта Яндекс."
+          }
+        }
+      },
+      "pair": [
+        {
+          "id": "auth"
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "id": "auth_data",
+          "type": "group",
+          "label": {
+            "en": "Authorization Data",
+            "ru": "Данные авторизации"
+          },
+          "children": [
+            {
+              "id": "x_token",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "General Token",
+                "ru": "Основной токен"
+              }
+            },
+            {
+              "id": "cookies",
+              "type": "text",
+              "value": "",
+              "label": {
+                "en": "Cookies",
+                "ru": "Файлы Cookie"
+              }
+            }
+          ]
+        }
+      ],
+      "name": {
+        "en": "Vacuum Cleaners",
+        "ru": "Пылесосы"
+      },
+      "images": {
+        "small": "/drivers/other_vacuum/assets/images/small.jpg",
+        "large": "/drivers/other_vacuum/assets/images/large.jpg"
+      },
+      "id": "device_vacuumcleaner"
+    },
+    {
       "class": "speaker",
       "platforms": [
         "local"
@@ -490,12 +737,12 @@
           ]
         }
       ],
-      "id": "elari_a98",
       "name": "Elari SmartBeat",
       "images": {
-        "small": "/drivers/elari_a98/assets/images/small.jpg",
-        "large": "/drivers/elari_a98/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_elari_a98/assets/images/small.jpg",
+        "large": "/drivers/speaker_elari_a98/assets/images/large.jpg"
+      },
+      "id": "speaker_elari_a98"
     },
     {
       "class": "speaker",
@@ -582,12 +829,12 @@
           ]
         }
       ],
-      "id": "jbl_link_music",
       "name": "JBL Link Music",
       "images": {
-        "small": "/drivers/jbl_link_music/assets/images/small.jpg",
-        "large": "/drivers/jbl_link_music/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_jbl_link_music/assets/images/small.jpg",
+        "large": "/drivers/speaker_jbl_link_music/assets/images/large.jpg"
+      },
+      "id": "speaker_jbl_link_music"
     },
     {
       "class": "speaker",
@@ -674,12 +921,12 @@
           ]
         }
       ],
-      "id": "jbl_link_portable",
       "name": "JBL Link Portable",
       "images": {
-        "small": "/drivers/jbl_link_portable/assets/images/small.jpg",
-        "large": "/drivers/jbl_link_portable/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_jbl_link_portable/assets/images/small.jpg",
+        "large": "/drivers/speaker_jbl_link_portable/assets/images/large.jpg"
+      },
+      "id": "speaker_jbl_link_portable"
     },
     {
       "class": "speaker",
@@ -766,12 +1013,12 @@
           ]
         }
       ],
-      "id": "lightcomm",
       "name": "DEXP Smartbox",
       "images": {
-        "small": "/drivers/lightcomm/assets/images/small.jpg",
-        "large": "/drivers/lightcomm/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_lightcomm/assets/images/small.jpg",
+        "large": "/drivers/speaker_lightcomm/assets/images/large.jpg"
+      },
+      "id": "speaker_lightcomm"
     },
     {
       "class": "speaker",
@@ -858,12 +1105,12 @@
           ]
         }
       ],
-      "id": "linkplay_a98",
       "name": "IRBIS A",
       "images": {
-        "small": "/drivers/linkplay_a98/assets/images/small.jpg",
-        "large": "/drivers/linkplay_a98/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_linkplay_a98/assets/images/small.jpg",
+        "large": "/drivers/speaker_linkplay_a98/assets/images/large.jpg"
+      },
+      "id": "speaker_linkplay_a98"
     },
     {
       "class": "speaker",
@@ -950,12 +1197,12 @@
           ]
         }
       ],
-      "id": "prestigio_smart_mate",
       "name": "Prestigio Smartmate",
       "images": {
-        "small": "/drivers/prestigio_smart_mate/assets/images/small.jpg",
-        "large": "/drivers/prestigio_smart_mate/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_prestigio_smart_mate/assets/images/small.jpg",
+        "large": "/drivers/speaker_prestigio_smart_mate/assets/images/large.jpg"
+      },
+      "id": "speaker_prestigio_smart_mate"
     },
     {
       "class": "speaker",
@@ -1042,12 +1289,12 @@
           ]
         }
       ],
-      "id": "wk7y",
       "name": "LG XBOOM AI ThinQ",
       "images": {
-        "small": "/drivers/wk7y/assets/images/small.jpg",
-        "large": "/drivers/wk7y/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_wk7y/assets/images/small.jpg",
+        "large": "/drivers/speaker_wk7y/assets/images/large.jpg"
+      },
+      "id": "speaker_wk7y"
     },
     {
       "class": "speaker",
@@ -1134,15 +1381,15 @@
           ]
         }
       ],
-      "id": "yandexmicro",
       "name": {
         "en": "Station Lite",
         "ru": "Станция Лайт"
       },
       "images": {
-        "small": "/drivers/yandexmicro/assets/images/small.jpg",
-        "large": "/drivers/yandexmicro/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_yandexmicro/assets/images/small.jpg",
+        "large": "/drivers/speaker_yandexmicro/assets/images/large.jpg"
+      },
+      "id": "speaker_yandexmicro"
     },
     {
       "class": "speaker",
@@ -1229,15 +1476,15 @@
           ]
         }
       ],
-      "id": "yandexmini",
       "name": {
         "en": "Station Mini",
         "ru": "Станция Мини"
       },
       "images": {
-        "small": "/drivers/yandexmini/assets/images/small.jpg",
-        "large": "/drivers/yandexmini/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_yandexmini/assets/images/small.jpg",
+        "large": "/drivers/speaker_yandexmini/assets/images/large.jpg"
+      },
+      "id": "speaker_yandexmini"
     },
     {
       "class": "speaker",
@@ -1452,15 +1699,15 @@
           ]
         }
       ],
-      "id": "yandexmini_2",
       "name": {
         "en": "Station Mini 2",
         "ru": "Станция Мини 2"
       },
       "images": {
-        "small": "/drivers/yandexmini_2/assets/images/small.jpg",
-        "large": "/drivers/yandexmini_2/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_yandexmini_2/assets/images/small.jpg",
+        "large": "/drivers/speaker_yandexmini_2/assets/images/large.jpg"
+      },
+      "id": "speaker_yandexmini_2"
     },
     {
       "class": "speaker",
@@ -1547,15 +1794,15 @@
           ]
         }
       ],
-      "id": "yandexstation",
       "name": {
         "en": "Station",
         "ru": "Станция"
       },
       "images": {
-        "small": "/drivers/yandexstation/assets/images/small.jpg",
-        "large": "/drivers/yandexstation/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_yandexstation/assets/images/small.jpg",
+        "large": "/drivers/speaker_yandexstation/assets/images/large.jpg"
+      },
+      "id": "speaker_yandexstation"
     },
     {
       "class": "speaker",
@@ -1770,15 +2017,15 @@
           ]
         }
       ],
-      "id": "yandexstation_2",
       "name": {
         "en": "Station Max",
         "ru": "Станция Макс"
       },
       "images": {
-        "small": "/drivers/yandexstation_2/assets/images/small.jpg",
-        "large": "/drivers/yandexstation_2/assets/images/large.jpg"
-      }
+        "small": "/drivers/speaker_yandexstation_2/assets/images/small.jpg",
+        "large": "/drivers/speaker_yandexstation_2/assets/images/large.jpg"
+      },
+      "id": "speaker_yandexstation_2"
     }
   ],
   "capabilities": {
@@ -1791,7 +2038,8 @@
       "uiComponent": "sensor",
       "getable": true,
       "setable": false,
-      "units": "A"
+      "units": "A",
+      "decimals": 2
     },
     "measure_voltage": {
       "type": "number",

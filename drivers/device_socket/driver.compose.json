@@ -1,8 +1,7 @@
 {
-    "class": "socket",
     "name": {
-        "en": "Socket",
-        "ru": "Розетка"
+        "en": "Sockets",
+        "ru": "Розетки"
     },
     "images": {
         "small": "/drivers/device_socket/assets/images/small.jpg",

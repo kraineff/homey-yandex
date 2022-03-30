@@ -1,71 +1,153 @@
 import Homey from "homey";
+import { RawDevice } from "../lib/modules/devices/types";
+import YandexDevice from "../lib/modules/devices/types/device";
 import Yandex from "../lib/yandex"
-import YandexDevice from "../lib/devices/device";
+import PromiseQueue from "promise-queue";
+import { diff } from "deep-object-diff";
 
 export default class BaseDevice extends Homey.Device {
     app!: Homey.App;
     yandex!: Yandex;
     device!: YandexDevice;
+    queue!: PromiseQueue;
+
+    _listeners!: string[];
 
     async onInit(): Promise<void> {
         this.app = this.homey.app;
         //@ts-ignore
         this.yandex = this.app.yandex;
+        this.queue = new PromiseQueue(1, Infinity);
+        this._listeners = [];
 
-        const _device = this.yandex.devices.getById(this.getData().id);
-        if (_device) {
-            this.device = <YandexDevice>_device;
-            this.device.on("available", async () => {
+        this.device = await this.yandex.devices.initDevice(this.getData().id);
+        this.device.on("available", async () => {
+            await this.update(this.device.raw).then(async () => {
                 await this.setAvailable();
                 await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
-                await this.onCapabilityListener();
             });
-            this.device.on("unavailable", async () => await this.setUnavailable(this.homey.__("device.reauth_required")));
-            this.device.on("state", async (state) => await this.setCapabilities(state));
-            await this.device.init();
-        } else await this.setUnavailable("Устройство больше не существует");
+        });
+        this.device.on("unavailable", async (reason: "NO_AUTH" | "REMOVED" | "CLOSED") => {
+            if (reason === "NO_AUTH") await this.setUnavailable(this.homey.__("device.reauth_required"));
+            if (reason === "REMOVED") await this.setUnavailable("Устройство больше не существует в Яндексе");
+        });
+        this.device.on("update", this.update);
+        this.device.on("state", this.update);
     }
 
     async onDeleted(): Promise<void> {
-        await this.device.destroy();
+        await this.device.setUnavailable();
     }
 
-    async setCapabilities(data: any) {
-        const { capabilities, properties } = data;
+    update = async (raw: RawDevice) => {
+        const yandexCapabilities: any = {};
+        const homeyCapabilities = this.getCapabilities().filter(capability => capability !== "button.reauth");
+        
+        if (raw.capabilities) raw.capabilities.forEach(capability => {
+            const { type, state, parameters } = capability;
 
-        if (capabilities) capabilities.forEach(async (capability: any) => {
-            const { state } = capability;
             if (state) {
-                if (state.instance === "on" && this.getCapabilityValue("onoff") !== state.value)
-                    await this.setCapabilityValue("onoff", state.value);
+                const check = (state.value || state.value === 0);
+                if (state.instance === "on")
+                    yandexCapabilities["onoff"] = check ? { value: state.value } : {};
+                
+                if (state.instance === "temperature")
+                    yandexCapabilities["target_temperature"] = check ? { value: state.value } : {};
+            }
+
+            if (parameters) {
+                if (type === "devices.capabilities.custom.button")
+                    yandexCapabilities[`button.${parameters.instance}`] = { options: { title: parameters.name } };
             }
         });
 
-        if (properties) properties.forEach(async (property: any) => {
+        if (raw.properties) raw.properties.forEach(property => {
             const { state, parameters } = property;
-            if (state && parameters) {
-                // Розетка
-                if (parameters.instance === "voltage" && this.getCapabilityValue("measure_voltage") !== state.value)
-                    await this.setCapabilityValue("measure_voltage", state.value);
-                if (parameters.instance === "power" && this.getCapabilityValue("measure_power") !== state.value)
-                    await this.setCapabilityValue("measure_power", state.value);
-                if (parameters.instance === "amperage" && this.getCapabilityValue("measure_amperage") !== state.value)
-                    await this.setCapabilityValue("measure_amperage", state.value);
+            if (!parameters?.instance) return;
+            const check = (state.value || state.value === 0);
+
+            if (parameters.instance === "voltage")
+                yandexCapabilities["measure_voltage"] = check ? { value: state.value } : {};
+            
+            if (parameters.instance === "power")
+                yandexCapabilities["measure_power"] = check ? { value: state.value } : {};
+
+            if (parameters.instance === "amperage")
+                yandexCapabilities["measure_amperage"] = check ? { value: state.value } : {};
+            
+            if (parameters.instance === "temperature")
+                yandexCapabilities["measure_temperature"] = check ? { value: state.value } : {};
+            
+            if (parameters.instance === "brightness")
+                yandexCapabilities["dim"] = check ? { value: state.value / 100 } : {};
+        });
+
+        Object.keys(yandexCapabilities).forEach(async capability => {
+            if (!homeyCapabilities.includes(capability)) {
+                console.log(`[Приложение: ${raw.id}] -> Добавление свойства -> ${capability}`);
+                await this.queue.add(() => this.addCapability(capability));
+                const data = yandexCapabilities[capability];
+                if (data.options) await this.queue.add(() => this.setCapabilityOptions(capability, data.options));
+            }
+
+            const data = yandexCapabilities[capability];
+            if (data.value !== undefined && this.getCapabilityValue(capability) !== data.value)
+                await this.queue.add(() => this.setCapabilityValue(capability, data.value));
+            
+            if (data.options !== undefined) {
+                const difference = diff(this.getCapabilityOptions(capability), data.options);
+                if (Object.keys(difference).length) {
+                    console.log(`[Приложение: ${raw.id}] -> Обновление свойства -> ${capability}`);
+                    await this.queue.add(() => this.setCapabilityOptions(capability, data.options));
+                }
             }
         });
+
+        homeyCapabilities.forEach(async capability => {
+            if (!Object.keys(yandexCapabilities).includes(capability)) {
+                console.log(`[Приложение: ${raw.id}] -> Удаление свойства -> ${capability}`);
+                await this.queue.add(() => this.removeCapability(capability));
+            }
+        });
+
+        return this.queue.add(this.onMultipleCapabilityListener);
     }
 
-    async onCapabilityListener() {
-        if (this.hasCapability("onoff")) this.registerCapabilityListener("onoff", async (value) => {
-            await this.device.action({ "on": value });
+    onMultipleCapabilityListener = async () => {
+        if (this.hasCapability("onoff") && !this._listeners.includes("onoff")) {
+            this.registerCapabilityListener("onoff", async (value) => {
+                await this.device.action({ "on": value });
+            });
+            this._listeners.push("onoff");
+        }
+
+        if (this.hasCapability("dim") && !this._listeners.includes("dim")) {
+            this.registerCapabilityListener("dim", async (value) => {
+                await this.device.action({ "brightness": value * 100 });
+            });
+            this._listeners.push("dim");
+        }
+
+        if (this.hasCapability("target_temperature") && !this._listeners.includes("target_temperature")) {
+            this.registerCapabilityListener("target_temperature", async (value) => {
+                await this.device.action({ "temperature": value * 100 });
+            });
+            this._listeners.push("target_temperature");
+        }
+
+        const buttons = this.getCapabilities().filter(c => c.startsWith("button.") && c !== "button.reauth").map(c => c.replace("button.", ""));
+        if (buttons.length > 0) buttons.forEach(button => {
+            if (this.hasCapability(`button.${button}`) && !this._listeners.includes(`button.${button}`)) {
+                this.registerCapabilityListener(`button.${button}`, async () => {
+                    await this.device.action({ [button]: true });
+                });
+                this._listeners.push(`button.${button}`);
+            }
         });
 
-        // Пульт
-        const buttons = this.getCapabilities().filter(c => c.startsWith("button.") && c !== "button.reauth").map(c => c.replace("button.", ""));
-        if (buttons.length > 0) buttons.forEach(button => this.registerCapabilityListener(`button.${button}`, async () => {
-            await this.device.action({ [button]: true });
-        }));
-
-        this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("close") });
+        if (this.hasCapability("button.reauth") && !this._listeners.includes("button.reauth")) {
+            this.registerCapabilityListener("button.reauth", async () => await this.yandex.logout());
+            this._listeners.push("button.reauth");
+        }
     }
 }

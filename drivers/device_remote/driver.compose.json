@@ -1,8 +1,7 @@
 {
-    "class": "remote",
     "name": {
-        "en": "Remote",
-        "ru": "Пульт"
+        "en": "Remotes",
+        "ru": "Пульты"
     },
     "images": {
         "small": "/drivers/device_remote/assets/images/small.jpg",

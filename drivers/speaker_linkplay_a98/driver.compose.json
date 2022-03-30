@@ -1,0 +1,8 @@
+{
+    "name": "IRBIS A",
+    "images": {
+        "small": "/drivers/speaker_linkplay_a98/assets/images/small.jpg",
+        "large": "/drivers/speaker_linkplay_a98/assets/images/large.jpg"
+    },
+    "$extends": ["speaker"]
+}

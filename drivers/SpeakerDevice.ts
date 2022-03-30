@@ -1,6 +1,6 @@
-import Homey, { DiscoveryResultMDNSSD } from "homey";
+import Homey from "homey";
+import YandexSpeaker from "../lib/modules/devices/types/speaker";
 import Yandex from "../lib/yandex";
-import YandexSpeaker from "../lib/devices/speaker";
 
 export default class SpeakerDevice extends Homey.Device {
     app!: Homey.App;
@@ -14,22 +14,22 @@ export default class SpeakerDevice extends Homey.Device {
         this.yandex = this.app.yandex;
         this.image = await this.app.homey.images.createImage();
         await this.setAlbumArtImage(this.image);
+        await this.onMultipleCapabilityListener();
 
-        const _device = this.yandex.devices.getById(this.getData().id);
-        if (_device) {
-            this.device = <YandexSpeaker>_device;
-            this.device.on("available", async () => {
-                await this.setAvailable();
-                await this.initSettings();
-                await this.onMultipleCapabilityListener();
-            });
-            this.device.on("state", async (state) => await this.setCapabilities(state));
-            await this.device.init(await this.connect());
-        } else await this.setUnavailable("Устройство больше не существует");
+        this.device = await this.yandex.devices.initSpeaker(this.getData().id);
+        this.device.on("available", async () => {
+            await this.setAvailable();
+            await this.initSettings();
+        });
+        this.device.on("unavailable", async (reason: "NO_AUTH" | "REMOVED" | "CLOSED") => {
+            if (reason === "NO_AUTH") await this.setUnavailable(this.homey.__("device.reauth_required"));
+            if (reason === "REMOVED") await this.setUnavailable("Устройство больше не существует в Яндексе");
+        });
+        this.device.on("state", async (state) => await this.setCapabilities(state));
     }
 
     async onDeleted(): Promise<void> {
-        await this.device.destroy();
+        await this.device.setUnavailable();
     }
 
     async setCapabilities(state: any) {
@@ -48,36 +48,12 @@ export default class SpeakerDevice extends Homey.Device {
             }
         }
     }
-    
-    async connect() {
-        //@ts-ignore
-        const discoveryResults = this.app.discoveryStrategy.getDiscoveryResults();
-        if (discoveryResults && Object.keys(discoveryResults).includes(this.getData().device_id)) {
-            const result = discoveryResults[this.getData().device_id];
-            const url = () => `wss://${this.getStoreValue("address")}:${this.getStoreValue("port")}`;
-
-            const update = (address: string, port: string) => {
-                this.setStoreValue("address", address);
-                this.setStoreValue("port", port);
-            };
-
-            //@ts-ignore
-            this.app.discoveryStrategy.on("result", async (discoveryResult: DiscoveryResultMDNSSD) => {
-                if (discoveryResult.id === this.getData().device_id) {
-                    update(discoveryResult.address, discoveryResult.port);
-                }
-            });
-            
-            update(result.address, result.port);
-            return url
-        }
-    }
 
     async onMultipleCapabilityListener() {
-        this.registerCapabilityListener("button.reauth", () => { this.yandex.emit("close") });
-        this.registerCapabilityListener("volume_set", async (volume) => { await this.device.volumeSet(volume) });
-        this.registerCapabilityListener("volume_up", async () => { await this.device.volumeUp() });
-        this.registerCapabilityListener("volume_down", async () => { await this.device.volumeDown() });
+        this.registerCapabilityListener("button.reauth", async () => await this.yandex.logout());
+        this.registerCapabilityListener("volume_set", async (volume) => await this.device.volumeSet(volume));
+        this.registerCapabilityListener("volume_up", async () => await this.device.volumeUp());
+        this.registerCapabilityListener("volume_down", async () => await this.device.volumeDown());
         this.registerCapabilityListener("speaker_playing", async (value) => value ? await this.device.play() : await this.device.pause());
         this.registerCapabilityListener("speaker_next", async () => await this.device.next());
         this.registerCapabilityListener("speaker_prev", async () => await this.device.prev());

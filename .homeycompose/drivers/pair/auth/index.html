@@ -6,7 +6,7 @@
             Homey.showView(view);
         } else {
             Homey.setTitle(Homey.__("auth.title"));
-            Homey.emit("check").then(() => Homey.showView("list_devices", true));
+            Homey.emit("check").then(() => Homey.showView("list_devices"));
             document.getElementById("wrapper").style.display = "flex";
             url = view;
         }

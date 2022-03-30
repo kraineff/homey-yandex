@@ -1,13 +1,12 @@
 import Homey from "homey";
-
+import YandexSpeaker from "./lib/modules/devices/types/speaker";
 import Yandex from "./lib/yandex";
 
 module.exports = class YandexAlice extends Homey.App {
     yandex!: Yandex;
-    discoveryStrategy = this.homey.discovery.getStrategy("yandex_station");
 
     async onInit() {
-        this.yandex = new Yandex();
+        this.yandex = new Yandex({ debug: true });
         
         this.yandex.on("update", data => {
             Object.keys(data).forEach(key => {
@@ -29,30 +28,49 @@ module.exports = class YandexAlice extends Homey.App {
             this.homey.settings.get("music_token")
         );
 
-        // Действия: ТТС и команда
-        this.homey.flow.getActionCard("say_tts").registerRunListener(async (args, state) => await args.device.device.say(args.mode, args.text, +args.volume));
-        this.homey.flow.getActionCard("send_command").registerRunListener(async (args, state) => {
-            const speaker = args.device.device;
-            await speaker.run(speaker.local ? { command: "sendText", text: args.command } : args.command);
+        // Действие: Произнести текст
+        this.homey.flow.getActionCard("say_tts").registerRunListener((args, state) => {
+            const speaker: YandexSpeaker = args.device.device;
+            return speaker.say(args.text, args.volume !== "-1" ? +args.volume : undefined);
         });
 
-        // Триггер: получена команда
-        const scenarioStartedTrigger = this.homey.flow.getTriggerCard("scenario_started");
-        scenarioStartedTrigger.registerRunListener(async (args, state) => args.scenario.name === state.name);
-        scenarioStartedTrigger.registerArgumentAutocompleteListener("scenario", async (query, args) => {
-            const scenarios = this.yandex.scenarios.get()
-                .filter(s => !s.name.startsWith("ХОМЯК")).map(s => ({
-                    name: s.name,
-                    description: `${this.homey.__("scenario_phrase")}: ${s.trigger}`,
-                    image: s.icon
-                }));
+        // Действие: Выполнить команду
+        this.homey.flow.getActionCard("send_command").registerRunListener(async (args, state) => {
+            const speaker: YandexSpeaker = args.device.device;
+            return speaker.run(args.command);
+        });
 
-            return <any>scenarios.filter(result => result.name.toLowerCase().includes(query.toLowerCase()));
-        })
+        // Действие: Включить музыку
+        const playMediaAction = this.homey.flow.getActionCard("play_media");
+        playMediaAction.registerRunListener((args, state) => args.device.device.run(args.search.command));
+        playMediaAction.registerArgumentAutocompleteListener("search", async (query, args) => {
+            const types: any = {
+                artist: ["ИСПОЛНИТЕЛИ", "исполнителя"], album: ["АЛЬБОМЫ", "альбом"], track: ["ТРЕКИ", "трек"],
+                podcast: ["ПОДКАСТЫ", "подкаст"], "podcast-episode": ["ВЫПУСКИ ПОДКАСТОВ", "выпуск подкаста"],
+                playlist: ["ПЛЕЙЛИСТЫ", "плейлист"]
+            }
 
-        this.yandex.on("scenario_state", async (state) => {
-            const scenario = this.yandex.scenarios.getByActionValue(state.capabilities[0].state?.value);
-            if (scenario) await scenarioStartedTrigger.trigger(undefined, scenario);
+            const search = await this.yandex.session.get("https://api.music.yandex.ru/search/suggest2", {
+                params: { part: query }
+            }).then(resp => resp.data);
+
+            let result: any[] = [];
+            search.result.forEach((category: any) => {
+                const { type, results } = category;
+
+                result.push({ description: types[type][0] });
+                results.forEach((item: any) => {
+                    const data = item[Object.keys(item)[1]];
+                    result.push({
+                        command: `Включи ${types[type][1]} ${item.text}`,
+                        name: data.title || data.name,
+                        ...(data.artists && { description: data.artists.map((artist: any) => artist.name).join(", ") }),
+                        ...((data.ogImage || data.coverUri) && { image: `https://${(data.ogImage || data.coverUri).replace("%%", "600x600")}` })
+                    });
+                });
+            });
+            
+            return <any>result;
         });
     }
 }

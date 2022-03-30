@@ -1,0 +1,11 @@
+{
+    "name": {
+        "en": "Vacuum Cleaners",
+        "ru": "Пылесосы"
+    },
+    "images": {
+        "small": "/drivers/other_vacuum/assets/images/small.jpg",
+        "large": "/drivers/other_vacuum/assets/images/large.jpg"
+    },
+    "$extends": ["device"]
+}

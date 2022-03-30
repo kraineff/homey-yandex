@@ -1,4 +1,5 @@
 {
+    "class": "other",
     "platforms": ["local"],
     "connectivity": ["cloud"],
     "capabilities": ["button.reauth"],

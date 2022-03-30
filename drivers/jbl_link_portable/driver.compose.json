@@ -1,9 +1,0 @@
-{
-    "id": "jbl_link_portable",
-    "name": "JBL Link Portable",
-    "images": {
-        "small": "/drivers/jbl_link_portable/assets/images/small.jpg",
-        "large": "/drivers/jbl_link_portable/assets/images/large.jpg"
-    },
-    "$extends": ["speaker"]
-}

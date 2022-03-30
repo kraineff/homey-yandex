@@ -1,0 +1,8 @@
+{
+    "name": "LG XBOOM AI ThinQ",
+    "images": {
+        "small": "/drivers/speaker_wk7y/assets/images/small.jpg",
+        "large": "/drivers/speaker_wk7y/assets/images/large.jpg"
+    },
+    "$extends": ["speaker"]
+}
