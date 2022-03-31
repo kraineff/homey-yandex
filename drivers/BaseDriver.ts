@@ -16,8 +16,9 @@ export default class BaseDriver extends Homey.Driver {
         pair.setHandler("check", async () => await this.yandex.session.checkAuth());
         pair.setHandler("list_devices", async () => {
             const id = this.manifest.id;
+            
             const devices = id.includes("device_") ?
-                this.yandex.devices.getByType(id.split("_")[1]) :
+                this.yandex.devices.getByType(id.replace("device_", "")) :
                 this.yandex.devices.getByPlatform(id.replace("speaker_", ""));
 
             return devices.map(device => ({
@@ -25,7 +26,7 @@ export default class BaseDriver extends Homey.Driver {
                 data: {
                     id: device.id
                 },
-                class: id.includes("device_") ? id.split("_")[1] : "speaker"
+                class: id.includes("device_") ? id.replace("device_", "") : "speaker"
             }));
         });
     }
