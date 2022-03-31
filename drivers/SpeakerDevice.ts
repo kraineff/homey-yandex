@@ -18,8 +18,16 @@ export default class SpeakerDevice extends Homey.Device {
 
         this.device = await this.yandex.devices.initSpeaker(this.getData().id);
         this.device.on("available", async () => {
-            await this.setAvailable();
+            if (this.hasCapability("speaker_time_visualization"))
+                await this.setCapabilityValue("speaker_time_visualization", this.device.settings.led!.time_visualization.size);
+            
+            if (this.hasCapability("speaker_music_equalizer_visualization"))
+                await this.setCapabilityValue("speaker_music_equalizer_visualization",
+                    this.device.settings.led!.music_equalizer_visualization.auto ? "auto" : this.device.settings.led!.music_equalizer_visualization.style
+                );
+            
             await this.initSettings();
+            await this.setAvailable();
         });
         this.device.on("unavailable", async (reason: "NO_AUTH" | "REMOVED" | "CLOSED") => {
             if (reason === "NO_AUTH") await this.setUnavailable(this.homey.__("device.reauth_required"));
@@ -50,6 +58,22 @@ export default class SpeakerDevice extends Homey.Device {
     }
 
     async onMultipleCapabilityListener() {
+        if (this.hasCapability("speaker_time_visualization"))
+            this.registerCapabilityListener("speaker_time_visualization", async (value) => {
+                this.device.settings.led!.time_visualization.size = value;
+                await this.device.setSettings(this.device.settings);
+            });
+
+        if (this.hasCapability("speaker_music_equalizer_visualization"))
+            this.registerCapabilityListener("speaker_music_equalizer_visualization", async (value) => {
+                if (value === "auto") this.device.settings.led!.music_equalizer_visualization.auto = true;
+                else {
+                    this.device.settings.led!.music_equalizer_visualization.auto = false;
+                    this.device.settings.led!.music_equalizer_visualization.style = value;
+                }
+                await this.device.setSettings(this.device.settings);
+            });
+
         this.registerCapabilityListener("button.reauth", async () => await this.yandex.logout());
         this.registerCapabilityListener("volume_set", async (volume) => await this.device.volumeSet(volume));
         this.registerCapabilityListener("volume_up", async () => await this.device.volumeUp());
@@ -64,32 +88,19 @@ export default class SpeakerDevice extends Homey.Device {
         await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
         
         if (this.device.settings.led) {
-            const { brightness, music_equalizer_visualization, time_visualization } = this.device.settings.led;
-            await this.setSettings({
-                auto_brightness: brightness.auto,
-                brightness: brightness.value,
-                music_equalizer_visualization: music_equalizer_visualization.auto ? "auto" : music_equalizer_visualization.style,
-                time_visualization: time_visualization.size
-            });
+            const { brightness } = this.device.settings.led;
+            await this.setSettings({ auto_brightness: brightness.auto, brightness: brightness.value });
         }
     }
 
     async onSettings({ newSettings, changedKeys }: { oldSettings: any; newSettings: any; changedKeys: string[]; }): Promise<string | void> {
         if (this.device.settings.led) {
-            const { brightness, music_equalizer_visualization, time_visualization } = this.device.settings.led;
+            const { brightness } = this.device.settings.led;
 
             changedKeys.forEach(key => {
                 const value = newSettings[key];
                 if (key === "auto_brightness") brightness.auto = value;
                 if (key === "brightness") brightness.value = value / 100;
-                if (key === "time_visualization") time_visualization.size = value;
-                if (key === "music_equalizer_visualization") {
-                    if (value === "auto") music_equalizer_visualization.auto = true;
-                    else {
-                        music_equalizer_visualization.auto = false;
-                        music_equalizer_visualization.style = value;
-                    }
-                }
             });
 
             await this.device.setSettings(this.device.settings);

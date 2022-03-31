@@ -8,6 +8,11 @@
         "large": "/drivers/speaker_yandexmini_2/assets/images/large.jpg"
     },
     "$extends": ["speaker"],
+    "capabilities": [
+        "speaker_artist", "speaker_track", "speaker_playing", "speaker_next", "speaker_prev",
+        "speaker_duration", "speaker_position", "volume_set", "volume_up", "volume_down", "button.reauth",
+        "speaker_time_visualization", "speaker_music_equalizer_visualization"
+    ],
     "connectivity": ["cloud", "lan"],
     "settings": [
         { "$extends": "led_screen" },

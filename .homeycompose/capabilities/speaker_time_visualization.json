@@ -1,0 +1,33 @@
+{
+    "type": "enum",
+    "title": {
+        "en": "Time Visualization",
+        "ru": "Размер часов"
+    },
+    "values": [
+        {
+            "id": "small",
+            "title": {
+                "en": "Small",
+                "ru": "Маленький"
+            }
+        },
+        {
+            "id": "middle",
+            "title": {
+                "en": "Medium",
+                "ru": "Средний"
+            }
+        },
+        {
+            "id": "large",
+            "title": {
+                "en": "Large",
+                "ru": "Большой"
+            }
+        }
+    ],
+    "getable": true,
+    "setable": true,
+    "uiComponent": "picker"
+  }

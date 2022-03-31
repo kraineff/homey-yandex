@@ -1506,7 +1506,9 @@
         "volume_set",
         "volume_up",
         "volume_down",
-        "button.reauth"
+        "button.reauth",
+        "speaker_time_visualization",
+        "speaker_music_equalizer_visualization"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -1575,98 +1577,6 @@
               "units": {
                 "en": "%"
               }
-            },
-            {
-              "id": "music_equalizer_visualization",
-              "type": "dropdown",
-              "value": "auto",
-              "label": {
-                "en": "Music Equalizer Visualization",
-                "ru": "Визуализация музыки"
-              },
-              "values": [
-                {
-                  "id": "auto",
-                  "label": {
-                    "en": "Auto",
-                    "ru": "Автоматически"
-                  }
-                },
-                {
-                  "id": "pads",
-                  "label": {
-                    "en": "Pads",
-                    "ru": "Плитки"
-                  }
-                },
-                {
-                  "id": "bricksSmall",
-                  "label": {
-                    "en": "Small Bricks",
-                    "ru": "Маленькие кирпичи"
-                  }
-                },
-                {
-                  "id": "barsBottom",
-                  "label": {
-                    "en": "Bottom Bars",
-                    "ru": "Полосы (снизу)"
-                  }
-                },
-                {
-                  "id": "barsCenter",
-                  "label": {
-                    "en": "Center Bars",
-                    "ru": "Полосы (по центру)"
-                  }
-                },
-                {
-                  "id": "flame",
-                  "label": {
-                    "en": "Flame",
-                    "ru": "Волна (снизу)"
-                  }
-                },
-                {
-                  "id": "waveCenter",
-                  "label": {
-                    "en": "Center Wave",
-                    "ru": "Волна (по центру)"
-                  }
-                }
-              ]
-            },
-            {
-              "id": "time_visualization",
-              "type": "dropdown",
-              "value": "middle",
-              "label": {
-                "en": "Time Visualization",
-                "ru": "Размер часов"
-              },
-              "values": [
-                {
-                  "id": "small",
-                  "label": {
-                    "en": "Small",
-                    "ru": "Маленький"
-                  }
-                },
-                {
-                  "id": "middle",
-                  "label": {
-                    "en": "Medium",
-                    "ru": "Средний"
-                  }
-                },
-                {
-                  "id": "large",
-                  "label": {
-                    "en": "Large",
-                    "ru": "Большой"
-                  }
-                }
-              ]
             }
           ]
         },
@@ -1824,7 +1734,9 @@
         "volume_set",
         "volume_up",
         "volume_down",
-        "button.reauth"
+        "button.reauth",
+        "speaker_time_visualization",
+        "speaker_music_equalizer_visualization"
       ],
       "capabilitiesOptions": {
         "volume_set": {
@@ -1893,98 +1805,6 @@
               "units": {
                 "en": "%"
               }
-            },
-            {
-              "id": "music_equalizer_visualization",
-              "type": "dropdown",
-              "value": "auto",
-              "label": {
-                "en": "Music Equalizer Visualization",
-                "ru": "Визуализация музыки"
-              },
-              "values": [
-                {
-                  "id": "auto",
-                  "label": {
-                    "en": "Auto",
-                    "ru": "Автоматически"
-                  }
-                },
-                {
-                  "id": "pads",
-                  "label": {
-                    "en": "Pads",
-                    "ru": "Плитки"
-                  }
-                },
-                {
-                  "id": "bricksSmall",
-                  "label": {
-                    "en": "Small Bricks",
-                    "ru": "Маленькие кирпичи"
-                  }
-                },
-                {
-                  "id": "barsBottom",
-                  "label": {
-                    "en": "Bottom Bars",
-                    "ru": "Полосы (снизу)"
-                  }
-                },
-                {
-                  "id": "barsCenter",
-                  "label": {
-                    "en": "Center Bars",
-                    "ru": "Полосы (по центру)"
-                  }
-                },
-                {
-                  "id": "flame",
-                  "label": {
-                    "en": "Flame",
-                    "ru": "Волна (снизу)"
-                  }
-                },
-                {
-                  "id": "waveCenter",
-                  "label": {
-                    "en": "Center Wave",
-                    "ru": "Волна (по центру)"
-                  }
-                }
-              ]
-            },
-            {
-              "id": "time_visualization",
-              "type": "dropdown",
-              "value": "middle",
-              "label": {
-                "en": "Time Visualization",
-                "ru": "Размер часов"
-              },
-              "values": [
-                {
-                  "id": "small",
-                  "label": {
-                    "en": "Small",
-                    "ru": "Маленький"
-                  }
-                },
-                {
-                  "id": "middle",
-                  "label": {
-                    "en": "Medium",
-                    "ru": "Средний"
-                  }
-                },
-                {
-                  "id": "large",
-                  "label": {
-                    "en": "Large",
-                    "ru": "Большой"
-                  }
-                }
-              ]
             }
           ]
         },
@@ -2054,6 +1874,100 @@
         "en": "V",
         "ru": "В"
       }
+    },
+    "speaker_music_equalizer_visualization": {
+      "type": "enum",
+      "title": {
+        "en": "Music Equalizer Visualization",
+        "ru": "Визуализация музыки"
+      },
+      "values": [
+        {
+          "id": "auto",
+          "title": {
+            "en": "Auto",
+            "ru": "Автоматически"
+          }
+        },
+        {
+          "id": "pads",
+          "title": {
+            "en": "Pads",
+            "ru": "Плитки"
+          }
+        },
+        {
+          "id": "bricksSmall",
+          "title": {
+            "en": "Small Bricks",
+            "ru": "Маленькие кирпичи"
+          }
+        },
+        {
+          "id": "barsBottom",
+          "title": {
+            "en": "Bottom Bars",
+            "ru": "Полосы (снизу)"
+          }
+        },
+        {
+          "id": "barsCenter",
+          "title": {
+            "en": "Center Bars",
+            "ru": "Полосы (по центру)"
+          }
+        },
+        {
+          "id": "flame",
+          "title": {
+            "en": "Flame",
+            "ru": "Волна (снизу)"
+          }
+        },
+        {
+          "id": "waveCenter",
+          "title": {
+            "en": "Center Wave",
+            "ru": "Волна (по центру)"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker"
+    },
+    "speaker_time_visualization": {
+      "type": "enum",
+      "title": {
+        "en": "Time Visualization",
+        "ru": "Размер часов"
+      },
+      "values": [
+        {
+          "id": "small",
+          "title": {
+            "en": "Small",
+            "ru": "Маленький"
+          }
+        },
+        {
+          "id": "middle",
+          "title": {
+            "en": "Medium",
+            "ru": "Средний"
+          }
+        },
+        {
+          "id": "large",
+          "title": {
+            "en": "Large",
+            "ru": "Большой"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker"
     }
   },
   "discovery": {
