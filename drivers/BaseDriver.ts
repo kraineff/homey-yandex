@@ -22,7 +22,7 @@ export default class BaseDriver extends Homey.Driver {
                 this.yandex.devices.getByPlatform(id.replace("speaker_", ""));
 
             return devices.map(device => ({
-                name: device.raw.name,
+                name: device.data.name,
                 data: {
                     id: device.id
                 },

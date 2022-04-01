@@ -22,7 +22,7 @@ export default class YandexDevice extends YandexDeviceBase {
 
     async action(actions: any) {
         if (this.yandex.options?.debug)
-            console.log(`[Устройство: ${this.raw.id}] -> Выполнение действия -> ${JSON.stringify(actions)}`);
+            console.log(`[Устройство: ${this.data.id}] -> Выполнение действия -> ${JSON.stringify(actions)}`);
         
         const IOT_TYPES: any = {
             "on": "devices.capabilities.on_off",

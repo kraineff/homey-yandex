@@ -2,7 +2,6 @@ import EventEmitter from "events";
 import ReconnectingWebSocket from "reconnecting-websocket";
 import WebSocket from 'ws';
 import Yandex from "../yandex";
-import { diff } from "deep-object-diff";
 
 class UpdatesWebSocket extends WebSocket {
     constructor(address: string | URL, protocols?: string | string[]) {
@@ -42,8 +41,9 @@ export default class YandexUpdates extends EventEmitter {
     }
 
     private url = async (): Promise<string> => {
-        const resp = await this.yandex.session.get("https://iot.quasar.yandex.ru/m/v3/user/devices").catch(() => undefined);
-        return resp?.data.updates_url || "";
+        return this.yandex.session.get("https://iot.quasar.yandex.ru/m/v3/user/devices")
+            .then(resp => resp.data.updates_url)
+            .catch(() => "");
     }
 
     private handleMessage = async (event: any) => {
@@ -54,7 +54,8 @@ export default class YandexUpdates extends EventEmitter {
 
         if (data.operation === "update_device_list") {
             const source: "discovery" | "delete_device" | "update_device" = message.source;
-            await this.yandex.devices.update();
+            //@ts-ignore
+            await this.yandex.devices.update([].concat.apply([], message.households.map(({ all }) => all)));
         }
 
         if (data.operation === "update_scenario_list") {

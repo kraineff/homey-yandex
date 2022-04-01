@@ -4,18 +4,7 @@ import WebSocket from 'ws';
 import ReconnectingWebSocket from "reconnecting-websocket";
 import { diff } from "deep-object-diff";
 import { v4 } from "uuid";
-
-type SpeakerConfig = {
-    allow_non_self_calls: boolean
-    beta: boolean
-    led?: {
-        brightness: { auto: boolean, value: number }
-        music_equalizer_visualization: { auto: boolean, style: string }
-        time_visualization: { size: string }
-    }
-    location: any
-    name: string
-}
+import { SpeakerData } from '../types';
 
 class SpeakerWebSocket extends WebSocket {
     constructor(address: string | URL, protocols?: string | string[]) {
@@ -29,7 +18,7 @@ class SpeakerWebSocket extends WebSocket {
 export default class YandexSpeaker extends YandexDeviceBase {
     local: boolean;
     volume: number;
-    settings!: SpeakerConfig;
+    data!: SpeakerData;
 
     private localSocket?: ReconnectingWebSocket;
     private localToken?: string;
@@ -43,8 +32,7 @@ export default class YandexSpeaker extends YandexDeviceBase {
 
     async setAvailable() {
         this.yandex.devices.discovery.addListener("result", this.handleDiscoveryResult);
-        this.settings = await this.getSettings();
-        await this.startLocalSocket(this.yandex.devices.discovery.results[this.raw.quasar_info?.device_id || ""]);
+        await this.startLocalSocket(this.yandex.devices.discovery.results[this.data.settings.quasar_info.device_id]);
         await super.setAvailable();
     }
     
@@ -55,7 +43,7 @@ export default class YandexSpeaker extends YandexDeviceBase {
     }
 
     private handleDiscoveryResult = async (result: any) => {
-        if (this.raw.quasar_info?.device_id !== result.id) return;
+        if (this.data.settings.quasar_info.device_id !== result.id) return;
         await this.startLocalSocket(result);
     }
 
@@ -131,22 +119,16 @@ export default class YandexSpeaker extends YandexDeviceBase {
         }
     }
 
-    async getSettings() {
-        if (this.yandex.options?.debug)
-            console.log(`[Колонка: ${this.id}] -> Получение настроек`);
-        
-        return this.yandex.session.get("https://quasar.yandex.ru/get_device_config", {
-            params: { "device_id": this.raw.quasar_info!.device_id, "platform": this.raw.quasar_info!.platform }
-        }).then(resp => <SpeakerConfig>resp.data.config);
-    }
-
-    async setSettings(config: SpeakerConfig) {
+    async setSettings() {
         if (this.yandex.options?.debug)
             console.log(`[Колонка: ${this.id}] -> Установка настроек`);
         
-        return this.yandex.session.post("https://quasar.yandex.ru/set_device_config", {
-            params: { "device_id": this.raw.quasar_info!.device_id, "platform": this.raw.quasar_info!.platform },
-            data: config
+        return this.yandex.session.options({
+            method: "POST",
+            url: `https://iot.quasar.yandex.ru/m/v3/user/devices/${this.id}/configuration/quasar`,
+            data: { config: this.data.settings.quasar_config, version: this.data.settings.quasar_config_version }
+        }).then(resp => {
+            this.data.settings.quasar_config_version = resp.data.version;
         });
     }
 
@@ -217,8 +199,8 @@ export default class YandexSpeaker extends YandexDeviceBase {
         
         this.localToken = await this.yandex.session.get("https://quasar.yandex.net/glagol/token", {
             params: {
-                device_id: this.raw.quasar_info!.device_id,
-                platform: this.raw.quasar_info!.platform
+                device_id: this.data.settings.quasar_info.device_id,
+                platform: this.data.settings.quasar_info.platform
             }
         }).then(resp => resp.data.token);
     }

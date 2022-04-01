@@ -1,25 +1,21 @@
 import Yandex from "../../../yandex";
 import EventEmitter from "events";
-
-import { RawDevice } from "../types";
+import { DeviceData } from "../types";
 
 export default class YandexDeviceBase extends EventEmitter {
     yandex: Yandex;
 
     id: string
-    raw!: RawDevice;
-
-    initialized: boolean;
+    data!: DeviceData;
 
     constructor (yandex: Yandex, id: string) {
         super();
         this.yandex = yandex;
         this.id = id;
 
-        this.initialized = false;
-
         this.on("newListener", async (event, listener) => {
-            if (event === "available" && this.yandex.ready && this.raw) process.nextTick(() => this.setAvailable());
+            if (event === "available" && this.yandex.ready && this.data) process.nextTick(() => this.setAvailable());
+            if (event === "unavailable" && this.yandex.ready && !this.data) listener("REMOVED");
             if (event === "unavailable" && !this.yandex.ready) listener("NO_AUTH");
         });
     }
@@ -42,13 +38,12 @@ export default class YandexDeviceBase extends EventEmitter {
             this.removeAllListeners("unavailable");
             this.removeAllListeners("state");
             this.removeAllListeners("update");
-            this.initialized = false;
         }
     }
 
-    async update(rawDevice: RawDevice) {
-        this.raw = rawDevice;
-        this.emit("update", this.raw);
+    async update(data: DeviceData) {
+        this.data = data;
+        this.emit("update", this.data);
     }
 
     async delete() {

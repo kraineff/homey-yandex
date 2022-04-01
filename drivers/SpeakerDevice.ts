@@ -1,4 +1,5 @@
 import Homey from "homey";
+import { SpeakerData } from "../lib/modules/devices/types";
 import YandexSpeaker from "../lib/modules/devices/types/speaker";
 import Yandex from "../lib/yandex";
 
@@ -18,21 +19,15 @@ export default class SpeakerDevice extends Homey.Device {
 
         this.device = await this.yandex.devices.initSpeaker(this.getData().id);
         this.device.on("available", async () => {
-            if (this.hasCapability("speaker_time_visualization"))
-                await this.setCapabilityValue("speaker_time_visualization", this.device.settings.led!.time_visualization.size);
-            
-            if (this.hasCapability("speaker_music_equalizer_visualization"))
-                await this.setCapabilityValue("speaker_music_equalizer_visualization",
-                    this.device.settings.led!.music_equalizer_visualization.auto ? "auto" : this.device.settings.led!.music_equalizer_visualization.style
-                );
-            
-            await this.initSettings();
+            await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
+            await this.updateSettings(this.device.data);
             await this.setAvailable();
         });
         this.device.on("unavailable", async (reason: "NO_AUTH" | "REMOVED" | "CLOSED") => {
             if (reason === "NO_AUTH") await this.setUnavailable(this.homey.__("device.reauth_required"));
             if (reason === "REMOVED") await this.setUnavailable("Устройство больше не существует в Яндексе");
         });
+        this.device.on("update", this.updateSettings)
         this.device.on("state", async (state) => await this.setCapabilities(state));
     }
 
@@ -60,18 +55,19 @@ export default class SpeakerDevice extends Homey.Device {
     async onMultipleCapabilityListener() {
         if (this.hasCapability("speaker_time_visualization"))
             this.registerCapabilityListener("speaker_time_visualization", async (value) => {
-                this.device.settings.led!.time_visualization.size = value;
-                await this.device.setSettings(this.device.settings);
+                (<SpeakerData>this.device.data).settings.quasar_config.led!.time_visualization.size = value;
+                await this.device.setSettings();
             });
 
         if (this.hasCapability("speaker_music_equalizer_visualization"))
             this.registerCapabilityListener("speaker_music_equalizer_visualization", async (value) => {
-                if (value === "auto") this.device.settings.led!.music_equalizer_visualization.auto = true;
+                const data = (<SpeakerData>this.device.data).settings.quasar_config.led!.music_equalizer_visualization;
+                if (value === "auto") data.auto = true;
                 else {
-                    this.device.settings.led!.music_equalizer_visualization.auto = false;
-                    this.device.settings.led!.music_equalizer_visualization.style = value;
+                    data.auto = false;
+                    data.style = value;
                 }
-                await this.device.setSettings(this.device.settings);
+                await this.device.setSettings();
             });
 
         this.registerCapabilityListener("button.reauth", async () => await this.yandex.logout());
@@ -84,18 +80,25 @@ export default class SpeakerDevice extends Homey.Device {
     }
 
     // Настройки
-    async initSettings() {
-        await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
+    updateSettings = async (data: SpeakerData) => {
+        if (this.hasCapability("speaker_time_visualization"))
+            await this.setCapabilityValue("speaker_time_visualization", (<SpeakerData>this.device.data).settings.quasar_config.led!.time_visualization.size);
         
-        if (this.device.settings.led) {
-            const { brightness } = this.device.settings.led;
+        if (this.hasCapability("speaker_music_equalizer_visualization"))
+            await this.setCapabilityValue("speaker_music_equalizer_visualization",
+                (<SpeakerData>this.device.data).settings.quasar_config.led!.music_equalizer_visualization.auto ? "auto" :
+                (<SpeakerData>this.device.data).settings.quasar_config.led!.music_equalizer_visualization.style
+            );
+        
+        if ((<SpeakerData>this.device.data).settings.quasar_config.led) {
+            const { brightness } = (<SpeakerData>this.device.data).settings.quasar_config.led!;
             await this.setSettings({ auto_brightness: brightness.auto, brightness: brightness.value });
         }
     }
 
     async onSettings({ newSettings, changedKeys }: { oldSettings: any; newSettings: any; changedKeys: string[]; }): Promise<string | void> {
-        if (this.device.settings.led) {
-            const { brightness } = this.device.settings.led;
+        if ((<SpeakerData>this.device.data).settings.quasar_config.led) {
+            const { brightness } = (<SpeakerData>this.device.data).settings.quasar_config.led!;
 
             changedKeys.forEach(key => {
                 const value = newSettings[key];
@@ -103,7 +106,7 @@ export default class SpeakerDevice extends Homey.Device {
                 if (key === "brightness") brightness.value = value / 100;
             });
 
-            await this.device.setSettings(this.device.settings);
+            await this.device.setSettings();
         }
 
         return this.homey.__("device.save_settings");

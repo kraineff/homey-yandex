@@ -1,9 +1,9 @@
 import Homey from "homey";
-import { RawDevice } from "../lib/modules/devices/types";
 import YandexDevice from "../lib/modules/devices/types/device";
 import Yandex from "../lib/yandex"
 import PromiseQueue from "promise-queue";
 import { diff } from "deep-object-diff";
+import { DeviceData } from "../lib/modules/devices/types";
 
 export default class BaseDevice extends Homey.Device {
     app!: Homey.App;
@@ -22,7 +22,7 @@ export default class BaseDevice extends Homey.Device {
 
         this.device = await this.yandex.devices.initDevice(this.getData().id);
         this.device.on("available", async () => {
-            await this.update(this.device.raw).then(async () => {
+            await this.update(this.device.data).then(async () => {
                 await this.setAvailable();
                 await this.setSettings({ x_token: this.homey.settings.get("x_token"), cookies: this.homey.settings.get("cookies") });
             });
@@ -39,11 +39,11 @@ export default class BaseDevice extends Homey.Device {
         await this.device.setUnavailable();
     }
 
-    update = async (raw: RawDevice) => {
+    update = async (data: DeviceData) => {
         const yandexCapabilities: any = {};
         const homeyCapabilities = this.getCapabilities().filter(capability => capability !== "button.reauth");
         
-        if (raw.capabilities) raw.capabilities.forEach(capability => {
+        if (data.capabilities) data.capabilities.forEach(capability => {
             const { type, state, parameters } = capability;
 
             if (state) {
@@ -61,7 +61,7 @@ export default class BaseDevice extends Homey.Device {
             }
         });
 
-        if (raw.properties) raw.properties.forEach(property => {
+        if (data.properties) data.properties.forEach(property => {
             const { state, parameters } = property;
             if (!parameters?.instance) return;
             const check = (state.value || state.value === 0);
@@ -83,29 +83,29 @@ export default class BaseDevice extends Homey.Device {
         });
 
         Object.keys(yandexCapabilities).forEach(async capability => {
+            const params = yandexCapabilities[capability];
+
             if (!homeyCapabilities.includes(capability)) {
-                console.log(`[Приложение: ${raw.id}] -> Добавление свойства -> ${capability}`);
+                console.log(`[Приложение: ${data.id}] -> Добавление свойства -> ${capability}`);
                 await this.queue.add(() => this.addCapability(capability));
-                const data = yandexCapabilities[capability];
-                if (data.options) await this.queue.add(() => this.setCapabilityOptions(capability, data.options));
+                if (params.options) await this.queue.add(() => this.setCapabilityOptions(capability, params.options));
             }
 
-            const data = yandexCapabilities[capability];
-            if (data.value !== undefined && this.getCapabilityValue(capability) !== data.value)
-                await this.queue.add(() => this.setCapabilityValue(capability, data.value));
+            if (params.value !== undefined && this.getCapabilityValue(capability) !== params.value)
+                await this.queue.add(() => this.setCapabilityValue(capability, params.value));
             
-            if (data.options !== undefined) {
-                const difference = diff(this.getCapabilityOptions(capability), data.options);
+            if (params.options !== undefined) {
+                const difference = diff(this.getCapabilityOptions(capability), params.options);
                 if (Object.keys(difference).length) {
-                    console.log(`[Приложение: ${raw.id}] -> Обновление свойства -> ${capability}`);
-                    await this.queue.add(() => this.setCapabilityOptions(capability, data.options));
+                    console.log(`[Приложение: ${data.id}] -> Обновление свойства -> ${capability}`);
+                    await this.queue.add(() => this.setCapabilityOptions(capability, params.options));
                 }
             }
         });
 
         homeyCapabilities.forEach(async capability => {
             if (!Object.keys(yandexCapabilities).includes(capability)) {
-                console.log(`[Приложение: ${raw.id}] -> Удаление свойства -> ${capability}`);
+                console.log(`[Приложение: ${data.id}] -> Удаление свойства -> ${capability}`);
                 await this.queue.add(() => this.removeCapability(capability));
             }
         });

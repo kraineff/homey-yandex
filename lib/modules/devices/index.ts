@@ -3,8 +3,10 @@ import YandexDiscovery from "./discovery";
 import YandexDevice from "./types/device";
 import YandexSpeaker from "./types/speaker";
 
-import { Device } from "./types";
+import { updatedDiff } from "deep-object-diff";
+import { DeviceData } from "./types";
 
+type Device = YandexSpeaker | YandexDevice;
 type DeviceType = "speaker" | "remote" | "socket" | "light" | "kettle" | "vacuumcleaner" | "humidifier" | "thermostat";
 
 export const DEVICES_TYPES = {
@@ -20,6 +22,8 @@ export const DEVICES_TYPES = {
 
 export default class YandexDevices {
     private yandex: Yandex;
+    private data: DeviceData[];
+    private initialized: Device[];
     devices: Device[];
     discovery: YandexDiscovery;
 
@@ -28,96 +32,100 @@ export default class YandexDevices {
     }
 
     getByType = (type: DeviceType) => {
-        return this.devices.filter(device => DEVICES_TYPES[type].some(type => device.raw.type.includes(type)));
+        return this.devices.filter(device => DEVICES_TYPES[type].some(type => device.data.type.includes(type)));
     }
 
     getByPlatform = (platform: string) => {
-        return this.devices.filter(device => device.raw.quasar_info?.platform === platform);
+        return (<YandexSpeaker[]>this.getByType("speaker")).filter(device => device.data.settings.quasar_info.platform === platform);
     }
 
     getByYandexType = (type: string) => {
-        return this.devices.filter(device => device.raw.type.includes(type));
+        return this.devices.filter(device => device.data.type.includes(type));
     }
 
     constructor(yandex: Yandex) {
         this.yandex = yandex;
         this.discovery = new YandexDiscovery(yandex);
         this.devices = [];
+        this.data = [];
+        this.initialized = [];
     }
 
     async init() {
         await this.discovery.init();
-        await this.update();
 
-        this.devices.forEach(async device => {
-            if (device.initialized) await device.setAvailable();
-        });
+        await this.yandex.session.get("https://iot.quasar.yandex.ru/m/v3/user/devices")
+            .then(resp => this.update([].concat.apply([], (<any[]>resp.data.households).map(({ all }) => all))))
+            .catch(err => { throw err });
+
+        this.initialized.forEach(async device => await device.setAvailable());
     }
 
     async close() {
         await this.discovery.close();
 
-        this.devices.forEach(async device => {
-            if (device.initialized) await device.setUnavailable("NO_AUTH");
-        });
+        this.initialized.forEach(async device => await device.setUnavailable("NO_AUTH"));
     }
 
     async initDevice(id: string) {
-        const check = <YandexDevice>this.getById(id);
-        const device = check || new YandexDevice(this.yandex, id);
-        device.initialized = true;
-
-        if (!check) this.devices.push(device);
-        return device;
+        const device = <YandexDevice>this.getById(id);
+        if (device) this.initialized.push(device);
+        return device || new YandexDevice(this.yandex, id);
     }
 
     async initSpeaker(id: string) {
-        const check = <YandexSpeaker>this.getById(id);
-        const device = check || new YandexSpeaker(this.yandex, id);
-        device.initialized = true;
-
-        if (!check) this.devices.push(device);
-        return device;
+        const device = <YandexSpeaker>this.getById(id);
+        if (device) this.initialized.push(device);
+        return device || new YandexSpeaker(this.yandex, id);
     }
 
-    async update() {
-        if (this.yandex.options?.debug)
-            console.log("[Устройства] -> Обновление устройств");
-        
-        const ids = await this.yandex.session.get("https://iot.quasar.yandex.ru/m/user/devices").then(resp => {
-            //@ts-ignore
-            return [...[].concat.apply([], resp.data.rooms.map(({ devices }) => devices)), ...resp.data.speakers, ...resp.data.unconfigured_devices]
-                .map(device => device.id);
-        });
+    private async getFullDevices(rawDevices: any[]) {
+        return Promise.all(rawDevices.map(async rawDevice => {
+            return Promise.all([
+                this.yandex.session.get(`https://iot.quasar.yandex.ru/m/user/devices/${rawDevice.id}`)
+                    .then(resp => resp.data),
+                this.yandex.session.get(`https://iot.quasar.yandex.ru/m/v2/user/devices/${rawDevice.id}/configuration`)
+                    .then(resp => resp.data)
+            ]).then(data => {
+                const device = data[0], config = data[1];
 
-        const rawDevices = await Promise.all(ids.map(async id => {
-            return this.yandex.session.get(`https://iot.quasar.yandex.ru/m/user/devices/${id}`).then(resp => {
-                const rawDevice = resp.data;
-                delete rawDevice.request_id;
-                delete rawDevice.updates_url;
-                delete rawDevice.status;
-                return rawDevice;
-            });
+                ["status", "request_id", "updates_url", "names", "groups", "room", "skill_id", "external_id", "favorite", "quasar_info"]
+                    .forEach(key => delete device[key]);
+
+                ["status", "request_id", "id", "name", "original_type"]
+                    .forEach(key => delete config[key]);
+
+                return { ...device, settings: config, created: rawDevice.created };
+            }).catch(err => { throw err });
         }));
+    }
 
-        const currentIds = this.devices.map(device => device.id);
-        rawDevices.forEach(async rawDevice => {
-            if (!currentIds.includes(rawDevice.id)) {
-                const device = (rawDevice.type.startsWith("devices.types.smart_speaker")) ?
-                    new YandexSpeaker(this.yandex, rawDevice.id) :
-                    new YandexDevice(this.yandex, rawDevice.id);
-                this.devices.push(device);
-            }
+    async update(data: any[]) {
+        if (!data.length) return;
+        data = await this.getFullDevices(data);
 
-            const device = this.getById(rawDevice.id)!;
-            await device.update(rawDevice);
-        });
-
-        const newIds = rawDevices!.map(rawDevice => rawDevice.id);
+        const newIds = data.map(item => item.id);
         this.devices.filter(async device => {
             if (newIds.includes(device.id)) return true;
+
+            this.initialized.filter(_device => _device.id !== device.id);
             await device.setUnavailable("REMOVED");
             return false;
         });
+
+        const currentIds = this.data.map(item => item.id);
+        data.forEach(async item => {
+            const device = currentIds.includes(item.id) ?
+                this.getById(item.id)! :
+                item.type.startsWith("devices.types.smart_speaker") ?
+                    new YandexSpeaker(this.yandex, item.id) :
+                    new YandexDevice(this.yandex, item.id);
+                
+            if (!currentIds.includes(item.id)) this.devices.push(device);
+            const difference = updatedDiff(device.data, item);
+            if (Object.keys(difference).length) await device.update(item);
+        });
+
+        this.data = data;
     }
 }
