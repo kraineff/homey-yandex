@@ -1,0 +1,8 @@
+{
+    "name": {
+        "en": "Yandex Station",
+        "ru": "Яндекс Станция"
+    },
+    "platform": "yandexstation",
+    "$extends": ["speaker"]
+}

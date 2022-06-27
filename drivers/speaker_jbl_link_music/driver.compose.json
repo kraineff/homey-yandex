@@ -1,8 +1,5 @@
 {
     "name": "JBL Link Music",
-    "images": {
-        "small": "/drivers/speaker_jbl_link_music/assets/images/small.jpg",
-        "large": "/drivers/speaker_jbl_link_music/assets/images/large.jpg"
-    },
+    "platform": "jbl_link_music",
     "$extends": ["speaker"]
 }

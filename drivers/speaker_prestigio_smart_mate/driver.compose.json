@@ -1,8 +1,5 @@
 {
     "name": "Prestigio Smartmate",
-    "images": {
-        "small": "/drivers/speaker_prestigio_smart_mate/assets/images/small.jpg",
-        "large": "/drivers/speaker_prestigio_smart_mate/assets/images/large.jpg"
-    },
+    "platform": "prestigio_smart_mate",
     "$extends": ["speaker"]
 }

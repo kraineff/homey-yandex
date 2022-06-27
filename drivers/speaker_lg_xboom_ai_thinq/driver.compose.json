@@ -1,0 +1,5 @@
+{
+    "name": "LG XBOOM AI ThinQ",
+    "platform": "wk7y",
+    "$extends": ["speaker"]
+}

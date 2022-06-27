@@ -1,5 +1,10 @@
-/env.json
-/node_modules/
-/.homeybuild/
+.homeybuild
+env.json
+app.json
 
+node_modules
+package-lock.json
+pnpm-lock.yaml
+
+.env
 .DS_Store

@@ -1,12 +1,10 @@
 {
-    "scenario_phrase": "Phrase",
-    "device": {
-        "reauth_required": "Re-authorization required",
-        "save_settings": "Settings successfully updated"
-    },
-    "auth": {
-        "title": "Authorization",
-        "desc": "Click the \"Open\" button, then log in to your account on the Yandex website and go back to Homey.",
-        "button": "Open"
+    "list_accounts": {
+        "title": "Accounts",
+        "add_account": {
+            "title": "Add account",
+            "desc": "Click to add an account."
+        },
+        "delete_account": "Delete"
     }
 }

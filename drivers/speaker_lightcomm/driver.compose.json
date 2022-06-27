@@ -1,8 +1,0 @@
-{
-    "name": "DEXP Smartbox",
-    "images": {
-        "small": "/drivers/speaker_lightcomm/assets/images/small.jpg",
-        "large": "/drivers/speaker_lightcomm/assets/images/large.jpg"
-    },
-    "$extends": ["speaker"]
-}

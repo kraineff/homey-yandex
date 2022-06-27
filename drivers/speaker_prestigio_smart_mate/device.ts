@@ -1,3 +1,3 @@
-import SpeakerDevice from "../SpeakerDevice";
+import Device from "../Device";
 
-module.exports = class PrestigioSmartmateDevice extends SpeakerDevice {}
+module.exports = class PrestigioSmartmateDevice extends Device {}

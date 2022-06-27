@@ -1,0 +1,30 @@
+{
+    "highlight": true,
+    "title": {
+        "en": "Run a command",
+        "ru": "Выполнить команду"
+    },
+    "titleFormatted": {
+        "en": "Run: [[command]]",
+        "ru": "Выполнить: [[command]]"
+    },
+    "args": [
+        {
+            "type": "text",
+            "name": "command",
+            "title": {
+                "en": "Command",
+                "ru": "Команда"
+            },
+            "placeholder": {
+                "en": "What's the weather like now?",
+                "ru": "Какая сейчас погода?"
+            }
+        },
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=speaker_dexp_smartbox|speaker_elari_smartbeat|speaker_irbis_a|speaker_jbl_link_music|speaker_jbl_link_portable|speaker_lg_xboom_ai_thinq|speaker_prestigio_smart_mate|speaker_yandex_station|speaker_yandex_station_2|speaker_yandex_station_lite|speaker_yandex_station_max|speaker_yandex_station_mini|speaker_yandex_station_mini_2"
+        }
+    ]
+}

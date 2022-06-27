@@ -1,8 +1,0 @@
-{
-    "type": "mdns-sd",
-    "mdns-sd": {
-        "name": "_yandexio",
-        "protocol": "tcp"
-    },
-    "id": "{{txt.deviceid}}"
-}

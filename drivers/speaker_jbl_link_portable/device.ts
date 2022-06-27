@@ -1,3 +1,3 @@
-import SpeakerDevice from "../SpeakerDevice";
+import Device from "../Device";
 
-module.exports = class JBLLinkPortableDevice extends SpeakerDevice {}
+module.exports = class JBLLinkPortableDevice extends Device {}

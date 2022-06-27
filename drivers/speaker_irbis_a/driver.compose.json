@@ -1,0 +1,5 @@
+{
+    "name": "IRBIS A",
+    "platform": "linkplay_a98",
+    "$extends": ["speaker"]
+}

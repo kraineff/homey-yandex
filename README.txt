@@ -1,1 +1,1 @@
-Adds support for MyBrand devices.
+Listen to music, do TTS and ask your speaker to perform an action!

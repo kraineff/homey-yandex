@@ -1,0 +1,5 @@
+class Room {
+
+}
+
+export { Room };

@@ -1,0 +1,5 @@
+{
+    "name": "DEXP Smartbox",
+    "platform": "lightcomm",
+    "$extends": ["speaker"]
+}

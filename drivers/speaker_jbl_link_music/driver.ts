@@ -1,3 +1,3 @@
-import BaseDriver from "../BaseDriver";
+import Driver from "../Driver";
 
-module.exports = class JBLLinkMusicDriver extends BaseDriver {}
+module.exports = class JBLLinkMusicDriver extends Driver {}
