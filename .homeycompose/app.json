@@ -1,8 +1,10 @@
 {
   "id": "ru.yandex.home",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "compatibility": ">=5.0.0",
-  "platforms": ["local"],
+  "platforms": [
+    "local"
+  ],
   "sdk": 3,
   "brandColor": "#8826ff",
   "name": {
@@ -13,10 +15,20 @@
     "en": "Enhances your voice control experience",
     "ru": "Расширьте возможности голосового управления"
   },
-  "category": ["music"],
+  "category": [
+    "music"
+  ],
   "tags": {
-    "en": ["yandex", "home", "alice"],
-    "ru": ["яндекс", "дом", "алиса"]
+    "en": [
+      "yandex",
+      "home",
+      "alice"
+    ],
+    "ru": [
+      "яндекс",
+      "дом",
+      "алиса"
+    ]
   },
   "images": {
     "small": "/assets/images/small.jpg",
