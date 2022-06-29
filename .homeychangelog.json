@@ -1,4 +1,8 @@
 {
+    "1.0.2": {
+        "en": "Added functionality for repeat and shuffle buttons",
+        "ru": "Добавлен функционал для кнопок повторить и перемешать"
+    },
     "1.0.1": {
         "en": "Fixes for adding accounts and devices",
         "ru": "Исправления добавления аккаунтов и устройств"
