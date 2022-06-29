@@ -20,7 +20,8 @@
                             Homey.popup(url);
 
                             if (loginInterval) clearInterval(loginInterval);
-                            loginInterval = setInterval(() => Homey.emit("check_auth").then(() => {
+                            loginInterval = setInterval(() => Homey.emit("check_auth").then(accountData => {
+                                Homey.emit("add_account", accountData);
                                 clearInterval(loginInterval);
                                 init();
                             }).catch(() => {}), 2000);

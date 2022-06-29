@@ -17,9 +17,9 @@ export default class Device extends Homey.Device {
 
         await this.setAlbumArtImage(this.image);
 
-        const api = this.app.getAPI(this.getData().uid);
-        if (api) {
-            this.device = new Speaker({ id: this.getData().id, api: api[0], updater: api[1] });
+        const account = this.app.accounts.getAccount(this.getData().uid);
+        if (account) {
+            this.device = new Speaker({ id: this.getData().id, ...account });
             this.registerCapabilities();
             this.device.updater.on("state", this.setCapabilities);
         } else await this.setUnavailable();

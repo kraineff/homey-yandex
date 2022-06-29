@@ -94,6 +94,7 @@ class Updater extends EventEmitter {
             address: service.addresses[0], port: service.port
         };
         const id = this._getSpeakerIdByDeviceId(data.deviceId);
+        if (!id) return;
         this._localSpeakers[id] = data;
         this.emit("localSpeaker", { [id]: data });
     }
@@ -105,7 +106,8 @@ class Updater extends EventEmitter {
     }
 
     private _getSpeakerIdByDeviceId(deviceId: string) {
-        return this._devices.find(device => device.quasar_info?.device_id === deviceId)!.id;
+        const speaker = this._devices.find(device => device.quasar_info?.device_id === deviceId);
+        return speaker ? speaker.id : undefined;
     }
 
     // Получение данных о локальных колонках
@@ -126,6 +128,7 @@ class Updater extends EventEmitter {
                     address: ip_addresses[0], port: external_port
                 };
                 const id = this._getSpeakerIdByDeviceId(data.deviceId);
+                if (!id) return;
                 this._localSpeakers[id] = data;
                 this.emit("localSpeaker", { [id]: data });
             });

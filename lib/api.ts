@@ -6,7 +6,7 @@ type Options = {
     uid: string,
     token: string,
     cookies: string,
-    music_token?: string
+    musicToken?: string
 }
 
 type LoginDetails = {
@@ -58,7 +58,7 @@ class API {
     private _handleRequestGlagol = async (config: AxiosRequestConfig) => {
         if (!this._musicToken) {
             this._musicToken = await this.getMusicToken(this._token);
-            this._events.emit("musicToken", this._musicToken);
+            this._events.emit("update", { musicToken: this._musicToken });
         }
 
         config.headers = {
@@ -72,6 +72,7 @@ class API {
     private _handleResponse = async (res: AxiosResponse) => {
         if (res.status === 401) {
             this._cookies = await this.getCookies(this._token);
+            this._events.emit("update", { cookies: this._cookies });
             return await this._instance.request(res.config);
         }
 
@@ -115,7 +116,7 @@ class API {
         this._uid = options.uid;
         this._token = options.token;
         this._cookies = options.cookies;
-        this._musicToken = options.music_token || "";
+        this._musicToken = options.musicToken || "";
         this._ready = true;
     }
 

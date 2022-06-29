@@ -1,4 +1,8 @@
 {
+    "1.0.1": {
+        "en": "Fixes for adding accounts and devices",
+        "ru": "Исправления добавления аккаунтов и устройств"
+    },
     "1.0.0": {
         "en": "First version",
         "ru": "Первая версия"
