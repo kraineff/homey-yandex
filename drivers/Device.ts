@@ -8,12 +8,12 @@ export default class Device extends Homey.Device {
 
     image!: Homey.Image;
     imageUrl?: string;
-    manuallyPlay?: boolean;
-    manuallyVolume?: boolean;
+    waitings!: string[];
 
     async onInit() {
         this.app = this.homey.app as YandexAlice;
         this.image = await this.homey.images.createImage();
+        this.waitings = [];
 
         await this.setAlbumArtImage(this.image);
 
@@ -31,11 +31,11 @@ export default class Device extends Homey.Device {
 
     registerCapabilities() {
         this.registerCapabilityListener("speaker_playing", async (value) => {
-            this.manuallyPlay = value;
+            this.waitings.push("speaker_playing");
             value ? await this.device.play() : await this.device.pause();
         });
         this.registerCapabilityListener("volume_set", async (volume) => {
-            this.manuallyVolume = volume;
+            this.waitings.push("volume_set");
             await this.device.volumeSet(volume);
         });
 
@@ -43,8 +43,16 @@ export default class Device extends Homey.Device {
         this.registerCapabilityListener("volume_down", async () => await this.device.volumeDown());
         this.registerCapabilityListener("speaker_next", async () => await this.device.next());
         this.registerCapabilityListener("speaker_prev", async () => await this.device.prev());
-        this.registerCapabilityListener("speaker_shuffle", async (value) => { throw new Error("Еще не реализовано") });
-        this.registerCapabilityListener("speaker_repeat", async (value) => { throw new Error("Еще не реализовано") });
+        this.registerCapabilityListener("speaker_shuffle", async (value) => {
+            this.waitings.push("speaker_shuffle");
+            await this.device.shuffle(value);
+        });
+        this.registerCapabilityListener("speaker_repeat", async (value) => {
+            this.waitings.push("speaker_repeat");
+            const modes = { "none": "none", "track": "one", "playlist": "all" };
+            //@ts-ignore
+            await this.device.repeat(modes[value]);
+        });
     }
 
     setCapabilities = async (state: any) => {
@@ -79,16 +87,6 @@ export default class Device extends Homey.Device {
                 return Promise.resolve();
             }
 
-            if (capability === "speaker_playing" && this.manuallyPlay !== undefined) {
-                if (value === this.manuallyPlay) this.manuallyPlay = undefined;
-                return Promise.resolve();
-            }
-
-            if (capability === "volume_set" && this.manuallyVolume !== undefined) {
-                if (value === this.manuallyVolume) this.manuallyVolume = undefined;
-                return Promise.resolve();
-            }
-
             if (this.getSetting("progressBar")) {
                 if (capability === "speaker_track") {
                     value = `${state.playerState?.subtitle} - ${state.playerState?.title}`;
@@ -102,6 +100,12 @@ export default class Device extends Homey.Device {
                     const current = Math.round((position * size) / duration);
                     value = duration ? `${"■".repeat(current)}${"□".repeat(size - current)}` : "□".repeat(size);
                 }
+            }
+
+            if (this.waitings.includes(capability)) {
+                if (value === this.getCapabilityValue(capability))
+                    this.waitings = this.waitings.filter(c => c !== capability);
+                return Promise.resolve();
             }
 
             if (this.getCapabilityValue(capability) !== value)

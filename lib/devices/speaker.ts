@@ -82,6 +82,15 @@ export class Speaker extends Device {
         return await this.run("предыдущий трек", { command: "prev" });
     }
 
+    async shuffle(value: boolean) {
+        return await this.run("", { command: "shuffle", enable: value });
+    }
+
+    async repeat(mode: "none" | "one" | "all") {
+        const modes = { "none": 1, "one": 2, "all": 3 };
+        return await this.run("", { command: "repeat", mode: modes[mode] });
+    }
+
     async volumeSet(volume: number) {
         this.volume = volume;
         return await this.run(`громкость на ${volume * 10}`, { command: "setVolume", volume: volume });
