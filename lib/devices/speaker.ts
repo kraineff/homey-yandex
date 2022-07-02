@@ -6,7 +6,7 @@ import WebSocket from "ws";
 type Options = {
     id: string,
     api: API,
-    updater?: Updater,
+    updater?: Updater
 }
 
 export class Speaker extends Device {
@@ -14,13 +14,13 @@ export class Speaker extends Device {
     private _local: boolean;
     private _localToken?: string;
     private _localSocket?: WebSocket;
-    private _socketTimeout?: NodeJS.Timeout;
-    private _socketBusy: boolean;
+    private _localSocketHeartbeat?: NodeJS.Timeout;
+    private _localSocketBusy: boolean;
 
     constructor(options: Options) {
         super(options);
         this.volume = 0;
-        this._socketBusy = false;
+        this._localSocketBusy = false;
         this._local = false;
 
         if (this.id in this.updater.localSpeakers)
@@ -38,8 +38,8 @@ export class Speaker extends Device {
     }
 
     private _handleLocalData = async (data: any) => {
-        if (!(this.id in data) || this._local || this._socketBusy) return;
-        this._socketBusy = true;
+        if (!(this.id in data) || this._local || this._localSocketBusy) return;
+        this._localSocketBusy = true;
         data = data[this.id];
         await this._startLocalConnection(data.platform, data.deviceId, data.address, data.port).catch(() => {});
     }
@@ -120,50 +120,39 @@ export class Speaker extends Device {
     }
 
     private async _startLocalConnection(platform: string, deviceId: string, address: string, port: number) {
-        if (!this._localToken) this._localToken = await this._getLocalToken(platform, deviceId);
         if (this._localSocket) this._localSocket.terminate();
+        if (!this._localToken) {
+            const localToken = await this.api.getSpeakerToken(platform, deviceId);
+            this._localToken = localToken;
+        }
 
         const heartbeat = () => {
-            if (this._socketTimeout) clearTimeout(this._socketTimeout);
-
-            this._socketTimeout = setTimeout(() => {
-                this._localSocket!.terminate();
-            }, 30000 + 1000);
+            clearTimeout(this._localSocketHeartbeat);
+            this._localSocketHeartbeat = setTimeout(() => {
+                if (this._localSocket) this._localSocket.terminate();
+            }, 5000 + 1000);
         };
 
         this._localSocket = new WebSocket(`wss://${address}:${port}`, { rejectUnauthorized: false });
-        this._localSocket.addEventListener("open", async () => {
-            heartbeat();
+        this._localSocket.on("open", async () => {
             this.localAction({ command: "softwareVersion" });
             this._local = true;
-            this._socketBusy = false;
+            this._localSocketBusy = false;
+        });
+        this._localSocket.on("close", () => {
+            clearTimeout(this._localSocketHeartbeat);
+            this._local = false;
+            this._localSocketBusy = false;
         });
         this._localSocket.on("ping", () => heartbeat());
-        this._localSocket.addEventListener("message", async event => {
-            const data = JSON.parse(event.data.toString());
+        this._localSocket.on("message", async message => {
+            const data = JSON.parse(message.toString());
             if ("state" in data) {
                 const { state } = data;
                 if (state.volume !== undefined && this.volume !== state.volume) this.volume = state.volume;
-                this.updater.emit("state", { [this.id]: state });
+                state.id = this.id;
+                this.updater.emit("state", state);
             }
         });
-        this._localSocket.addEventListener("close", () => {
-            clearTimeout(this._socketTimeout);
-            this._local = false;
-            this._socketBusy = false;
-        });
-        this._localSocket.addEventListener("error", () => {
-            clearTimeout(this._socketTimeout);
-            this._local = false;
-            this._socketBusy = false;
-        });
-    }
-
-    private async _getLocalToken(platform: string, deviceId: string): Promise<string> {
-        const url = "https://quasar.yandex.net/glagol/token";
-        const params = { platform, device_id: deviceId };
-
-        return this._localToken || await this.api.instance.get(url, { params })
-            .then(res => this._localToken = res.data.token);
     }
 }

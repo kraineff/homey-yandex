@@ -56,8 +56,7 @@ export default class Device extends Homey.Device {
     }
 
     setCapabilities = async (state: any) => {
-        if (!(this.getData().id in state)) return;
-        state = state[this.getData().id];
+        if (this.getData().id !== state.id) return;
 
         const values = {
             "speaker_playing": state.playing,

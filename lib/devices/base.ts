@@ -33,7 +33,7 @@ export class Device {
     async action(actions: any[]) {
         const url = `https://iot.quasar.yandex.ru/m/user/devices/${this._id}/actions`;
 
-        return this._api.instance.post(url, { actions }).then(res => {
+        return this._api.request.post(url, { actions }).then(res => {
             const { status, errors } = res.data;
 
             if (status !== "ok") {
@@ -45,7 +45,7 @@ export class Device {
     async getConfiguration() {
         const url = `https://iot.quasar.yandex.ru/m/v2/user/devices/${this._id}/configuration`;
 
-        return await this._api.instance.get(url)
+        return await this._api.request.get(url)
             .then(res => res.data);
     }
 }

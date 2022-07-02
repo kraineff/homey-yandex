@@ -1,11 +1,12 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
-import qs from "qs";
+import axiosRetry from 'axios-retry';
 import EventEmitter from "events";
+import qs from "qs";
 
-type Options = {
+type Credentials = {
     uid: string,
     token: string,
-    cookies: string,
+    cookies?: string,
     musicToken?: string
 }
 
@@ -15,113 +16,85 @@ type LoginDetails = {
     track_id: string
 }
 
-class API {
-    private _uid!: string;
-    private _token!: string;
-    private _cookies!: string;
-    private _musicToken!: string;
-    private _csrfToken!: string;
-    private _ready: boolean;
-
-    private _instance: AxiosInstance;
-    private _events: EventEmitter;
+class API extends EventEmitter {
+    private _request: AxiosInstance;
+    private _credentials?: Credentials;
+    private _csrfToken?: string;
 
     constructor() {
-        this._ready = false;
-        this._instance = axios.create({ withCredentials: true });
-        this._instance.interceptors.request.use(this._handleRequest);
-        this._instance.interceptors.response.use(this._handleResponse);
-        this._events = new EventEmitter();
+        super();
+        this._request = axios.create({ withCredentials: true });
+        this._request.interceptors.request.use(this._handleRequest);
+        this._request.interceptors.response.use(this._handleResponse);
+        axiosRetry(this._request, { retries: 3 });
     }
 
     private _handleRequest = async (config: AxiosRequestConfig) => {
-        if (!this._token && !this._cookies) throw new Error("Нет данных авторизации");
-        if (config.url?.includes("/glagol/")) return this._handleRequestGlagol(config);
+        if (config.url && config.url.includes("/glagol/")) return this._handleRequestGlagol(config);
+        if (!this._credentials) return config;
 
-        if (!this._csrfToken) {
-            const url = "https://yandex.ru/quasar?storage=1";
-            const headers = { Cookie: this._cookies };
-
-            this._csrfToken = await axios.get(url, { withCredentials: true, headers })
-                .then(res => res.data.storage.csrfToken2);
+        // Получение новых куки
+        if (!this._credentials.cookies) {
+            const cookies = await this.getCookies(this._credentials.token);
+            this.setCredentials({ ...this._credentials, cookies });
         }
+        config.headers = { ...config.headers, "Cookie": this._credentials.cookies! };
 
-        config.headers = {
-            ...config.headers,
-            Cookie: this._cookies,
-            ...(config.method && config.method !== "GET" ? { "x-csrf-token": this._csrfToken } : {})
+        // Получение нового CSRF-токена
+        if (config.method && config.method !== "get") {
+            if (!this._csrfToken) {
+                const csrfToken = await this.getCsrfToken();
+                this._csrfToken = csrfToken;
+            }
+            config.headers = { ...config.headers, "x-csrf-token": this._csrfToken };
         }
 
         return config;
     }
 
     private _handleRequestGlagol = async (config: AxiosRequestConfig) => {
-        if (!this._musicToken) {
-            this._musicToken = await this.getMusicToken(this._token);
-            this._events.emit("update", { musicToken: this._musicToken });
-        }
+        if (!this._credentials) return config;
 
-        config.headers = {
-            ...config.headers,
-            "Authorization": `Oauth ${this._musicToken}`
-        };
+        // Получение нового музыкального токена
+        if (!this._credentials.musicToken) {
+            const musicToken = await this.getMusicToken(this._credentials.token);
+            console.log(musicToken);
+            this.setCredentials({ ...this._credentials, musicToken });
+        }
+        config.headers = { ...config.headers, "Authorization": `Oauth ${this._credentials.musicToken}` };
 
         return config;
     };
 
     private _handleResponse = async (res: AxiosResponse) => {
-        if (res.status === 401) {
-            this._cookies = await this.getCookies(this._token);
-            this._events.emit("update", { cookies: this._cookies });
-            return await this._instance.request(res.config);
-        }
+        if (res.config.url && res.config.url.includes("/glagol/")) return this._handleResponseGlagol(res);
+        if (!this._credentials) return res;
 
-        if (res.status === 403) {
-            res.config.url?.includes("/glagol/") ? this._musicToken = "": this._csrfToken = "";
-            return await this._instance.request(res.config);
-        }
-
+        // Сброс куки или CSRF-токена
+        if (res.status === 401) this._credentials.cookies = undefined;
+        if (res.status === 403) this._csrfToken = undefined;
         return res;
     }
 
-    get uid() {
-        return this._uid;
+    private _handleResponseGlagol = async (res: AxiosResponse) => {
+        if (!this._credentials) return res;
+        
+        // Сброс музыкального токена
+        if (res.status === 403) this._credentials.musicToken = undefined;
+        return res;
     }
 
-    get token() {
-        return this._token;
+    get request() {
+        return this._request;
     }
 
-    get cookies() {
-        return this._cookies;
+    get credentials() {
+        return this._credentials;
     }
 
-    get musicToken() {
-        return this._musicToken;
-    }
-
-    get ready() {
-        return this._ready;
-    }
-
-    get instance() {
-        return this._instance;
-    }
-
-    get events() {
-        return this._events;
-    }
-
-    setCredentials(options: Options) {
-        this._uid = options.uid;
-        this._token = options.token;
-        this._cookies = options.cookies;
-        this._musicToken = options.musicToken || "";
-        this._ready = true;
-    }
-
-    destroy() {
-        this._events.removeAllListeners();
+    setCredentials(credentials: Credentials) {
+        this.emit("credentials", credentials);
+        this._credentials = credentials;
     }
 
     async getLoginDetails(): Promise<LoginDetails> {
@@ -283,6 +256,23 @@ class API {
         return await axios.post(url, data)
             .then(res => res.data.access_token);
     }
+
+    async getSpeakerToken(platform: string, glagolId: string): Promise<string> {
+        const url = "https://quasar.yandex.net/glagol/token";
+        const params = {
+            platform, device_id: glagolId
+        };
+
+        return await this._request.get(url, { params })
+            .then(res => res.data.token);
+    }
+
+    async getCsrfToken(): Promise<string> {
+        const url = "https://yandex.ru/quasar?storage=1";
+
+        return await this._request.get(url)
+            .then(res => res.data.storage.csrfToken2);
+    }
 }
 
-export { API };           
+export { API };

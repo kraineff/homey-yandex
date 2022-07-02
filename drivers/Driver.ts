@@ -12,11 +12,11 @@ export default class Driver extends AccountsDriver {
 
         this.onListAccounts = async () => {
             const accs = Object.values(this.accounts.getAccounts());
-            const promises = accs.map(account => account.api.validateToken(account.api.token).then((data: any) => ({
+            const promises = accs.map(account => account.api.validateToken(account.api.credentials.token).then((data: any) => ({
                 title: [data.display_name],
                 desc: [data.native_default_email],
                 logo: { url: data.avatar_url },
-                uid: account.api.uid
+                uid: account.api.credentials.uid
             })).catch(() => undefined));
 
             const result = await Promise.all(promises);
@@ -26,7 +26,7 @@ export default class Driver extends AccountsDriver {
         this.onListDevices = async () => {
             const accs = Object.values(this.accounts.getAccounts());
             const url = "https://iot.quasar.yandex.ru/m/v3/user/devices";
-            const promises = accs.map(account => account.api.instance.get(url).then((res: any) => {
+            const promises = accs.map(account => account.api.request.get(url).then((res: any) => {
                 //@ts-ignore
                 const devices = res.data.households.map(({ all }) => all
                     .filter((item: any) => item.quasar_info?.platform === this.manifest.platform)
@@ -34,7 +34,7 @@ export default class Driver extends AccountsDriver {
                         name: item.name,
                         data: {
                             id: item.id,
-                            uid: account.api.uid
+                            uid: account.api.credentials.uid
                         }
                     })));
                 return [].concat.apply([], devices);
