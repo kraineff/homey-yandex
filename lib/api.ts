@@ -58,7 +58,6 @@ class API extends EventEmitter {
         // Получение нового музыкального токена
         if (!this._credentials.musicToken) {
             const musicToken = await this.getMusicToken(this._credentials.token);
-            console.log(musicToken);
             this.setCredentials({ ...this._credentials, musicToken });
         }
         config.headers = { ...config.headers, "Authorization": `Oauth ${this._credentials.musicToken}` };

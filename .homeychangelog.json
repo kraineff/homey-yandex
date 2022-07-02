@@ -1,4 +1,8 @@
 {
+    "1.0.3": {
+        "en": "Small changes",
+        "ru": "Небольшие изменения"
+    },
     "1.0.2": {
         "en": "Added functionality for repeat and shuffle buttons",
         "ru": "Добавлен функционал для кнопок повторить и перемешать"
