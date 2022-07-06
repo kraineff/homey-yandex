@@ -5,7 +5,7 @@
         "ru": "Произнести текст"
     },
     "titleFormatted": {
-        "en": "Say [[text]]",
+        "en": "Say: [[text]]",
         "ru": "Произнести: [[text]]"
     },
     "args": [
