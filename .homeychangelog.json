@@ -1,4 +1,8 @@
 {
+    "1.1.0": {
+        "en": "New icons for Irbis A and Station 2. Added Flow Trigger Card for integration with Yandex.Eda. Multiple improvements",
+        "ru": "Новые иконки для Irbis A и Станции 2. Добавлен Flow-триггер для интеграции с Яндекс.Еда. Многочисленные улучшения"
+    },
     "1.0.3": {
         "en": "Small changes",
         "ru": "Небольшие изменения"
