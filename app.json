@@ -47,6 +47,253 @@
   "source": "https://github.com/kraineff/ru.yandex.home",
   "homeyCommunityTopicId": 60957,
   "flow": {
+    "triggers": [
+      {
+        "title": {
+          "en": "Property of the Eda order changed",
+          "ru": "Свойство заказа еды обновлено"
+        },
+        "titleFormatted": {
+          "en": "Property of the Eda order changed: [[property]]",
+          "ru": "Свойство заказа еды изменено: [[property]]"
+        },
+        "args": [
+          {
+            "type": "dropdown",
+            "name": "property",
+            "title": {
+              "en": "Property",
+              "ru": "Свойство"
+            },
+            "values": [
+              {
+                "id": "status",
+                "label": {
+                  "en": "Status",
+                  "ru": "Статус"
+                }
+              },
+              {
+                "id": "title",
+                "label": {
+                  "en": "Title",
+                  "ru": "Название"
+                }
+              },
+              {
+                "id": "description",
+                "label": {
+                  "en": "Description",
+                  "ru": "Описание"
+                }
+              },
+              {
+                "id": "shortTitle",
+                "label": {
+                  "en": "Short Title",
+                  "ru": "Короткое название"
+                }
+              },
+              {
+                "id": "shortDescription",
+                "label": {
+                  "en": "Short Description",
+                  "ru": "Короткое описание"
+                }
+              },
+              {
+                "id": "eta",
+                "label": {
+                  "en": "ETA",
+                  "ru": "Время доставки"
+                }
+              },
+              {
+                "id": "isAsap",
+                "label": {
+                  "en": "Is delayed",
+                  "ru": "Заказ задерживается"
+                }
+              },
+              {
+                "id": "courierName",
+                "label": {
+                  "en": "Courier Name",
+                  "ru": "Имя курьера"
+                }
+              },
+              {
+                "id": "courierLocation",
+                "label": {
+                  "en": "Courier Location",
+                  "ru": "Местоположение курьера"
+                }
+              },
+              {
+                "id": "car",
+                "label": {
+                  "en": "Car",
+                  "ru": "Автомобиль"
+                }
+              }
+            ]
+          }
+        ],
+        "tokens": [
+          {
+            "name": "status",
+            "type": "number",
+            "title": {
+              "en": "Status",
+              "ru": "Статус"
+            },
+            "example": 8
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "title": {
+              "en": "Title",
+              "ru": "Название"
+            },
+            "example": {
+              "en": "The order will arrive at 12:05−12:10",
+              "ru": "Заказ приедет в 12:05−12:10"
+            }
+          },
+          {
+            "name": "description",
+            "type": "string",
+            "title": {
+              "en": "Description",
+              "ru": "Описание"
+            },
+            "example": {
+              "en": "The food is being prepared and will be delivered to the courier soon",
+              "ru": "Еду готовят и скоро передадут курьеру"
+            }
+          },
+          {
+            "name": "shortTitle",
+            "type": "string",
+            "title": {
+              "en": "Short Title",
+              "ru": "Короткое название"
+            },
+            "example": {
+              "en": "At 12:05 − 12:10",
+              "ru": "В 12:05 − 12:10"
+            }
+          },
+          {
+            "name": "shortDescription",
+            "type": "string",
+            "title": {
+              "en": "Short Description",
+              "ru": "Короткое описание"
+            },
+            "example": {
+              "en": "The food is being cooked with might and main",
+              "ru": "Еду вовсю готовят"
+            }
+          },
+          {
+            "name": "eta",
+            "type": "number",
+            "title": {
+              "en": "ETA",
+              "ru": "Время доставки"
+            },
+            "example": 10
+          },
+          {
+            "name": "isAsap",
+            "type": "boolean",
+            "title": {
+              "en": "Is delayed",
+              "ru": "Заказ задерживается"
+            },
+            "example": true
+          },
+          {
+            "name": "placeName",
+            "type": "string",
+            "title": {
+              "en": "Place Name",
+              "ru": "Ресторан"
+            },
+            "example": "KFC"
+          },
+          {
+            "name": "courierName",
+            "type": "string",
+            "title": {
+              "en": "Courier Name",
+              "ru": "Имя курьера"
+            },
+            "example": {
+              "en": "Ivan",
+              "ru": "Иван"
+            }
+          },
+          {
+            "name": "courierLatitude",
+            "type": "number",
+            "title": {
+              "en": "Courier Latitude",
+              "ru": "Широта курьера"
+            },
+            "example": 12.345678
+          },
+          {
+            "name": "courierLongitude",
+            "type": "number",
+            "title": {
+              "en": "Courier Longitude",
+              "ru": "Долгота курьера"
+            },
+            "example": 12.345678
+          },
+          {
+            "name": "courierIsHardOfHearing",
+            "type": "boolean",
+            "title": {
+              "en": "Courier Is Hard Of Hearing",
+              "ru": "Слабослышащий курьер"
+            },
+            "example": false
+          },
+          {
+            "name": "service",
+            "type": "string",
+            "title": {
+              "en": "Service",
+              "ru": "Сервис"
+            },
+            "example": "eats"
+          },
+          {
+            "name": "carBrand",
+            "type": "string",
+            "title": {
+              "en": "Car Brand",
+              "ru": "Марка автомобиля"
+            },
+            "example": "Tesla Model X"
+          },
+          {
+            "name": "carNumber",
+            "type": "string",
+            "title": {
+              "en": "Car Number",
+              "ru": "Номер автомобиля"
+            },
+            "example": "X777XX777"
+          }
+        ],
+        "id": "eda_update"
+      }
+    ],
     "actions": [
       {
         "highlight": true,
@@ -86,7 +333,7 @@
           "ru": "Произнести текст"
         },
         "titleFormatted": {
-          "en": "Say [[text]]",
+          "en": "Say: [[text]]",
           "ru": "Произнести: [[text]]"
         },
         "args": [
@@ -170,39 +417,6 @@
           "template": "add_devices"
         }
       ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
-        }
-      ],
       "name": "DEXP Smartbox",
       "platform": "lightcomm",
       "id": "speaker_dexp_smartbox"
@@ -262,39 +476,6 @@
         {
           "id": "add_devices",
           "template": "add_devices"
-        }
-      ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
         }
       ],
       "name": "Elari SmartBeat",
@@ -358,39 +539,6 @@
           "template": "add_devices"
         }
       ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
-        }
-      ],
       "name": "IRBIS A",
       "platform": "linkplay_a98",
       "id": "speaker_irbis_a"
@@ -450,39 +598,6 @@
         {
           "id": "add_devices",
           "template": "add_devices"
-        }
-      ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
         }
       ],
       "name": "JBL Link Music",
@@ -546,39 +661,6 @@
           "template": "add_devices"
         }
       ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
-        }
-      ],
       "name": "JBL Link Portable",
       "platform": "jbl_link_portable",
       "id": "speaker_jbl_link_portable"
@@ -638,39 +720,6 @@
         {
           "id": "add_devices",
           "template": "add_devices"
-        }
-      ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
         }
       ],
       "name": "LG XBOOM AI ThinQ",
@@ -734,39 +783,6 @@
           "template": "add_devices"
         }
       ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
-        }
-      ],
       "name": "Prestigio Smartmate",
       "platform": "prestigio_smart_mate",
       "id": "speaker_prestigio_smart_mate"
@@ -826,39 +842,6 @@
         {
           "id": "add_devices",
           "template": "add_devices"
-        }
-      ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
         }
       ],
       "name": {
@@ -925,39 +908,6 @@
           "template": "add_devices"
         }
       ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
-        }
-      ],
       "name": {
         "en": "Yandex Station 2",
         "ru": "Яндекс Станция 2"
@@ -1020,39 +970,6 @@
         {
           "id": "add_devices",
           "template": "add_devices"
-        }
-      ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
         }
       ],
       "name": {
@@ -1119,39 +1036,6 @@
           "template": "add_devices"
         }
       ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
-        }
-      ],
       "name": {
         "en": "Yandex Station Max",
         "ru": "Яндекс Станция Макс"
@@ -1216,39 +1100,6 @@
           "template": "add_devices"
         }
       ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
-        }
-      ],
       "name": {
         "en": "Yandex Station Mini",
         "ru": "Яндекс Станция Мини"
@@ -1311,39 +1162,6 @@
         {
           "id": "add_devices",
           "template": "add_devices"
-        }
-      ],
-      "settings": [
-        {
-          "type": "group",
-          "label": {
-            "en": "Text progress bar",
-            "ru": "Текстовый прогресс бар"
-          },
-          "children": [
-            {
-              "type": "checkbox",
-              "id": "progressBar",
-              "label": {
-                "en": "Enable",
-                "ru": "Включить"
-              },
-              "value": false
-            },
-            {
-              "type": "number",
-              "id": "progressBarSize",
-              "label": {
-                "en": "Size",
-                "ru": "Размер"
-              },
-              "units": {
-                "en": "squares",
-                "ru": "квадраты"
-              },
-              "value": 15
-            }
-          ]
         }
       ],
       "name": {

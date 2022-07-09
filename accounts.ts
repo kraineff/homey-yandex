@@ -5,6 +5,9 @@ export class Accounts {
     private _accounts: {
         [accountId: string]: any
     };
+    private _pendingInitAccounts: {
+        [accountId: string]: Promise<any>
+    };
     private _accountIdKey: string;
     private _settings: ManagerSettings;
     private _settingsKey: string;
@@ -16,6 +19,7 @@ export class Accounts {
         this._settingsKey = settingsKey;
         this._accountIdKey = accountIdKey;
         this._accounts = {};
+        this._pendingInitAccounts = {};
     }
 
     getAccountsData(): any[] {
@@ -39,16 +43,25 @@ export class Accounts {
         this._settings.set(this._settingsKey, accounts);
     }
 
-    getAccounts() {
+    async getAccounts() {
+        if (Object.keys(this._pendingInitAccounts).length)
+            await Promise.all(Object.values(this._pendingInitAccounts));
         return this._accounts;
     }
 
-    getAccount(accountId: string) {
+    async getAccount(accountId: string) {
+        if (accountId in this._pendingInitAccounts) await this._pendingInitAccounts[accountId];
         return accountId in this._accounts ? this._accounts[accountId] : undefined;
     }
 
     async initAccounts() {
-        this.getAccountsData().forEach(async data => await this.initAccount(data));
+        this.getAccountsData().forEach(data => {
+            this._pendingInitAccounts[data[this._accountIdKey]] = this.initAccount(data).then(() => {
+                delete this._pendingInitAccounts[data[this._accountIdKey]];
+            });
+        });
+
+        await Promise.all(Object.values(this._pendingInitAccounts));
     }
 
     async initAccount(data: any) {

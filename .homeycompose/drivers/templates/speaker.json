@@ -40,38 +40,5 @@
             "id": "add_devices",
             "template": "add_devices"
         }
-    ],
-    "settings": [
-        {
-            "type": "group",
-            "label": {
-                "en": "Text progress bar",
-                "ru": "Текстовый прогресс бар"
-            },
-            "children": [
-                {
-                    "type": "checkbox",
-                    "id": "progressBar",
-                    "label": {
-                        "en": "Enable",
-                        "ru": "Включить"
-                    },
-                    "value": false
-                },
-                {
-                    "type": "number",
-                    "id": "progressBarSize",
-                    "label": {
-                        "en": "Size",
-                        "ru": "Размер"
-                    },
-                    "units": {
-                        "en": "squares",
-                        "ru": "квадраты"
-                    },
-                    "value": 15
-                }
-            ]
-        }
     ]
 }

@@ -11,7 +11,7 @@ export default class Driver extends AccountsDriver {
         this.accounts = this._app.accounts;
 
         this.onListAccounts = async () => {
-            const accs = Object.values(this.accounts.getAccounts());
+            const accs = Object.values(await this.accounts.getAccounts());
             const promises = accs.map(account => account.api.validateToken(account.api.credentials.token).then((data: any) => ({
                 title: [data.display_name],
                 desc: [data.native_default_email],
@@ -24,7 +24,7 @@ export default class Driver extends AccountsDriver {
         };
 
         this.onListDevices = async () => {
-            const accs = Object.values(this.accounts.getAccounts());
+            const accs = Object.values(await this.accounts.getAccounts());
             const url = "https://iot.quasar.yandex.ru/m/v3/user/devices";
             const promises = accs.map(account => account.api.request.get(url).then((res: any) => {
                 //@ts-ignore

@@ -1,5 +1,0 @@
-class Household {
-    
-}
-
-export { Household };

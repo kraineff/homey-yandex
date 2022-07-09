@@ -70,6 +70,10 @@ export class Speaker extends Device {
         return await this.run("продолжить", { command: "play" });
     }
 
+    async playMusic(id: string, type: "Track" | "Radio") {
+        return await this.run(`включи музыку`, { command: "playMusic", id, type });
+    }
+
     async pause() {
         return await this.run("пауза", { command: "stop" });
     }
@@ -120,7 +124,10 @@ export class Speaker extends Device {
     }
 
     private async _startLocalConnection(platform: string, deviceId: string, address: string, port: number) {
-        if (this._localSocket) this._localSocket.terminate();
+        if (this._localSocket) {
+            this._localSocket.terminate();
+            this._localSocket = undefined;
+        }
         if (!this._localToken) {
             const localToken = await this.api.getSpeakerToken(platform, deviceId);
             this._localToken = localToken;
@@ -129,7 +136,10 @@ export class Speaker extends Device {
         const heartbeat = () => {
             clearTimeout(this._localSocketHeartbeat);
             this._localSocketHeartbeat = setTimeout(() => {
-                if (this._localSocket) this._localSocket.terminate();
+                if (this._localSocket) {
+                    this._localSocket.terminate();
+                    this._localSocket = undefined;
+                }
             }, 5000 + 1000);
         };
 
@@ -139,10 +149,13 @@ export class Speaker extends Device {
             this._local = true;
             this._localSocketBusy = false;
         });
-        this._localSocket.on("close", () => {
+        this._localSocket.on("close", (code: number) => {
             clearTimeout(this._localSocketHeartbeat);
             this._local = false;
             this._localSocketBusy = false;
+            
+            if (this.id in this.updater.localSpeakers)
+                setTimeout(async () => await this._startLocalConnection(platform, deviceId, address, port), 5000);
         });
         this._localSocket.on("ping", () => heartbeat());
         this._localSocket.on("message", async message => {
@@ -151,8 +164,10 @@ export class Speaker extends Device {
                 const { state } = data;
                 if (state.volume !== undefined && this.volume !== state.volume) this.volume = state.volume;
                 state.id = this.id;
+                state.local = true;
                 this.updater.emit("state", state);
             }
         });
+        this._localSocket.on("error", (err: Error) => {});
     }
 }
