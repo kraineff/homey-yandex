@@ -30,10 +30,11 @@ export class Device {
     async action(actions: any[]) {
         const url = `https://iot.quasar.yandex.ru/m/user/devices/${this._options.id}/actions`;
 
-        return this._options.api.request.post(url, { actions }).then(res => {
+        return await this._options.api.request.post(url, { actions }).then(res => {
             const { status, errors } = res.data;
             if (status !== "ok")
                 throw new Error(`Неизвестная ошибка: ${JSON.stringify(res.data)}`);
+            return res.data;
         });
     }
 }

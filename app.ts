@@ -43,7 +43,7 @@ export default class YandexAlice extends Homey.App {
 
             const eda = new Eda(api);
             eda.addListener("refresh", this._handleEdaRefresh);
-            await eda.startTracking();
+            await eda.startTracking().catch(this.error);
 
             return { api, updater: new Updater(api), eda };
         };
