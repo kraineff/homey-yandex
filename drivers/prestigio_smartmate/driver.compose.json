@@ -1,0 +1,6 @@
+{
+    "name": "Prestigio Smartmate",
+    "platform": "prestigio_smart_mate",
+    "connectivity": ["cloud", "lan"],
+    "$extends": ["speaker_base", "speaker_capabilities"]
+}

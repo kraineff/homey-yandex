@@ -1,0 +1,12 @@
+{
+    "title": {
+        "en": "Up",
+        "ru": "Вверх"
+    },
+    "type": "boolean",
+    "getable": false,
+    "setable": true,
+    "uiComponent": "button",
+    "uiQuickAction": true,
+    "icon": "/assets/capabilities/media_up.svg"
+}

@@ -1,0 +1,12 @@
+{
+    "title": {
+        "en": "Like",
+        "ru": "Нравится"
+    },
+    "type": "boolean",
+    "getable": true,
+    "setable": true,
+    "uiComponent": "button",
+    "uiQuickAction": true,
+    "icon": "/assets/capabilities/media_like.svg"
+}

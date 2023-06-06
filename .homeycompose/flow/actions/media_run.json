@@ -1,0 +1,45 @@
+{
+    "highlight": true,
+    "title": {
+        "en": "Run a command",
+        "ru": "Выполнить команду"
+    },
+    "titleFormatted": {
+        "en": "Run [[command]] with [[volume]]",
+        "ru": "Выполнить [[command]] с [[volume]]"
+    },
+    "args": [
+        {
+            "name": "command",
+            "type": "text",
+            "title": {
+                "en": "Command",
+                "ru": "Команда"
+            },
+            "placeholder": {
+                "en": "What's the weather like now?",
+                "ru": "Какая сейчас погода?"
+            }
+        },
+        {
+            "name": "volume",
+            "type": "range",
+            "title": {
+                "en": "Volume",
+                "ru": "Громкость"
+            },
+            "required": false,
+            "label": "%",
+            "min": 0,
+            "max": 1,
+            "step": 0.1,
+            "labelMultiplier": 100,
+            "labelDecimals": 0
+        },
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=dexp_smartbox|elari_smartbeat|irbis_a|jbl_link_music|jbl_link_portable|lg_xboom_ai_thinq|prestigio_smart_mate|yandex_station|yandex_station_2|yandex_station_lite|yandex_station_max|yandex_station_mini|yandex_station_mini_2"
+        }
+    ]
+}

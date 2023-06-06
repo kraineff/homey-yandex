@@ -1,20 +1,4 @@
 {
-    "1.1.0": {
-        "en": "New icons for Irbis A and Station 2. Added Flow Trigger Card for integration with Yandex.Eda. Multiple improvements",
-        "ru": "Новые иконки для Irbis A и Станции 2. Добавлен Flow-триггер для интеграции с Яндекс.Еда. Многочисленные улучшения"
-    },
-    "1.0.3": {
-        "en": "Small changes",
-        "ru": "Небольшие изменения"
-    },
-    "1.0.2": {
-        "en": "Added functionality for repeat and shuffle buttons",
-        "ru": "Добавлен функционал для кнопок повторить и перемешать"
-    },
-    "1.0.1": {
-        "en": "Fixes for adding accounts and devices",
-        "ru": "Исправления добавления аккаунтов и устройств"
-    },
     "1.0.0": {
         "en": "First version",
         "ru": "Первая версия"

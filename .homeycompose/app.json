@@ -1,48 +1,28 @@
 {
-  "id": "ru.yandex.home",
-  "version": "1.1.0",
-  "compatibility": ">=5.0.0",
-  "platforms": [
-    "local"
-  ],
-  "sdk": 3,
-  "brandColor": "#8826ff",
-  "name": {
-    "en": "Yandex Home",
-    "ru": "Яндекс Дом"
-  },
-  "description": {
-    "en": "Enhances your voice control experience",
-    "ru": "Расширьте возможности голосового управления"
-  },
-  "category": [
-    "music"
-  ],
-  "tags": {
-    "en": [
-      "yandex",
-      "home",
-      "alice"
-    ],
-    "ru": [
-      "яндекс",
-      "дом",
-      "алиса"
-    ]
-  },
-  "images": {
-    "small": "/assets/images/small.jpg",
-    "large": "/assets/images/large.jpg",
-    "xlarge": "/assets/images/xlarge.jpg"
-  },
-  "permissions": [],
-  "author": {
-    "name": "Alexey Krainev",
-    "email": "xmrvizzy@ya.ru"
-  },
-  "bugs": {
-    "url": "https://github.com/kraineff/ru.yandex.home/issues"
-  },
-  "source": "https://github.com/kraineff/ru.yandex.home",
-  "homeyCommunityTopicId": 60957
+    "id": "ru.yandex",
+    "version": "1.0.0",
+    "compatibility": ">=5.0.0",
+    "sdk": 3,
+    "platforms": ["local"],
+    "name": {
+        "en": "Yandex",
+        "ru": "Яндекс"
+    },
+    "description": {
+        "en": "There will be everything",
+        "ru": "Найдётся всё"
+    },
+    "brandColor": "#FC3F1D",
+    "category": ["music"],
+    "permissions": [],
+    "images": {
+        "small": "/assets/images/small.jpg",
+        "large": "/assets/images/large.jpg",
+        "xlarge": "/assets/images/xlarge.jpg"
+    },
+    "author": {
+        "name": "Alexey Krainev",
+        "email": "tolls.gospel-0w@icloud.com"
+    },
+    "homeyCommunityTopicId": 60957
 }

@@ -1,0 +1,45 @@
+{
+    "highlight": true,
+    "title": {
+        "en": "Text-to-Speech",
+        "ru": "Произнести текст"
+    },
+    "titleFormatted": {
+        "en": "Say [[text]] with [[volume]]",
+        "ru": "Произнести [[text]] с [[volume]]"
+    },
+    "args": [
+        {
+            "name": "text",
+            "type": "text",
+            "title": {
+                "en": "Text",
+                "ru": "Текст"
+            },
+            "placeholder": {
+                "en": "Hello, world!",
+                "ru": "Привет, мир!"
+            }
+        },
+        {
+            "name": "volume",
+            "type": "range",
+            "title": {
+                "en": "Volume",
+                "ru": "Громкость"
+            },
+            "required": false,
+            "label": "%",
+            "min": 0,
+            "max": 1,
+            "step": 0.1,
+            "labelMultiplier": 100,
+            "labelDecimals": 0
+        },
+        {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=dexp_smartbox|elari_smartbeat|irbis_a|jbl_link_music|jbl_link_portable|lg_xboom_ai_thinq|prestigio_smart_mate|yandex_station|yandex_station_2|yandex_station_lite|yandex_station_max|yandex_station_mini|yandex_station_mini_2"
+        }
+    ]
+}

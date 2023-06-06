@@ -1,8 +1,0 @@
-{
-    "name": {
-        "en": "Yandex Station Mini 2",
-        "ru": "Яндекс Станция Мини 2"
-    },
-    "platform": "yandexmini_2",
-    "$extends": ["speaker"]
-}

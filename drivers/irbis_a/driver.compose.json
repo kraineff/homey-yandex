@@ -1,0 +1,6 @@
+{
+    "name": "IRBIS A",
+    "platform": "linkplay_a98",
+    "connectivity": ["cloud", "lan"],
+    "$extends": ["speaker_base", "speaker_capabilities"]
+}

@@ -1,137 +1,181 @@
-import Homey from "homey";
-import YandexAlice from "../app";
-import { Speaker } from "../lib";
+import Homey from 'homey';
+import YandexApp from '../app';
+import { Yandex } from '../yandex';
+import { YandexIotSpeaker, YandexIotSpeakerState } from '../yandex/client/iot';
 
 export default class Device extends Homey.Device {
-    app!: YandexAlice;
-    device!: Speaker;
-
-    image?: Homey.Image;
-    waitings!: string[];
-
+    private _id!: string;
+    private _yandex!: Yandex;
+    private _speaker?: YandexIotSpeaker;
+    private _waitings!: string[];
+    private _image!: Homey.Image;
+    private _imageUrl?: string;
+    
     async onInit() {
-        this.app = this.homey.app as YandexAlice;
-        this.waitings = [];
+        this._id = this.getData().id as string;
+        this._yandex = (this.homey.app as YandexApp).yandex;
+        this._waitings = [];
 
-        const imageUrl = this.getStoreValue("imageUrl");
-        if (imageUrl) await this.makeImage(imageUrl);
+        this.getCapabilityValue('speaker_playing') ??
+            await this.setCapabilityValue('speaker_playing', false);
 
-        const account = await this.app.accounts.getAccount(this.getData().uid);
-        if (account) {
-            this.device = new Speaker({ id: this.getData().id, api: account.api, updater: account.updater });
-            this.registerCapabilities();
-            this.device.updater.on("state", this._handleState);
-        } else await this.setUnavailable();
+        this._image = await this.homey.images.createImage();
+        await this.setAlbumArtImage(this._image);
+        this._registerCapabilities();
+
+        await this.getSpeaker().catch(() => {});
     }
 
     async onDeleted() {
-        if (this.device) this.device.updater.removeListener("state", this._handleState);
+        const speaker = await this.getSpeaker();
+        speaker.events.removeAllListeners();
     }
 
-    registerCapabilities() {
-        this.registerCapabilityListener("speaker_playing", async (value) => {
-            this.waitings.push("speaker_playing");
-            if (!this.getCapabilityValue("speaker_track")) return await this.device.playMusic("user:onyourwave", "Radio");
-            value ? await this.device.play() : await this.device.pause();
-        });
-        this.registerCapabilityListener("volume_set", async (volume) => {
-            this.waitings.push("volume_set");
-            await this.device.volumeSet(volume);
+    async getSpeaker() {
+        if (!this._speaker) {
+            this._speaker = await this._yandex.iot.getSpeaker(this._id);
+            this._speaker.state.volume = this.getCapabilityValue('volume_set') ?? 0;
+            this._speaker.state.playing = this.getCapabilityValue('speaker_playing');
+            this._speaker.events.on('state', this._handleState);
+        }
+        return this._speaker;
+    }
+
+    private _registerCapabilities() {
+        this.registerCapabilityListener('speaker_playing', async value => {
+            this._waitings.push('speaker_playing');
+            const speaker = await this.getSpeaker();
+            if (value) await speaker.mediaPlay();
+            else await speaker.mediaPause();
         });
 
-        this.registerCapabilityListener("volume_up", async () => await this.device.volumeUp());
-        this.registerCapabilityListener("volume_down", async () => await this.device.volumeDown());
-        this.registerCapabilityListener("speaker_next", async () => await this.device.next());
-        this.registerCapabilityListener("speaker_prev", async () => await this.device.prev());
-        this.registerCapabilityListener("speaker_shuffle", async (value) => {
-            this.waitings.push("speaker_shuffle");
-            await this.device.shuffle(value);
+        this.registerCapabilityListener('volume_set', async value => {
+            this._waitings.push('volume_set');
+            const speaker = await this.getSpeaker();
+            await speaker.volumeSet(value);
         });
-        this.registerCapabilityListener("speaker_repeat", async (value) => {
-            this.waitings.push("speaker_repeat");
-            const modes = { "none": "none", "track": "one", "playlist": "all" };
-            //@ts-ignore
-            await this.device.repeat(modes[value]);
+
+        this.registerCapabilityListener('speaker_next', async () => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaNext();
+        });
+
+        this.registerCapabilityListener('speaker_prev', async () => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaPrev();
+        });
+
+        this.registerCapabilityListener('speaker_shuffle', async value => {
+            this._waitings.push('speaker_shuffle');
+            const speaker = await this.getSpeaker();
+            await speaker.musicShuffle(value);
+        });
+
+        this.registerCapabilityListener('speaker_repeat', async value => {
+            const modes = { none: 'none', track: 'one', playlist: 'all' } as any;
+            const mode = modes[value];
+
+            this._waitings.push('speaker_repeat');
+            const speaker = await this.getSpeaker();
+            await speaker.musicRepeat(mode);
+        });
+
+
+        this.hasCapability('media_like') && this.registerCapabilityListener('media_like', async value => {
+            setTimeout(async () => await this.setCapabilityValue('media_like', false), 100);
+        });
+
+        this.hasCapability('media_dislike') && this.registerCapabilityListener('media_dislike', async value => {
+            setTimeout(async () => await this.setCapabilityValue('media_dislike', false), 100);
+        });
+
+        this.hasCapability('media_power') && this.registerCapabilityListener('media_power', async value => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaPower(value);
+        });
+
+        this.hasCapability('media_home') && this.registerCapabilityListener('media_home', async () => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaGoHome();
+        });
+
+        this.hasCapability('media_left') && this.registerCapabilityListener('media_left', async () => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaGoLeft();
+        });
+
+        this.hasCapability('media_right') && this.registerCapabilityListener('media_right', async () => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaGoRight();
+        });
+
+        this.hasCapability('media_up') && this.registerCapabilityListener('media_up', async () => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaGoUp();
+        });
+
+        this.hasCapability('media_down') && this.registerCapabilityListener('media_down', async () => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaGoDown();
+        });
+
+        this.hasCapability('media_back') && this.registerCapabilityListener('media_back', async () => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaGoBack();
+        });
+
+        this.hasCapability('media_click') && this.registerCapabilityListener('media_click', async () => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaClick();
         });
     }
 
-    private _handleState = async (state: any) => {
-        if (this.getData().id !== state.id) return;
-
+    private _handleState = async (state: Partial<YandexIotSpeakerState>) => {
         const capabilities = {
-            "image": state.playerState?.extra?.coverURI,
-            "speaker_playing": state.playing,
-            "speaker_shuffle": state.playerState?.entityInfo?.shuffled,
-            "speaker_repeat": state.playerState?.entityInfo?.repeatMode,
-            "speaker_artist": state.playerState?.subtitle,
-            "speaker_album": state.playerState?.playlistId,
-            "speaker_track": state.playerState?.title,
-            "speaker_duration": state.playerState?.duration,
-            "speaker_position": state.playerState?.progress,
-            "volume_set": state.volume,
+            'image': state.playerState?.extra?.coverURI,
+            'speaker_playing': state.playing,
+            'speaker_shuffle': state.playerState?.entityInfo?.shuffled,
+            'speaker_repeat': state.playerState?.entityInfo?.repeatMode,
+            'speaker_artist': state.playerState?.subtitle,
+            'speaker_album': state.playerState?.playlistId,
+            'speaker_track': state.playerState?.title,
+            'speaker_duration': state.playerState?.duration,
+            'speaker_position': state.playerState?.progress,
+            'volume_set': state.volume
         };
+        const repeatMode = { None: 'none', One: 'track', All: 'playlist' } as any;
+        capabilities.speaker_repeat = capabilities.speaker_repeat && repeatMode[capabilities.speaker_repeat];
 
-        const playlists = {
-            "user:onyourwave": "Моя волна"
-        };
-
-        const repeatMode = {
-            "None": "none",
-            "One": "track",
-            "All": "playlist"
-        };
+        const imageQuality = this.getSetting('image_quality');
+        capabilities.image = 'https://' + (capabilities.image || '').replace('%%', `${imageQuality}x${imageQuality}`);
+        if (['LISTENING', 'SPEAKING'].includes(state.aliceState || '')) capabilities.image = 'https://i.imgur.com/vTa3rif.png';
 
         const promises = Object.entries(capabilities).map(async ([capability, value]) => {
-            if (capability === "image") {
-                if (!this.image && value) await this.makeImage(value).catch(this.error);
-                else if (this.image && value) await this.updateImage(value).catch(this.error);
-                else if (this.image && !value) await this.deleteImage().catch(this.error);
+            const currentValue = this.getCapabilityValue(capability);
+            const newValue = value ?? null;
+
+            // Установка обложки
+            if (capability === 'image') {
+                if (this._imageUrl !== newValue) {
+                    this._imageUrl = newValue as string;
+                    this._image.setUrl(this._imageUrl);
+                    await this._image.update();
+                }
                 return Promise.resolve();
             }
-            
-            if (!(value === undefined || value === null)) {
-                if (capability === "speaker_album")
-                    value = value in playlists ? playlists[value as keyof typeof playlists] : value;
-                if (capability === "speaker_repeat")
-                    value = repeatMode[value as keyof typeof repeatMode]; 
-            } else value = null;
 
             // Предотвращение мерцания в интерфейсе (из-за частого обновления значений)
-            if (this.waitings.includes(capability)) {
-                if (value === this.getCapabilityValue(capability))
-                    this.waitings = this.waitings.filter(c => c !== capability);
+            if (this._waitings.includes(capability)) {
+                if (currentValue === newValue)
+                    this._waitings = this._waitings.filter(c => c !== capability);
                 return Promise.resolve();
             }
-            
+
             // Установка значений
-            if (this.getCapabilityValue(capability) !== value)
-                await this.setCapabilityValue(capability, value).catch(this.error);
+            if (currentValue !== newValue)
+                await this.setCapabilityValue(capability, newValue).catch(this.error);
         });
-
+        
         await Promise.all(promises);
-    }
-
-    async makeImage(url: string) {
-        if (this.image) return;
-        this.image = await this.homey.images.createImage();
-        this.image.setUrl(`https://${url.replace("%%", "600x600")}`);
-        await this.setAlbumArtImage(this.image);
-        await this.setStoreValue("imageUrl", url);
-    }
-
-    async updateImage(url: string) {
-        if (!this.image) return;
-        if (this.getStoreValue("imageUrl") !== url) {
-            this.image.setUrl(`https://${url.replace("%%", "600x600")}`);
-            await this.image.update();
-            await this.setStoreValue("imageUrl", url);
-        }
-    }
-
-    async deleteImage() {
-        if (!this.image) return;
-        await this.image.unregister();
-        this.image = undefined;
-        this.unsetStoreValue("imageUrl");
-    }
+    };
 }

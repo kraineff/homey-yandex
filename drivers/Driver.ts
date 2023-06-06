@@ -1,61 +1,64 @@
-import Homey from "homey";
-import { AccountsDriver } from "../accounts";
-import YandexAlice from "../app";
-import { API } from "../lib";
+import Homey from 'homey';
+import YandexApp from '../app';
+import { Yandex } from '../yandex';
 
-export default class Driver extends AccountsDriver {
-    private _app!: YandexAlice;
-    
+export default class Driver extends Homey.Driver {
+    private _yandex!: Yandex;
+    private _devices!: any;
+    private _authState!: boolean;
+    private _authData!: any;
+
     async onInit() {
-        this._app = this.homey.app as YandexAlice;
-        this.accounts = this._app.accounts;
-
-        this.onListAccounts = async () => {
-            const accs = Object.values(await this.accounts.getAccounts());
-            const promises = accs.map(account => account.api.validateToken(account.api.credentials.token).then((data: any) => ({
-                title: [data.display_name],
-                desc: [data.native_default_email],
-                logo: { url: data.avatar_url },
-                uid: account.api.credentials.uid
-            })).catch(() => undefined));
-
-            const result = await Promise.all(promises);
-            return result.filter(account => account !== undefined);
-        };
-
-        this.onListDevices = async () => {
-            const accs = Object.values(await this.accounts.getAccounts());
-            const url = "https://iot.quasar.yandex.ru/m/v3/user/devices";
-            const promises = accs.map(account => account.api.request.get(url).then((res: any) => {
-                //@ts-ignore
-                const devices = res.data.households.map(({ all }) => all
-                    .filter((item: any) => item.quasar_info?.platform === this.manifest.platform)
-                    .map((item: any) => ({
-                        name: item.name,
-                        data: {
-                            id: item.id,
-                            uid: account.api.credentials.uid
-                        }
-                    })));
-                return [].concat.apply([], devices);
-            }));
-
-            const result = await Promise.all(promises);
-            return [].concat.apply([], result);
-        };
+        const app = this.homey.app as YandexApp;
+        this._yandex = app.yandex;
     }
 
     async onPair(session: Homey.Driver.PairSession) {
-        await super.onPair(session);
-        const api = new API();
-        let loginDetails: any;
+        this._authState = false;
+        
+        session.setHandler('showView', async viewId => {
+            if (viewId === 'starting') {
+                await this._checkNewDevices();
+                await session.showView(this._devices.length ?
+                    'list_devices' :
+                    'account_settings'
+                );
+            }
+        });
 
-        session.setHandler("start_auth", async () => {
-            return await api.getLoginDetails().then(data => {
-                loginDetails = data;
-                return data.auth_url;
+        session.setHandler('list_devices', async () => this._devices);
+        session.setHandler('account_settings', async () => this._authState);
+        
+        session.setHandler('account_login', async () => {
+            this._authData = await this._yandex.getAuthorization();
+            return this._authData.auth_url;
+        });
+
+        session.setHandler('account_confirm', async () => {
+            await this._yandex.confirmAuthorization(this._authData).then(async () => {
+                await this._checkNewDevices();
             });
         });
-        session.setHandler("check_auth", async () => await api.login(loginDetails));
+    }
+
+    private async _getDevices() {
+        const platform = this.manifest.platform;
+
+        return await this._yandex.iot.getUpdater().then(updater => {
+            this._authState = true;
+            const devices = updater.getDevicesByPlatform(platform);
+            return devices.map(({ name, id }) => ({ name, data: { id } }));
+        }).catch(() => []);
+    }
+
+    private async _checkNewDevices() {
+        const devices = await this._getDevices();
+        const devicesIds = devices.map(device => device.data.id).sort();
+        const currentIds = this.getDevices()
+            .map(device => device.getData().id).sort();
+
+        this._devices = [];
+        if (JSON.stringify(devicesIds) !== JSON.stringify(currentIds))
+            this._devices = devices;
     }
 }

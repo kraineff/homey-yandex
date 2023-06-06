@@ -1,8 +1,0 @@
-{
-    "name": {
-        "en": "Yandex Station 2",
-        "ru": "Яндекс Станция 2"
-    },
-    "platform": "yandexmidi",
-    "$extends": ["speaker"]
-}

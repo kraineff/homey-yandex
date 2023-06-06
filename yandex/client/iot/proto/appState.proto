@@ -1,0 +1,488 @@
+message AppState {
+    enum ScreenType {
+        MAIN = 0;
+        GALLERY = 1;
+        DESCRIPTION = 2;
+        VIDEO_PLAYER = 3;
+        PAYMENT = 4;
+        MUSIC_PLAYER = 5;
+        SEASON_GALLERY = 6;
+        SPLASH = 7;
+        INITIALIZATION = 8;
+        BLUETOOTH = 9;
+        BRICK = 10;
+        TV_GALLERY = 11;
+        RADIO_PLAYER = 12;
+        OTHER = 13;
+        MORDOVIA_WEBVIEW = 14;
+        CALL_SCREEN = 15;
+        RCU_SETTINGS = 16;
+        SEARCH_RESULTS = 17;
+        TV_MAIN = 18;
+        CONTENT_DETAILS = 19;
+        TV_EXPANDED_COLLECTION = 20;
+    }
+
+    message ScreenState {
+        optional ScreenType screen_type = 1;
+        repeated int32 visible_items = 2;
+        optional SearchResult search_result = 3;
+        optional PaymentItem payment_item = 4;
+        optional DescriptionItem description_item = 5;
+        optional WebViewState web_view_state = 6;
+        optional string web_page_state = 7;
+        optional string actions = 8;
+        optional ControlState available_directions = 9;
+        optional bool is_hdmi_connected = 10;
+        optional bool is_screensaver_on = 11 [default = false];
+    }
+
+    message MusicState {
+        enum TrackType {
+            UNKNOWN = 0;
+            MUSIC = 1;
+            FAIRY_TALE = 2;
+            PODCAST = 3;
+            AUDIOBOOK = 4;
+        }
+
+        optional string current_track_id = 1;
+        optional string previous_track_id = 2;
+        optional bool is_paused = 3 [default = true];
+        optional string json_track_info = 4;
+        optional string uid = 5;
+        optional int64 timestamp_ms = 6;
+        optional string session_id = 7;
+        optional double progress = 8;
+        optional double duration_ms = 9;
+        optional string title = 10;
+        optional string artists = 11;
+        optional string cover_uri = 12;
+        optional TrackType next_track_type = 13;
+        optional string next_track_title = 14;
+
+        optional string url = 15;
+        optional int64 basetime_ns = 16;
+        optional int64 position_ns = 17;
+        optional string vins_request_id = 18;
+        reserved 19; // alarm_id
+        optional string play_pause_id = 20;
+        optional SoundNormalization normalization = 21;
+    }
+
+    message RadioState {
+        optional string radio_id = 1;
+        optional string uid = 2;
+        optional bool is_paused = 3 [default = true];
+        optional int64 timestamp_ms = 4;
+        optional string radio_title = 5;
+        optional string cover_uri = 6;
+        optional string color = 7;
+    }
+
+    message MediaInfo {
+         repeated string supported_screen_resolutions = 1;
+         optional string hdcp_level = 2;
+         repeated string dynamic_ranges = 3;
+    }
+
+    optional ScreenState screen_state = 1;
+    optional MusicState music_state = 2;
+    optional VideoState video_state = 3;
+    optional RadioState radio_state = 4;
+    optional BluetoothPlayerState bluetooth_player_state = 5;
+    optional AudioClientEvent audio_player_state = 6;
+    optional MediaInfo media_info = 7;
+    reserved 8; // multiroom_state
+    optional RcuState rcu_state = 9;
+    reserved 10;
+    reserved 11;
+    reserved 12;
+    optional PackagesState packages_state = 13;
+}
+
+message VideoState {
+    optional Video video = 1;
+    optional Progress progress = 3;
+    optional bool is_paused = 2;
+    optional int64 timestamp_ms = 4;
+    reserved 5, 6;
+}
+
+message BluetoothPlayerState {
+    optional bool is_paused = 1 [default = true];
+    optional BluetoothTrackMetaInfo track_meta_info = 2;
+    optional int64 timestamp_ms = 3; // Last time played. system_clock timestamp
+    optional int64 last_play_timestamp_ms = 4; // The last playback start time
+}
+
+message AudioClientEvent {
+    enum Event {
+        STATE_CHANGED = 1;
+        HEARTBEAT = 2;
+        NEARLY_FINISHED = 3;
+    }
+
+    optional Event event = 1;
+    optional AudioClientState state = 2;
+    optional Audio audio = 3;
+    optional AudioPlayerDescriptor player_descriptor = 4;
+    optional int64 last_play_timestamp = 5;
+    optional string error_text = 6;
+    optional int64 last_stop_timestamp = 7;
+}
+
+message RcuState {
+    enum SetupState {
+        NONE = 0;
+        LINK = 1;
+        AUTO = 2;
+        CHECK = 3;
+        ADVANCED = 4;
+        MANUAL = 5;
+    }
+
+    message RcuCapabilities {
+        optional bool can_make_sounds = 1;
+    }
+
+    optional bool is_rcu_connected = 1;
+    optional int32 total_codesets = 2;
+    optional SetupState setup_state = 3;
+    optional RcuCapabilities rcu_capabilities = 4;
+}
+
+message PackagesState {
+    message Package {
+        optional string name = 1;
+        optional string human_readable_name = 2;
+    }
+
+    message InstalledPackage {
+        optional Package package_info = 1;
+        optional string main_activity = 2;
+    }
+
+    repeated InstalledPackage installed = 1;
+}
+
+message SearchResult {
+    optional string question = 1;
+    optional string answer = 2;
+
+    repeated MediaItem items = 3;
+    repeated string suggests = 4;
+    optional string background_url = 5;
+    optional GalleryType gallery_type = 6;
+
+    optional string raw_result = 7;
+
+    optional MediaItem tv_show_item = 8;
+    optional int32 season = 9;
+}
+
+message PaymentItem {
+    optional MediaItem item = 1;
+    optional string raw = 2;
+    optional MediaItem tvShowItem = 3;
+}
+
+message DescriptionItem {
+    optional MediaItem media_item = 1;
+    optional string raw = 2;
+}
+
+message WebViewState {
+    message History {
+        repeated string item = 1;
+    }
+    optional string url = 1;
+    optional string scenario = 2;
+    optional History history = 3;
+    optional string backend_scenario_name = 4;
+}
+
+// message for transferring state of available controls
+message ControlState {
+    optional bool has_click_action = 1;
+    optional bool has_up = 2;
+    optional bool has_down = 3;
+    optional bool has_left = 4;
+    optional bool has_right = 5;
+    optional bool has_back = 6;
+}
+
+message SoundNormalization {
+    optional double true_peak = 1;
+    optional double integrated_loudness = 2;
+    optional double target_lufs = 3;
+}
+
+message Video {
+    optional string url = 1;
+    optional string session_token = 2;
+
+    optional MediaItem item = 3;
+    optional MediaItem next_item = 4;
+    optional MediaItem tv_show_item = 5;
+
+    optional int32 start_at = 6;
+
+    optional string raw = 7;
+    optional string payload = 8;
+
+    optional string vins_init_request_id = 9;
+
+    optional string audio_language = 10;
+    optional string subtitles_language = 11;
+}
+
+message Progress {
+    optional int32 played = 1;
+    optional int32 duration = 2;
+}
+
+message BluetoothTrackMetaInfo {
+    optional string title = 1;
+    optional string artist = 2;
+    optional string album = 3;
+    optional string genre = 4;
+    optional int32 song_len_ms = 5 [default = -1];
+    optional int32 curr_pos_ms = 6 [default = -1];
+}
+
+enum AudioClientState {
+    IDLE = 1;
+    BUFFERING = 2;
+    PLAYING = 3;
+    PAUSED = 4;
+    STOPPED = 5;
+    FINISHED = 6;
+    FAILED = 7;
+}
+
+message Audio {
+    enum Format {
+        UNKNOWN = 0;
+        MP3 = 1;
+        PCM_STREAM = 2;
+        HLS = 3;
+        AUDIO_FILE = 4;
+    }
+
+    enum Screen {
+        DEFAULT = 0;
+        MUSIC = 1;
+        RADIO = 2;
+    }
+
+    optional string id = 1;
+    optional string type = 20;
+    optional string url = 2;
+    optional int64 initial_offset_ms = 3;
+    optional Format format = 4 [default = UNKNOWN];
+    optional int32 position_sec = 5;
+    optional int32 duration_sec = 6;
+    optional string context = 7;
+    optional AudioAnalyticsContext analytics_context = 8;
+    optional AudioMetadata metadata = 9;
+    optional string provider_name = 10;
+    optional Screen screen_type = 11 [default = DEFAULT];
+    optional int32 played_sec = 12;
+    optional int64 basetime_ns = 13;
+    optional int64 position_ns = 14;
+    optional int32 input_stream_rate = 15;
+    optional bool should_apply_audio_focus = 16 [default = true];
+    optional bool use_fake_volume_element = 17 [default = false];
+    optional bool report_metrics = 18 [default = true];
+    optional bool set_pause = 19 [default = false];
+    optional SoundNormalization normalization = 21;
+    optional string play_pause_id = 22;
+    optional string clock_id = 23;
+    optional int64 multiroom_offset_ns = 24;
+    optional string file_path = 25;
+    optional string multiroom_token = 26;
+    // next free number is 27
+}
+
+message AudioPlayerDescriptor {
+    // Тип плеера. Нужен для того чтобы в callback'ах отличать события от разных плееров
+    enum PlayerType {
+        AUDIO = 1;
+        VOICE = 2;
+        STREAM = 3;
+        FILE_PLAYER = 4;
+    }
+
+    optional PlayerType type = 1;
+    optional string player_id = 2;
+    optional string stream_id = 3;
+    optional AudioChannel audio_channel = 4;
+    optional bool is_multiroom_slave = 5;
+}
+
+message MediaItem {
+    enum Type {
+        MOVIE = 0;
+        TV_SHOW = 1;
+        VIDEO = 2;
+        TV_SHOW_EPISODE = 3;
+        MUSIC = 4;
+        TV_STREAM = 5;
+        CAMERA_STREAM = 6;
+    }
+
+    enum StreamType {
+        DASH = 0;
+        SMOOTH_STREAMING = 1;
+        HLS = 2;
+        OTHER = 3;
+    }
+
+    optional string cover_url = 1;
+    optional string name = 2;
+    optional string description = 3;
+    optional double rating = 4;
+
+    optional bool trailer_available = 5;
+    optional bool review_available = 6;
+
+    optional int32 progress_percents = 9;
+    optional Type type = 10;
+    optional int32 seasons = 11;
+
+    optional string release_year = 12;
+    optional string directors = 13;
+    optional string actors = 14;
+
+    optional string background_url = 15;
+    optional string source_host = 16;
+    optional string genre = 17;
+
+    optional string age_restriction = 18;
+    optional int64 view_count = 19;
+
+    repeated ProviderInfo provider_info = 20;
+
+    optional Provider provider = 21;
+    optional string item_id = 22;
+    optional string availability_request = 30;
+    optional bool available = 23;
+    optional int32 cost_from = 24;
+    optional int32 duration = 25;
+
+    optional int32 season = 26;
+    optional int32 episode = 27;
+
+    optional bool unauthorized = 28;
+
+    optional string play_uri = 29;
+    optional string tv_episode_name = 31;
+    optional bool deep_hd = 32;
+    optional bool personal_channel = 33;
+
+    repeated Season season_numbers = 34;
+
+    repeated AudioTrack audio_streams = 35;
+    repeated Subtitles subtitles = 36;
+    repeated SkippableFragments skippable_fragments = 37;
+
+    optional string entref = 38;
+
+    optional StreamType camera_stream_type = 39;
+}
+
+enum GalleryType {
+    SIMPLE = 1;
+    SEASON = 2;
+    TV = 3;
+}
+
+message AudioAnalyticsContext {
+    optional string vins_request_id = 1;
+    optional string name = 2;
+    optional string vins_parent_request_id = 3;
+}
+
+message AudioMetadata {
+    message MusicMeta {
+        message TrackInfo {
+            optional string id = 1;
+            optional string type = 2;
+        }
+
+        optional string id = 1;
+        optional string type = 2;
+        optional string description = 3;
+        optional TrackInfo prev = 4;
+        optional TrackInfo next = 5;
+        optional bool shuffled = 6;
+        optional string repeat_mode = 7;
+    }
+
+    optional string title = 1;
+    optional string subtitle = 2;
+    optional string art_image_url = 3;
+    optional MusicMeta music_metadata = 4;
+    optional bool hide_progress_bar = 5 [default = false];
+}
+
+enum AudioChannel {
+    reserved 3;
+    // Channel's values represent their priority.
+    // The higher value the higher priority.
+    CONTENT_CHANNEL = 0;
+    DIALOG_CHANNEL = 1;
+}
+
+message ProviderInfo {
+    optional Provider provider = 1;
+    optional string item_id = 2;
+    optional bool available = 3;
+    optional int32 cost_from = 4;
+}
+
+enum Provider {
+    UNKNOWN = 0;
+    IVI = 1;
+    AMEDIATEKA = 2;
+    YOUTUBE = 3;
+    YAVIDEO = 4;
+    KINOPOISK = 5;
+    STRM = 6;
+    YAVIDEO_PROXY = 7;
+    CAMERA_STREAM = 8;
+}
+
+message Season {
+    optional int32 number = 1;
+}
+
+message AudioTrack {
+    optional string language = 1;
+    optional string title = 2;
+    optional int32 index = 3;
+    optional string suggest = 4;
+}
+
+message Subtitles {
+    optional string language = 1;
+    optional string title = 2;
+    optional bool enable = 3;
+    optional int32 index = 4;
+    optional string suggest = 5;
+}
+
+message SkippableFragments {
+    enum Type {
+        INTRO = 0;
+        RECAP = 1;
+        CREDITS = 2;
+        OTHER = 3;
+        NEXT_EPISODE = 4;
+    }
+
+    optional Type type = 1;
+    optional int64 start_time_sec = 2;
+    optional int64 end_time_sec = 3;
+}

@@ -1,0 +1,11 @@
+{
+    "title": {
+        "en": "Click",
+        "ru": "Нажатие"
+    },
+    "type": "boolean",
+    "getable": false,
+    "setable": true,
+    "uiComponent": "button",
+    "uiQuickAction": true
+}

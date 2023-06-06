@@ -1,5 +1,0 @@
-{
-    "name": "Prestigio Smartmate",
-    "platform": "prestigio_smart_mate",
-    "$extends": ["speaker"]
-}

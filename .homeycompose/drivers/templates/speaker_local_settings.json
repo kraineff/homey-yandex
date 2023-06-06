@@ -1,0 +1,25 @@
+{
+    "settings": [
+        {
+            "type": "group",
+            "label": {
+                "en": "Settings",
+                "ru": "Настройки"
+            },
+            "children": [
+                {
+                    "id": "image_quality",
+                    "type": "number",
+                    "label": {
+                        "en": "Image Quality",
+                        "ru": "Качество изображения"
+                    },
+                    "units": "px",
+                    "min": 30,
+                    "max": 1000,
+                    "value": 1000
+                }
+            ]
+        }
+    ]
+}

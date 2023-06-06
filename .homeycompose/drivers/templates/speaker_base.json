@@ -1,0 +1,40 @@
+{
+    "class": "speaker",
+    "platforms": ["local"],
+    "connectivity": ["cloud", "lan"],
+    "images": {
+        "small": "{{driverAssetsPath}}/images/small.jpg",
+        "large": "{{driverAssetsPath}}/images/large.jpg"
+    },
+    "capabilities": [],
+    "capabilitiesOptions": {
+        "volume_set": {
+            "step": 0.1
+        }
+    },
+    "pair": [
+        {
+            "id": "starting",
+            "template": "loading"
+        },
+        {
+            "id": "account_settings",
+            "$template": "account_settings",
+            "navigation": {
+                "next": "list_devices"
+            }
+        },
+        {
+            "id": "list_devices",
+            "template": "list_devices",
+            "navigation": {
+                "prev": "account_settings",
+                "next": "add_devices"
+            }
+        },
+        {
+            "id": "add_devices",
+            "template": "add_devices"
+        }
+    ]
+}

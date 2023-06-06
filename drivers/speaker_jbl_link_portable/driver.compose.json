@@ -1,5 +1,0 @@
-{
-    "name": "JBL Link Portable",
-    "platform": "jbl_link_portable",
-    "$extends": ["speaker"]
-}

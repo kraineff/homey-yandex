@@ -1,5 +1,0 @@
-{
-    "name": "Elari SmartBeat",
-    "platform": "elari_a98",
-    "$extends": ["speaker"]
-}
