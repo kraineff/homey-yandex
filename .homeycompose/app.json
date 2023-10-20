@@ -1,9 +1,11 @@
 {
-    "id": "ru.yandex",
+    "id": "com.yandex",
     "version": "1.0.0",
     "compatibility": ">=5.0.0",
-    "sdk": 3,
     "platforms": ["local"],
+    "sdk": 3,
+
+    "brandColor": "#FC3F1D",
     "name": {
         "en": "Yandex",
         "ru": "Яндекс"
@@ -12,7 +14,6 @@
         "en": "There will be everything",
         "ru": "Найдётся всё"
     },
-    "brandColor": "#FC3F1D",
     "category": ["music"],
     "permissions": [],
     "images": {
@@ -20,9 +21,15 @@
         "large": "/assets/images/large.jpg",
         "xlarge": "/assets/images/xlarge.jpg"
     },
+
+    "support": "mailto:tolls.gospel-0w@icloud.com",
     "author": {
         "name": "Alexey Krainev",
         "email": "tolls.gospel-0w@icloud.com"
     },
-    "homeyCommunityTopicId": 60957
+
+    "source": "https://github.com/kraineff/homey-yandex",
+    "bugs": {
+        "url": "https://github.com/kraineff/homey-yandex/issues"
+    }
 }

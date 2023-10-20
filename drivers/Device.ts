@@ -1,56 +1,57 @@
 import Homey from 'homey';
-import YandexApp from '../app';
-import { Yandex } from '../yandex';
-import { YandexIotSpeaker, YandexIotSpeakerState } from '../yandex/client/iot';
+import { YandexIotSpeaker, YandexIotSpeakerState } from '../library/client/iot';
+import { Yandex } from '../library';
 
 export default class Device extends Homey.Device {
-    private _id!: string;
-    private _yandex!: Yandex;
-    private _speaker?: YandexIotSpeaker;
-    private _waitings!: string[];
-    private _image!: Homey.Image;
-    private _imageUrl?: string;
+    #id!: string;
+    #yandex!: Yandex;
+    #speaker?: YandexIotSpeaker;
+    #waitings!: string[];
+    #image!: Homey.Image;
+    #imageUrl?: string;
     
     async onInit() {
-        this._id = this.getData().id as string;
-        this._yandex = (this.homey.app as YandexApp).yandex;
-        this._waitings = [];
+        const data = this.getData();
+        this.#id = data.id as string;
+        this.#yandex = (this.homey.app as any).yandex;
+        this.#waitings = [];
 
         this.getCapabilityValue('speaker_playing') ??
             await this.setCapabilityValue('speaker_playing', false);
 
-        this._image = await this.homey.images.createImage();
-        await this.setAlbumArtImage(this._image);
+        this.#image = await this.homey.images.createImage();
+        await this.setAlbumArtImage(this.#image);
         this._registerCapabilities();
 
-        await this.getSpeaker().catch(() => {});
+        await this.getSpeaker()
+            .catch(this.error);
     }
 
     async onDeleted() {
-        const speaker = await this.getSpeaker();
-        speaker.events.removeAllListeners();
+        this.#speaker &&
+            this.#speaker.events.removeAllListeners();
     }
 
     async getSpeaker() {
-        if (!this._speaker) {
-            this._speaker = await this._yandex.iot.getSpeaker(this._id);
-            this._speaker.state.volume = this.getCapabilityValue('volume_set') ?? 0;
-            this._speaker.state.playing = this.getCapabilityValue('speaker_playing');
-            this._speaker.events.on('state', this._handleState);
+        if (!this.#speaker) {
+            this.#speaker = await this.#yandex.iot.createSpeaker(this.#id);
+            this.#speaker.state.volume = this.getCapabilityValue('volume_set') ?? 0;
+            this.#speaker.state.playing = this.getCapabilityValue('speaker_playing');
+            this.#speaker.events.on('state', this._handleState);
         }
-        return this._speaker;
+        return this.#speaker;
     }
 
     private _registerCapabilities() {
         this.registerCapabilityListener('speaker_playing', async value => {
-            this._waitings.push('speaker_playing');
+            this.#waitings.push('speaker_playing');
             const speaker = await this.getSpeaker();
             if (value) await speaker.mediaPlay();
             else await speaker.mediaPause();
         });
 
         this.registerCapabilityListener('volume_set', async value => {
-            this._waitings.push('volume_set');
+            this.#waitings.push('volume_set');
             const speaker = await this.getSpeaker();
             await speaker.volumeSet(value);
         });
@@ -66,7 +67,7 @@ export default class Device extends Homey.Device {
         });
 
         this.registerCapabilityListener('speaker_shuffle', async value => {
-            this._waitings.push('speaker_shuffle');
+            this.#waitings.push('speaker_shuffle');
             const speaker = await this.getSpeaker();
             await speaker.musicShuffle(value);
         });
@@ -75,7 +76,7 @@ export default class Device extends Homey.Device {
             const modes = { none: 'none', track: 'one', playlist: 'all' } as any;
             const mode = modes[value];
 
-            this._waitings.push('speaker_repeat');
+            this.#waitings.push('speaker_repeat');
             const speaker = await this.getSpeaker();
             await speaker.musicRepeat(mode);
         });
@@ -91,42 +92,42 @@ export default class Device extends Homey.Device {
 
         this.hasCapability('media_power') && this.registerCapabilityListener('media_power', async value => {
             const speaker = await this.getSpeaker();
-            await speaker.mediaPower(value);
+            await speaker.controlPower(value);
         });
 
         this.hasCapability('media_home') && this.registerCapabilityListener('media_home', async () => {
             const speaker = await this.getSpeaker();
-            await speaker.mediaGoHome();
+            await speaker.controlHome();
         });
 
         this.hasCapability('media_left') && this.registerCapabilityListener('media_left', async () => {
             const speaker = await this.getSpeaker();
-            await speaker.mediaGoLeft();
+            await speaker.controlLeft();
         });
 
         this.hasCapability('media_right') && this.registerCapabilityListener('media_right', async () => {
             const speaker = await this.getSpeaker();
-            await speaker.mediaGoRight();
+            await speaker.controlRight();
         });
 
         this.hasCapability('media_up') && this.registerCapabilityListener('media_up', async () => {
             const speaker = await this.getSpeaker();
-            await speaker.mediaGoUp();
+            await speaker.controlUp();
         });
 
         this.hasCapability('media_down') && this.registerCapabilityListener('media_down', async () => {
             const speaker = await this.getSpeaker();
-            await speaker.mediaGoDown();
+            await speaker.controlDown();
         });
 
         this.hasCapability('media_back') && this.registerCapabilityListener('media_back', async () => {
             const speaker = await this.getSpeaker();
-            await speaker.mediaGoBack();
+            await speaker.controlBack();
         });
 
         this.hasCapability('media_click') && this.registerCapabilityListener('media_click', async () => {
             const speaker = await this.getSpeaker();
-            await speaker.mediaClick();
+            await speaker.controlClick();
         });
     }
 
@@ -156,18 +157,18 @@ export default class Device extends Homey.Device {
 
             // Установка обложки
             if (capability === 'image') {
-                if (this._imageUrl !== newValue) {
-                    this._imageUrl = newValue as string;
-                    this._image.setUrl(this._imageUrl);
-                    await this._image.update();
+                if (this.#imageUrl !== newValue) {
+                    this.#imageUrl = newValue as string;
+                    this.#image.setUrl(this.#imageUrl);
+                    await this.#image.update();
                 }
                 return Promise.resolve();
             }
 
             // Предотвращение мерцания в интерфейсе (из-за частого обновления значений)
-            if (this._waitings.includes(capability)) {
+            if (this.#waitings.includes(capability)) {
                 if (currentValue === newValue)
-                    this._waitings = this._waitings.filter(c => c !== capability);
+                    this.#waitings = this.#waitings.filter(c => c !== capability);
                 return Promise.resolve();
             }
 

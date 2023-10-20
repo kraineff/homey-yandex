@@ -8,5 +8,5 @@
     "setable": true,
     "uiComponent": "button",
     "uiQuickAction": true,
-    "icon": "/assets/capabilities/media_like.svg"
+    "icon": "/assets/capabilities/media_dislike.svg"
 }

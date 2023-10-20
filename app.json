@@ -1,12 +1,13 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
-  "id": "ru.yandex",
+  "id": "com.yandex",
   "version": "1.0.0",
   "compatibility": ">=5.0.0",
-  "sdk": 3,
   "platforms": [
     "local"
   ],
+  "sdk": 3,
+  "brandColor": "#FC3F1D",
   "name": {
     "en": "Yandex",
     "ru": "Яндекс"
@@ -15,7 +16,6 @@
     "en": "There will be everything",
     "ru": "Найдётся всё"
   },
-  "brandColor": "#FC3F1D",
   "category": [
     "music"
   ],
@@ -25,12 +25,44 @@
     "large": "/assets/images/large.jpg",
     "xlarge": "/assets/images/xlarge.jpg"
   },
+  "support": "mailto:tolls.gospel-0w@icloud.com",
   "author": {
     "name": "Alexey Krainev",
     "email": "tolls.gospel-0w@icloud.com"
   },
-  "homeyCommunityTopicId": 60957,
+  "source": "https://github.com/kraineff/homey-yandex",
+  "bugs": {
+    "url": "https://github.com/kraineff/homey-yandex/issues"
+  },
   "flow": {
+    "triggers": [
+      {
+        "highlight": true,
+        "title": {
+          "en": "Scenario is started",
+          "ru": "Сценарий запущен"
+        },
+        "titleFormatted": {
+          "en": "Scenario is started: [[scenario]]",
+          "ru": "Сценарий запущен: [[scenario]]"
+        },
+        "args": [
+          {
+            "name": "scenario",
+            "type": "autocomplete",
+            "title": {
+              "en": "Scenario",
+              "ru": "Сценарий"
+            },
+            "placeholder": {
+              "en": "Enter a name to create",
+              "ru": "Введите название для создания"
+            }
+          }
+        ],
+        "id": "scenario_run"
+      }
+    ],
     "actions": [
       {
         "highlight": true,
@@ -73,7 +105,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=dexp_smartbox|elari_smartbeat|irbis_a|jbl_link_music|jbl_link_portable|lg_xboom_ai_thinq|prestigio_smart_mate|yandex_station|yandex_station_2|yandex_station_lite|yandex_station_max|yandex_station_mini|yandex_station_mini_2"
+            "filter": "driver_id=dexp-smartbox|elari-smartbeat|irbis-a|jbl-link-music|jbl-link-portable|lg-xboom-ai-thinq|prestigio-smart-mate|yandex-module-2|yandex-station|yandex-station-2|yandex-station-lite|yandex-station-max|yandex-station-mini|yandex-station-mini-2"
           }
         ],
         "id": "media_run"
@@ -119,7 +151,7 @@
           {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=dexp_smartbox|elari_smartbeat|irbis_a|jbl_link_music|jbl_link_portable|lg_xboom_ai_thinq|prestigio_smart_mate|yandex_station|yandex_station_2|yandex_station_lite|yandex_station_max|yandex_station_mini|yandex_station_mini_2"
+            "filter": "driver_id=dexp-smartbox|elari-smartbeat|irbis-a|jbl-link-music|jbl-link-portable|lg-xboom-ai-thinq|prestigio-smart-mate|yandex-module-2|yandex-station|yandex-station-2|yandex-station-lite|yandex-station-max|yandex-station-mini|yandex-station-mini-2"
           }
         ],
         "id": "media_say"
@@ -137,8 +169,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/dexp_smartbox/assets/images/small.jpg",
-        "large": "/drivers/dexp_smartbox/assets/images/large.jpg"
+        "small": "/drivers/dexp-smartbox/assets/images/small.jpg",
+        "large": "/drivers/dexp-smartbox/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -166,7 +198,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -175,7 +207,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -186,7 +217,7 @@
       ],
       "name": "DEXP Smartbox",
       "platform": "lightcomm",
-      "id": "dexp_smartbox"
+      "id": "dexp-smartbox"
     },
     {
       "class": "speaker",
@@ -198,8 +229,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/elari_smartbeat/assets/images/small.jpg",
-        "large": "/drivers/elari_smartbeat/assets/images/large.jpg"
+        "small": "/drivers/elari-smartbeat/assets/images/small.jpg",
+        "large": "/drivers/elari-smartbeat/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -227,7 +258,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -236,7 +267,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -247,7 +277,7 @@
       ],
       "name": "Elari SmartBeat",
       "platform": "elari_a98",
-      "id": "elari_smartbeat"
+      "id": "elari-smartbeat"
     },
     {
       "class": "speaker",
@@ -259,8 +289,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/irbis_a/assets/images/small.jpg",
-        "large": "/drivers/irbis_a/assets/images/large.jpg"
+        "small": "/drivers/irbis-a/assets/images/small.jpg",
+        "large": "/drivers/irbis-a/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -288,7 +318,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -297,7 +327,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -308,7 +337,7 @@
       ],
       "name": "IRBIS A",
       "platform": "linkplay_a98",
-      "id": "irbis_a"
+      "id": "irbis-a"
     },
     {
       "class": "speaker",
@@ -320,8 +349,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/jbl_link_music/assets/images/small.jpg",
-        "large": "/drivers/jbl_link_music/assets/images/large.jpg"
+        "small": "/drivers/jbl-link-music/assets/images/small.jpg",
+        "large": "/drivers/jbl-link-music/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -349,7 +378,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -358,7 +387,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -392,7 +420,7 @@
       ],
       "name": "JBL Link Music",
       "platform": "jbl_link_music",
-      "id": "jbl_link_music"
+      "id": "jbl-link-music"
     },
     {
       "class": "speaker",
@@ -404,8 +432,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/jbl_link_portable/assets/images/small.jpg",
-        "large": "/drivers/jbl_link_portable/assets/images/large.jpg"
+        "small": "/drivers/jbl-link-portable/assets/images/small.jpg",
+        "large": "/drivers/jbl-link-portable/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -433,7 +461,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -442,7 +470,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -476,7 +503,7 @@
       ],
       "name": "JBL Link Portable",
       "platform": "jbl_link_portable",
-      "id": "jbl_link_portable"
+      "id": "jbl-link-portable"
     },
     {
       "class": "speaker",
@@ -488,8 +515,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/lg_xboom_ai_thinq/assets/images/small.jpg",
-        "large": "/drivers/lg_xboom_ai_thinq/assets/images/large.jpg"
+        "small": "/drivers/lg-xboom-ai-thinq/assets/images/small.jpg",
+        "large": "/drivers/lg-xboom-ai-thinq/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -517,7 +544,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -526,7 +553,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -537,7 +563,7 @@
       ],
       "name": "LG XBOOM AI ThinQ",
       "platform": "wk7y",
-      "id": "lg_xboom_ai_thinq"
+      "id": "lg-xboom-ai-thinq"
     },
     {
       "class": "speaker",
@@ -549,8 +575,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/prestigio_smartmate/assets/images/small.jpg",
-        "large": "/drivers/prestigio_smartmate/assets/images/large.jpg"
+        "small": "/drivers/prestigio-smartmate/assets/images/small.jpg",
+        "large": "/drivers/prestigio-smartmate/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -578,7 +604,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -587,7 +613,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -598,7 +623,7 @@
       ],
       "name": "Prestigio Smartmate",
       "platform": "prestigio_smart_mate",
-      "id": "prestigio_smartmate"
+      "id": "prestigio-smartmate"
     },
     {
       "class": "speaker",
@@ -610,8 +635,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/yandex_station/assets/images/small.jpg",
-        "large": "/drivers/yandex_station/assets/images/large.jpg"
+        "small": "/drivers/yandex-station/assets/images/small.jpg",
+        "large": "/drivers/yandex-station/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -647,7 +672,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -656,7 +681,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -693,7 +717,7 @@
         "ru": "Яндекс Станция"
       },
       "platform": "yandexstation",
-      "id": "yandex_station"
+      "id": "yandex-station"
     },
     {
       "class": "speaker",
@@ -705,8 +729,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/yandex_station_2/assets/images/small.jpg",
-        "large": "/drivers/yandex_station_2/assets/images/large.jpg"
+        "small": "/drivers/yandex-station-2/assets/images/small.jpg",
+        "large": "/drivers/yandex-station-2/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -734,7 +758,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -743,7 +767,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -780,7 +803,7 @@
         "ru": "Яндекс Станция 2"
       },
       "platform": "yandexmidi",
-      "id": "yandex_station_2"
+      "id": "yandex-station-2"
     },
     {
       "class": "speaker",
@@ -792,8 +815,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/yandex_station_lite/assets/images/small.jpg",
-        "large": "/drivers/yandex_station_lite/assets/images/large.jpg"
+        "small": "/drivers/yandex-station-lite/assets/images/small.jpg",
+        "large": "/drivers/yandex-station-lite/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -821,7 +844,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -830,7 +853,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -867,7 +889,7 @@
         "ru": "Яндекс Станция Лайт"
       },
       "platform": "yandexmicro",
-      "id": "yandex_station_lite"
+      "id": "yandex-station-lite"
     },
     {
       "class": "speaker",
@@ -879,8 +901,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/yandex_station_max/assets/images/small.jpg",
-        "large": "/drivers/yandex_station_max/assets/images/large.jpg"
+        "small": "/drivers/yandex-station-max/assets/images/small.jpg",
+        "large": "/drivers/yandex-station-max/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -916,7 +938,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -925,7 +947,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -962,7 +983,7 @@
         "ru": "Яндекс Станция Макс"
       },
       "platform": "yandexstation_2",
-      "id": "yandex_station_max"
+      "id": "yandex-station-max"
     },
     {
       "class": "speaker",
@@ -974,8 +995,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/yandex_station_mini/assets/images/small.jpg",
-        "large": "/drivers/yandex_station_mini/assets/images/large.jpg"
+        "small": "/drivers/yandex-station-mini/assets/images/small.jpg",
+        "large": "/drivers/yandex-station-mini/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -1003,7 +1024,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -1012,7 +1033,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -1049,7 +1069,7 @@
         "ru": "Яндекс Станция Мини"
       },
       "platform": "yandexmini",
-      "id": "yandex_station_mini"
+      "id": "yandex-station-mini"
     },
     {
       "class": "speaker",
@@ -1061,8 +1081,8 @@
         "lan"
       ],
       "images": {
-        "small": "/drivers/yandex_station_mini_2/assets/images/small.jpg",
-        "large": "/drivers/yandex_station_mini_2/assets/images/large.jpg"
+        "small": "/drivers/yandex-station-mini-2/assets/images/small.jpg",
+        "large": "/drivers/yandex-station-mini-2/assets/images/large.jpg"
       },
       "capabilities": [
         "speaker_playing",
@@ -1090,7 +1110,7 @@
           "template": "loading"
         },
         {
-          "id": "account_settings",
+          "id": "login_qr",
           "navigation": {
             "next": "list_devices"
           }
@@ -1099,7 +1119,6 @@
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
-            "prev": "account_settings",
             "next": "add_devices"
           }
         },
@@ -1136,7 +1155,7 @@
         "ru": "Яндекс Станция Мини 2"
       },
       "platform": "yandexmini_2",
-      "id": "yandex_station_mini_2"
+      "id": "yandex-station-mini-2"
     }
   ],
   "capabilities": {
@@ -1161,7 +1180,8 @@
       "getable": false,
       "setable": true,
       "uiComponent": "button",
-      "uiQuickAction": true
+      "uiQuickAction": true,
+      "icon": "/assets/capabilities/media_click.svg"
     },
     "media_dislike": {
       "title": {
@@ -1173,7 +1193,7 @@
       "setable": true,
       "uiComponent": "button",
       "uiQuickAction": true,
-      "icon": "/assets/capabilities/media_like.svg"
+      "icon": "/assets/capabilities/media_dislike.svg"
     },
     "media_down": {
       "title": {

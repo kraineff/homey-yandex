@@ -18,8 +18,8 @@
             "template": "loading"
         },
         {
-            "id": "account_settings",
-            "$template": "account_settings",
+            "id": "login_qr",
+            "$template": "login_qr",
             "navigation": {
                 "next": "list_devices"
             }
@@ -28,7 +28,6 @@
             "id": "list_devices",
             "template": "list_devices",
             "navigation": {
-                "prev": "account_settings",
                 "next": "add_devices"
             }
         },

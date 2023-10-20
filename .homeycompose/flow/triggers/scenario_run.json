@@ -1,0 +1,25 @@
+{
+    "highlight": true,
+    "title": {
+        "en": "Scenario is started",
+        "ru": "Сценарий запущен"
+    },
+    "titleFormatted": {
+        "en": "Scenario is started: [[scenario]]",
+        "ru": "Сценарий запущен: [[scenario]]"
+    },
+    "args": [
+        {
+            "name": "scenario",
+            "type": "autocomplete",
+            "title": {
+                "en": "Scenario",
+                "ru": "Сценарий"
+            },
+            "placeholder": {
+                "en": "Enter a name to create",
+                "ru": "Введите название для создания"
+            }
+        }
+    ]
+}

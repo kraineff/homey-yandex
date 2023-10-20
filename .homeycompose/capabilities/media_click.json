@@ -7,5 +7,6 @@
     "getable": false,
     "setable": true,
     "uiComponent": "button",
-    "uiQuickAction": true
+    "uiQuickAction": true,
+    "icon": "/assets/capabilities/media_click.svg"
 }

@@ -1,64 +1,53 @@
 import Homey from 'homey';
-import YandexApp from '../app';
-import { Yandex } from '../yandex';
+import { Yandex } from '../library';
 
 export default class Driver extends Homey.Driver {
-    private _yandex!: Yandex;
-    private _devices!: any;
-    private _authState!: boolean;
-    private _authData!: any;
+    #yandex!: Yandex;
 
     async onInit() {
-        const app = this.homey.app as YandexApp;
-        this._yandex = app.yandex;
+        const app = this.homey.app as any;
+        this.#yandex = app.yandex;
     }
 
     async onPair(session: Homey.Driver.PairSession) {
-        this._authState = false;
-        
         session.setHandler('showView', async viewId => {
-            if (viewId === 'starting') {
-                await this._checkNewDevices();
-                await session.showView(this._devices.length ?
-                    'list_devices' :
-                    'account_settings'
-                );
-            }
+            if (viewId !== 'starting') return;
+            const authState = await this.#yandex.iot.getUpdater()
+                .then(() => true)
+                .catch(() => false);
+
+            await session.showView(authState ? 'list_devices' : 'login_qr');
         });
 
-        session.setHandler('list_devices', async () => this._devices);
-        session.setHandler('account_settings', async () => this._authState);
-        
-        session.setHandler('account_login', async () => {
-            this._authData = await this._yandex.getAuthorization();
-            return this._authData.auth_url;
+        session.setHandler('login_start', async () => {
+            const payload = await this.#yandex.getAuthorization();
+            const checkAuth = setInterval(async () => {
+                const authReady = await this.#yandex.checkAuthorization(payload)
+                    .then(() => true)
+                    .catch((err: Error) => {
+                        if (err.message !== 'Ожидание авторизации')
+                            return true;
+                        return false;
+                    });
+
+                if (authReady) {
+                    clearInterval(checkAuth);
+                    session.emit('login_end', undefined);
+                }
+            }, 2000)
+
+            return payload.auth_url;
         });
 
-        session.setHandler('account_confirm', async () => {
-            await this._yandex.confirmAuthorization(this._authData).then(async () => {
-                await this._checkNewDevices();
-            });
-        });
-    }
-
-    private async _getDevices() {
-        const platform = this.manifest.platform;
-
-        return await this._yandex.iot.getUpdater().then(updater => {
-            this._authState = true;
+        session.setHandler('list_devices', async () => {
+            const platform = this.manifest.platform;
+            const updater = await this.#yandex.iot.getUpdater();
             const devices = updater.getDevicesByPlatform(platform);
-            return devices.map(({ name, id }) => ({ name, data: { id } }));
-        }).catch(() => []);
-    }
 
-    private async _checkNewDevices() {
-        const devices = await this._getDevices();
-        const devicesIds = devices.map(device => device.data.id).sort();
-        const currentIds = this.getDevices()
-            .map(device => device.getData().id).sort();
-
-        this._devices = [];
-        if (JSON.stringify(devicesIds) !== JSON.stringify(currentIds))
-            this._devices = devices;
+            return devices.map(device => ({
+                name: device.name,
+                data: { id: device.id }
+            }));
+        });
     }
 }
