@@ -3,25 +3,14 @@ import { YandexIotUpdater } from './updater';
 import { YandexIotSpeaker } from './devices/speaker';
 
 export class YandexIot {
-    #updater?: YandexIotUpdater;
-    #updaterPromise?: Promise<void>;
+    readonly updater: YandexIotUpdater;
 
-    constructor(private api: YandexAPI) {}
-
-    async getUpdater() {
-        if (!this.#updater) this.#updater = new YandexIotUpdater(this.api);
-        if (!this.#updaterPromise) this.#updaterPromise = this.#updater.init();
-
-        await Promise.resolve(this.#updaterPromise).catch(error => {
-            this.#updaterPromise = undefined;
-            throw error;
-        });
-        return this.#updater;
+    constructor(private api: YandexAPI) {
+        this.updater = new YandexIotUpdater(api);
     }
 
     async createSpeaker(deviceId: string) {
-        const updater = await this.getUpdater();
-        const speaker = new YandexIotSpeaker(deviceId, this.api, updater);
+        const speaker = new YandexIotSpeaker(deviceId, this.api, this.updater);
         return speaker;
     }
 }

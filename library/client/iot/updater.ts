@@ -1,22 +1,26 @@
 import { YandexAPI } from '../../api';
 import { strictJsonParse } from '../../utils/json';
-import Socket from '../../utils/socket';
 import EventEmitter from 'events';
+import ReconnectSocket from '../../utils/websocket';
 
 export class YandexIotUpdater {
     readonly events: EventEmitter;
-    #socket: Socket;
+    #websocket: ReconnectSocket;
+    #connectionPromise?: Promise<void>;
     #devices: {
         [id: string]: any;
     };
     #scenarios: any[];
 
     constructor(private api: YandexAPI) {
-        this.events = new EventEmitter();
         this.#devices = {};
         this.#scenarios = [];
 
-        this.#socket = new Socket({
+        this.events = new EventEmitter();
+        this.events.on('newListener',
+            async () => await this.#connect().catch(console.error));
+
+        this.#websocket = new ReconnectSocket({
             address: async () => {
                 const response = await this.api.iot.getDevices();
                 this.#updateDevices(response.households);
@@ -24,99 +28,36 @@ export class YandexIotUpdater {
             },
             heartbeat: 70,
             message: {
-                decode: message => {
+                decode: async message => {
                     const json = strictJsonParse(message.toString());
                     const data = strictJsonParse(json.message);
                     return { operation: json.operation, ...data };
                 }
-            },
-            listeners: {
-                message: async message => {
-                    switch (message.operation) {
-                        case 'update_device_list': return await this.#handleDevices(message);
-                        case 'update_scenario_list': return await this.#handleScenarios(message);
-                        case 'update_states': return await this.#handleStates(message);
-                    }
-                }
+            }
+        });
+
+        this.#websocket.on('message', async message => {
+            switch (message.operation) {
+                case 'update_device_list': return await this.#handleDevices(message);
+                case 'update_scenario_list': return await this.#handleScenarios(message);
+                case 'update_states': return await this.#handleStates(message);
             }
         });
     }
 
-    async init() {
-        await this.#updateScenarios([]);
-        await this.#socket.open();
+    async destroy() {
+        await this.#websocket.disconnect();
     }
 
-    getDevices() {
-        return this.#devices;
-    }
+    async #connect() {
+        if (!this.#connectionPromise) this.#connectionPromise = this.#websocket.connect();
 
-    getDevice(id: string) {
-        return this.#devices[id];
-    }
-
-    getDevicesByType(type: string) {
-        const devices = this.getDevices();
-        return Object.values(devices)
-            .filter(device => device.type === type);
-    }
-
-    getDevicesByPlatform(platform: string) {
-        const devices = this.getDevices();
-        return Object.values(devices)
-            .filter(device => device.quasar_info?.platform === platform);
-    }
-
-    getScenarios() {
-        return this.#scenarios;
-    }
-
-    getScenarioByTrigger(trigger: string) {
-        const scenarios = this.getScenarios();
-        return scenarios.find(scenario => scenario.trigger === trigger);
-    }
-
-    getScenarioByAction(action: string) {
-        const scenarios = this.getScenarios();
-        return scenarios.find(scenario => scenario.action.value === action);
-    }
-
-    #updateDevices(households: any[]) {
-        this.#devices = households.reduce<any>((result, household) => {
-            const devices = household.all;
-            devices.map((device: any) => result[device.id] = device);
-            return result;
-        }, {});
-    }
-
-    async #updateScenarios(scenarios: any[]) {
-        if (scenarios.length === 0)
-            scenarios = await this.api.iot.getScenarios();
-
-        const scenarioIds = scenarios.map(scenario => scenario.id);
-        const scenarioPromises = scenarioIds.map(scenarioId => {
-            return this.api.request(`https://iot.quasar.yandex.ru/m/user/scenarios/${scenarioId}/edit`)
-                .then(res => res.data.scenario);
+        await Promise.resolve(this.#connectionPromise).catch(error => {
+            this.#connectionPromise = undefined;
+            throw error;
         });
-        scenarios = await Promise.all(scenarioPromises);
-        
-        this.#scenarios = scenarios
-            .map(scenario => ({
-                name: scenario.name,
-                trigger: scenario.triggers[0]?.value,
-                action: {
-                    type: scenario.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.instance ||
-                        scenario.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.instance,
-                    value: scenario.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.value ||
-                        scenario.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.value
-                },
-                icon: scenario.icon_url,
-                device_id: scenario.steps[0]?.parameters?.launch_devices[0]?.id,
-                id: scenario.id
-            }))
-            .filter(scenario => ['text_action', 'phrase_action'].includes(scenario.action.type));
     }
-    
+
     // source: 'discovery' | 'delete_device' | 'update_device' | 'update_room'
     async #handleDevices(data: any) {
         this.#updateDevices(data.households);
@@ -146,5 +87,80 @@ export class YandexIotUpdater {
             const scenario = this.getScenarioByAction(capability.state.value);
             scenario && this.events.emit('scenario_run', scenario);
         });
+    }
+
+    async getDevices() {
+        await this.#connect();
+        return this.#devices;
+    }
+
+    async getDevice(id: string) {
+        const devices = await this.getDevices();
+        return devices[id];
+    }
+
+    async getDevicesByType(type: string) {
+        const devices = await this.getDevices();
+        return Object.values(devices)
+            .filter(device => device.type === type);
+    }
+
+    async getDevicesByPlatform(platform: string) {
+        const devices = await this.getDevices();
+        return Object.values(devices)
+            .filter(device => device.quasar_info?.platform === platform);
+    }
+
+    async getScenarios() {
+        if (!this.#scenarios.length) {
+            const scenarios = await this.api.iot.getScenarios();
+            await this.#updateScenarios(scenarios);
+        }
+        return this.#scenarios;
+    }
+
+    async getScenarioByTrigger(trigger: string) {
+        const scenarios = await this.getScenarios();
+        return scenarios.find(scenario => scenario.trigger === trigger);
+    }
+
+    async getScenarioByAction(action: string) {
+        const scenarios = await this.getScenarios();
+        return scenarios.find(scenario => scenario.action.value === action);
+    }
+
+    #updateDevices(households: any[]) {
+        this.#devices = households.reduce<any>((result, household) => {
+            const devices = household.all;
+            devices.map((device: any) => result[device.id] = device);
+            return result;
+        }, {});
+    }
+
+    async #updateScenarios(scenarios: any[]) {
+        if (!scenarios.length) return;
+
+        const scenarioIds = scenarios.map(scenario => scenario.id);
+        const scenarioPromises = scenarioIds.map(scenarioId => {
+            return this.api.request(`https://iot.quasar.yandex.ru/m/user/scenarios/${scenarioId}/edit`)
+                .then(res => res.data.scenario);
+        });
+        scenarios = await Promise.all(scenarioPromises);
+        
+        this.#scenarios = scenarios
+            .map(scenario => ({
+                name: scenario.name,
+                trigger: scenario.triggers[0]?.value,
+                action: {
+                    type: scenario.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.instance ||
+                        scenario.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.instance,
+                    value: scenario.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.value ||
+                        scenario.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.value
+                },
+                icon: scenario.icon_url,
+                device_id: scenario.steps[0]?.parameters?.launch_devices[0]?.id,
+                id: scenario.id
+            }))
+            .filter(scenario => ['text_action', 'phrase_action'].includes(scenario.action.type));
     }
 }

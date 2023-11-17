@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { YandexAPI } from './index';
 import { YandexPassportAPI } from './passport';
 
@@ -15,15 +16,19 @@ export class YandexIotAPI {
                 headers.set('Referer', 'https://yandex.ru/');
 
                 ['post', 'put', 'delete'].includes(method) &&
-                    headers.set('x-csrf-token', await this.#getCsrfToken());
+                    headers.set('x-csrf-token', this.#csrfToken ?? await this.#getCsrfToken());
             }
             return config;
+        });
+
+        this.api.request.interceptors.response.use(undefined, async error => {
+            if (axios.isAxiosError(error) && error.response?.status === 403)
+                this.#csrfToken = await this.#getCsrfToken();
+            throw error;
         });
     }
 
     async #getCsrfToken() {
-        if (this.#csrfToken) return this.#csrfToken;
-
         return await this.api.request
             .get('https://quasar.yandex.ru/csrf_token')
             .then(res => this.#csrfToken = res.data.token as string);

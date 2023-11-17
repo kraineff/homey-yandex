@@ -4,15 +4,16 @@ import { YandexIotSpeaker, YandexIotUpdater } from './library/client/iot';
 
 module.exports = class YandexApp extends Homey.App {
     yandex!: Yandex;
+    updater!: YandexIotUpdater;
     #scenarioIcons!: string[];
     #scenarioIcon!: string;
-    #scenarioEvent!: boolean;
 
     async onInit() {
         this.yandex = new Yandex({
             get: async () => JSON.parse(this.homey.settings.get('storage') ?? '{}'),
             set: async content => this.homey.settings.set('storage', JSON.stringify(content))
         });
+        this.updater = this.yandex.iot.updater;
 
         // Flow-действие > Произнести текст
         const mediaSayAction = this.homey.flow.getActionCard('media_say');
@@ -32,23 +33,12 @@ module.exports = class YandexApp extends Homey.App {
         const scenarioTrigger = this.homey.flow.getTriggerCard('scenario_run');
         scenarioTrigger.registerRunListener(async (args, state) => args.scenario.name === state.trigger);
         scenarioTrigger.registerArgumentAutocompleteListener('scenario', async (query, args) => {
-            const updater = await this.yandex.iot.getUpdater();
-            const scenarios = updater.getScenarios();
+            const scenarios = await this.updater.getScenarios();
             const names = scenarios.map(scenario => scenario.trigger);
             const items = [];
 
-            // Ивент триггера
-            if (!this.#scenarioEvent) {
-                this.#scenarioEvent = true;
-                updater.events.on('scenario_run', async scenario => {
-                    await scenarioTrigger.trigger(undefined, scenario);
-                });
-            }
-
             // Обновление иконки для нового сценария
-            if (query === '') {
-                this.#scenarioIcon = await this.#getScenarioIcon();
-            }
+            if (query === '') this.#scenarioIcon = await this.#getScenarioIcon();
             
             // Отображение нового сценария
             if (query !== '' && !names.includes(query)) {
@@ -79,6 +69,10 @@ module.exports = class YandexApp extends Homey.App {
             await Promise.all(promises).catch(this.error);
         });
 
+        this.updater.events.on('scenario_run', async scenario => {
+            await scenarioTrigger.trigger(undefined, scenario);
+        });
+
         // Обновление куки
         setInterval(async () => await this.yandex.request('https://ya.ru').catch(this.error), 2.16e+7);
     }
@@ -98,9 +92,8 @@ module.exports = class YandexApp extends Homey.App {
             .replace('https://avatars.mds.yandex.net/get-iot/icons-scenarios-', '')
             .replace('.svg/svgorig', '');
         
-        const updater = await this.yandex.iot.getUpdater();
-        const scenarios = updater.getScenarios();
-        const scenario = updater.getScenarioByTrigger(trigger);
+        const scenarios = await this.updater.getScenarios();
+        const scenario = await this.updater.getScenarioByTrigger(trigger);
         if (scenario) return;
 
         const scenarioActions = scenarios
@@ -141,11 +134,8 @@ module.exports = class YandexApp extends Homey.App {
 
     #getNextNumber(nums: number[]) {
         nums = nums.sort();
-    
-        for (let n = 1; n <= nums.length + 1; n++) {
-            if (nums.indexOf(n) === -1) 
-                return n;
-        }
+        for (let n = 1; n <= nums.length + 1; n++)
+            if (nums.indexOf(n) === -1) return n;
         return 1;
     };
 }

@@ -1,10 +1,10 @@
-import Socket from '../../../utils/socket';
 import EventEmitter from 'events';
 import { randomUUID } from 'crypto';
 import { YandexAPI } from '../../../api';
 import { YandexIotUpdater } from '../updater';
 import { YandexIotSpeakerState } from '../types';
 import { strictJsonParse } from '../../../utils/json';
+import ReconnectSocket from '../../../utils/websocket';
 
 type CommandParams = {
     /** Облачная команда (текст) */
@@ -35,22 +35,22 @@ export class YandexIotSpeaker {
     state: Partial<YandexIotSpeakerState>;
 
     #connection: number;
-    #glagolSocket: Socket;
-    #glagolPlatform: string;
+    #websocket: ReconnectSocket;
+    #glagolPlatform?: string;
     #glagolToken?: string;
 
     constructor(readonly id: string, private api: YandexAPI, private updater: YandexIotUpdater) {
         this.events = new EventEmitter();
         this.#connection = Connection.Cloud;
         this.state = { volume: 0.5, playing: false };
-        
-        const quasarDevice = this.updater.getDevice(id);
-        const quasarInfo = quasarDevice.quasar_info;
-        const glagolId = quasarInfo.device_id;
-        this.#glagolPlatform = quasarInfo.platform;
 
-        this.#glagolSocket = new Socket({
+        this.#websocket = new ReconnectSocket({
             address: async () => {
+                const quasarDevice = await this.updater.getDevice(id);
+                const quasarInfo = quasarDevice.quasar_info;
+                const glagolId = quasarInfo.device_id;
+                this.#glagolPlatform = quasarInfo.platform;
+
                 const glagolDevices = await this.api.iot.getGlagolDevices();
                 const glagolDevice = glagolDevices.find((device: any) => device.id === glagolId)!;
                 
@@ -65,42 +65,44 @@ export class YandexIotSpeaker {
                 this.#glagolToken = await this.api.iot.getGlagolToken(quasarInfo.device_id, quasarInfo.platform);
                 return `wss://${glagolAddress}:${glagolPort}`;
             },
-            options: {
-                rejectUnauthorized: false
-            },
-            closeCodes: [],
+            options: { rejectUnauthorized: false },
             heartbeat: 10,
             message: {
-                transform: payload => ({
+                transform: async payload => ({
                     id: randomUUID(), sentTime: Date.now(),
                     conversationToken: this.#glagolToken,
                     payload
                 }),
-                encode: payload => JSON.stringify(payload),
-                decode: message => strictJsonParse(message.toString()),
-                identify: (payload, message) =>
+                encode: async payload => JSON.stringify(payload),
+                decode: async message => strictJsonParse(message.toString()),
+                identify: async (payload, message) =>
                     message.requestId === payload.id &&
                     message.requestSentTime === payload.sentTime
-            },
-            listeners: {
-                open: async () => {
-                    await this.#glagolSocket.send({ command: 'softwareVersion' });
-                    this.#connection = Connection.Local;
-                },
-                close: () => {
-                    this.#connection = Connection.Cloud;
-                },
-                message: async (message) => {
-                    const state = message.state;
-                    if (JSON.stringify(this.state) === JSON.stringify(state)) return;
-                    this.state = state;
-                    this.#updateState();
-                }
             }
         });
 
-        this.#glagolSocket.open()
+        this.#websocket.on('connect', async () => {
+            await this.#websocket.send({ command: 'softwareVersion' });
+            this.#connection = Connection.Local;
+        });
+
+        this.#websocket.on('disconnect', async () =>
+            this.#connection = Connection.Cloud);
+
+        this.#websocket.on('message', message => {
+            const state = message.state;
+            if (JSON.stringify(this.state) === JSON.stringify(state)) return;
+            this.state = state;
+            this.#updateState();
+        });
+
+        this.#websocket.connect()
             .catch(console.log);
+    }
+
+    async destroy() {
+        await this.#websocket.disconnect();
+        this.events.removeAllListeners();
     }
 
     /**
@@ -147,7 +149,7 @@ export class YandexIotSpeaker {
         if (!local || this.#connection === Connection.CloudOnly)
             return await cloudWrapper();
 
-        await this.#glagolSocket.send({ command: local, ...(localArgs || {}) })
+        await this.#websocket.send({ command: local, ...(localArgs || {}) })
             .catch(cloudWrapper);
     }
 
@@ -363,6 +365,11 @@ export class YandexIotSpeaker {
         volume = Math.min(Math.max(volume, 0), 1);
 
         if (volume === this.state.volume) return;
+        if (!this.#glagolPlatform) {
+            const quasarDevice = await this.updater.getDevice(this.id);
+            const quasarInfo = quasarDevice.quasar_info;
+            this.#glagolPlatform = quasarInfo.platform;
+        }
         if (this.#glagolPlatform === 'yandexmodule_2') volume *= 10;
 
         await this.#command({ cloud: `громкость ${volume * 10}`, local: 'setVolume', localArgs: { volume } });

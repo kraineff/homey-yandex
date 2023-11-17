@@ -28,8 +28,8 @@ export default class Device extends Homey.Device {
     }
 
     async onDeleted() {
-        this.#speaker &&
-            this.#speaker.events.removeAllListeners();
+        if (!this.#speaker) return;
+        await this.#speaker.destroy();
     }
 
     async getSpeaker() {

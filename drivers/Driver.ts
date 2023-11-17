@@ -10,13 +10,13 @@ export default class Driver extends Homey.Driver {
     }
 
     async onPair(session: Homey.Driver.PairSession) {
+        const platform = this.manifest.platform;
+        const updater = this.#yandex.iot.updater;
+        const devices = await updater.getDevicesByPlatform(platform).catch(() => null);
+
         session.setHandler('showView', async viewId => {
             if (viewId !== 'starting') return;
-            const authState = await this.#yandex.iot.getUpdater()
-                .then(() => true)
-                .catch(() => false);
-
-            await session.showView(authState ? 'list_devices' : 'login_qr');
+            await session.showView(devices !== null ? 'list_devices' : 'login_qr');
         });
 
         session.setHandler('login_start', async () => {
@@ -40,11 +40,7 @@ export default class Driver extends Homey.Driver {
         });
 
         session.setHandler('list_devices', async () => {
-            const platform = this.manifest.platform;
-            const updater = await this.#yandex.iot.getUpdater();
-            const devices = updater.getDevicesByPlatform(platform);
-
-            return devices.map(device => ({
+            return devices!.map(device => ({
                 name: device.name,
                 data: { id: device.id }
             }));
