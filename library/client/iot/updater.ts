@@ -51,7 +51,6 @@ export class YandexIotUpdater {
 
     async #connect() {
         if (!this.#connectionPromise) this.#connectionPromise = this.#websocket.connect();
-
         await Promise.resolve(this.#connectionPromise).catch(error => {
             this.#connectionPromise = undefined;
             throw error;
@@ -76,7 +75,7 @@ export class YandexIotUpdater {
         this.events.emit('states', data);
 
         // Триггер сценария
-        devices.map(device => {
+        const promises = devices.map(async device => {
             if (!device.hasOwnProperty('capabilities') ||
                 device.capabilities.length !== 1) return;
 
@@ -84,9 +83,10 @@ export class YandexIotUpdater {
             if (!capability.hasOwnProperty('state') ||
                 capability.type !== 'devices.capabilities.quasar.server_action') return;
 
-            const scenario = this.getScenarioByAction(capability.state.value);
+            const scenario = await this.getScenarioByAction(capability.state.value).catch(console.log);
             scenario && this.events.emit('scenario_run', scenario);
         });
+        await Promise.all(promises);
     }
 
     async getDevices() {

@@ -23,8 +23,7 @@ export default class Device extends Homey.Device {
         await this.setAlbumArtImage(this.#image);
         this._registerCapabilities();
 
-        await this.getSpeaker()
-            .catch(this.error);
+        await this.getSpeaker().catch(this.error);
     }
 
     async onDeleted() {

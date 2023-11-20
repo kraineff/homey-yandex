@@ -33,15 +33,15 @@ enum Connection {
 export class YandexIotSpeaker {
     events: EventEmitter;
     state: Partial<YandexIotSpeakerState>;
+    connection: number;
 
-    #connection: number;
     #websocket: ReconnectSocket;
     #glagolPlatform?: string;
     #glagolToken?: string;
 
     constructor(readonly id: string, private api: YandexAPI, private updater: YandexIotUpdater) {
         this.events = new EventEmitter();
-        this.#connection = Connection.Cloud;
+        this.connection = Connection.Cloud;
         this.state = { volume: 0.5, playing: false };
 
         this.#websocket = new ReconnectSocket({
@@ -55,7 +55,7 @@ export class YandexIotSpeaker {
                 const glagolDevice = glagolDevices.find((device: any) => device.id === glagolId)!;
                 
                 if (!glagolDevice.networkInfo) {
-                    this.#connection = Connection.Cloud;
+                    this.connection = Connection.Cloud;
                     throw new Error('Нет локального управления');
                 }
 
@@ -83,11 +83,11 @@ export class YandexIotSpeaker {
 
         this.#websocket.on('connect', async () => {
             await this.#websocket.send({ command: 'softwareVersion' });
-            this.#connection = Connection.Local;
+            this.connection = Connection.Local;
         });
 
         this.#websocket.on('disconnect', async () =>
-            this.#connection = Connection.Cloud);
+            this.connection = Connection.Cloud);
 
         this.#websocket.on('message', message => {
             const state = message.state;
@@ -96,8 +96,7 @@ export class YandexIotSpeaker {
             this.#updateState();
         });
 
-        this.#websocket.connect()
-            .catch(console.log);
+        this.#websocket.connect().catch(console.error);
     }
 
     async destroy() {
@@ -130,7 +129,7 @@ export class YandexIotSpeaker {
      */
     async #command(params: CommandParams) {
         if ((params.volume === undefined) ||
-            (params.local !== undefined && this.#connection === Connection.Local))
+            (params.local !== undefined && this.connection === Connection.Local))
             return await this.#simpleCommand(params);
         
         await this.#volumeCommand(params);
@@ -146,7 +145,7 @@ export class YandexIotSpeaker {
         const cloudWrapper = async () =>
             cloud && await this.#cloudAction(cloudInstance ?? 'text_action', cloud);
         
-        if (!local || this.#connection === Connection.CloudOnly)
+        if (!local || this.connection === Connection.CloudOnly)
             return await cloudWrapper();
 
         await this.#websocket.send({ command: local, ...(localArgs || {}) })
@@ -174,7 +173,7 @@ export class YandexIotSpeaker {
                 await this.#simpleCommand(command);
 
                 // В облачном режиме все команды идут по очереди, поэтому сразу возвращаем
-                if (this.#connection !== Connection.Local)
+                if (this.connection !== Connection.Local)
                     return await bringBack();
 
                 // В локальном режиме ждем, когда Алиса договорит
@@ -351,7 +350,7 @@ export class YandexIotSpeaker {
 
         // В облачном режиме переключаемся на следующий трек,
         // если режим повтора 'none'
-        if (this.#connection !== Connection.Local && mode === 1)
+        if (this.connection !== Connection.Local && mode === 1)
             return await this.mediaNext();
 
         await this.#command({ cloud: 'на повтор', local: 'repeat', localArgs: { mode }, volume: 0 });

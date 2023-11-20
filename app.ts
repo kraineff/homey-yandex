@@ -14,7 +14,13 @@ module.exports = class YandexApp extends Homey.App {
             set: async content => this.homey.settings.set('storage', JSON.stringify(content))
         });
         this.updater = this.yandex.iot.updater;
+        await this.initFlows();
+        
+        // Обновление куки
+        setInterval(async () => await this.yandex.request('https://ya.ru').catch(this.error), 2.16e+7);
+    }
 
+    async initFlows() {
         // Flow-действие > Произнести текст
         const mediaSayAction = this.homey.flow.getActionCard('media_say');
         mediaSayAction.registerRunListener(async args => {
@@ -62,7 +68,7 @@ module.exports = class YandexApp extends Homey.App {
 
             return items;
         });
-        
+
         scenarioTrigger.on('update', async () => {
             const flowArgs = await scenarioTrigger.getArgumentValues();
             const promises = flowArgs.map(({ scenario }) => this.#createScenario(scenario.name, scenario.image));
@@ -72,9 +78,6 @@ module.exports = class YandexApp extends Homey.App {
         this.updater.events.on('scenario_run', async scenario => {
             await scenarioTrigger.trigger(undefined, scenario);
         });
-
-        // Обновление куки
-        setInterval(async () => await this.yandex.request('https://ya.ru').catch(this.error), 2.16e+7);
     }
     
     async #getScenarioIcon() {
