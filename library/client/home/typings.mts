@@ -3,7 +3,6 @@ export type YandexSpeakerMessage = {
     extra: {
         appState: string;
         environmentState: string;
-        softwareVersion?: string;
         watchedVideoState: string;
     };
     id: string;
@@ -17,9 +16,45 @@ export type YandexSpeakerResponse = YandexSpeakerMessage & {
     processingTime: number;
     requestId: string;
     requestSentTime: number;
-    softwareVersion?: string;
     status: "SUCCESS";
 }
+
+export type YandexSpeakerVinsResponse = YandexSpeakerResponse & {
+    errorCode: string;
+    errorText: string;
+    errorTextLang: string;
+    vinsResponse: {
+        header: {
+            dialog_id: string;
+            request_id: string;
+            response_id: string;
+            sequence_number: number;
+        };
+        response: {
+            is_streaming?: boolean;
+            cards?: Array<{
+                card_id: string;
+                text: string;
+                type: string;
+            }>;
+            directives?: Array<any>;
+            suggest: {
+                items: Array<{
+                    directives: Array<any>;
+                    title: string;
+                    type: string;
+                }>;
+            };
+        };
+        voice_response: {
+            has_voice_response: boolean;
+            output_speech: {
+                text: string;
+            };
+            should_listen: boolean;
+        };
+    };
+};
 
 export type YandexSpeakerState = {
     aliceState: "IDLE" | "LISTENING" | "SPEAKING";

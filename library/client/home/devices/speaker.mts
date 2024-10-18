@@ -1,7 +1,7 @@
 import EventEmitter from "events";
 import { YandexAPI } from "../../../api/index.mjs";
 import { YandexHomeUpdater } from "../updater.mjs";
-import { YandexSpeakerState } from "../typings.mjs";
+import { YandexSpeakerState, YandexSpeakerVinsResponse } from "../typings.mjs";
 import { ReconnectSocket } from "../../../utils/websocket.js";
 import { randomUUID } from "crypto";
 import { strictJsonParse } from "../../../utils/json.js";
@@ -80,9 +80,6 @@ export class YandexSpeaker extends EventEmitter {
         });
 
         this.websocket.on("message", message => {
-            if (message.vinsResponse !== undefined)
-                console.log(JSON.stringify(message));
-
             const state = message.state;
             if (JSON.stringify(this.state) === JSON.stringify(state)) return;
             this.state = state;
@@ -102,7 +99,7 @@ export class YandexSpeaker extends EventEmitter {
             (params.local !== undefined && this.connection === Connection.Local))
             return await this.simpleCommand(params);
         
-        await this.volumeCommand(params);
+        return await this.volumeCommand(params);
     }
 
     private async simpleCommand(params: Omit<CommandParams, 'volume'>) {
@@ -120,25 +117,33 @@ export class YandexSpeaker extends EventEmitter {
         if (!params.local || this.connection === Connection.CloudOnly)
             return await cloudAction();
 
-        await this.websocket.send({ command: params.local[0], ...(params.local[1] || {}) })
+        return await this.websocket.send({ command: params.local[0], ...(params.local[1] || {}) })
+            .then(res => {
+                if (!res.vinsResponse) return;
+                const vinsResponse = res.vinsResponse as YandexSpeakerVinsResponse["vinsResponse"];
+                const speechResponse = vinsResponse.voice_response?.output_speech?.text;
+                const cardsResponse = vinsResponse.response?.cards?.find(card => card.type === "simple_text");
+                return speechResponse || cardsResponse && cardsResponse.text;
+            })
             .catch(cloudAction);
     }
 
     private async volumeCommand(params: CommandParams) {
         return new Promise<void>(async (resolve, reject) => {
             try {
+                let response: any;
                 const { volume, ...command } = params;
                 const currentVolume = this.state.volume!;
                 const currentPlaying = this.state.playing!;
                 const bringBack = async () => {
                     await this.volumeSet(currentVolume);
                     if (currentPlaying) await this.mediaPlay();
-                    resolve();
+                    resolve(response);
                 };
 
                 await this.mediaPause();
                 await this.volumeSet(volume!);
-                await this.simpleCommand(command);
+                response = await this.simpleCommand(command);
 
                 // В облачном режиме все команды идут по очереди, поэтому сразу возвращаем
                 if (this.connection !== Connection.Local)
@@ -171,8 +176,9 @@ export class YandexSpeaker extends EventEmitter {
     async actionRun(command: string, volume?: number) {
         volume = volume ?? this.state.volume;
 
-        await this.command({
+        return await this.command({
             cloud: [command],
+            local: ["sendText", { text: command }],
             volume
         });
     }

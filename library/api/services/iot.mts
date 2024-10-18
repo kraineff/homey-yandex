@@ -43,7 +43,6 @@ export class YandexIotAPI {
     }
 
     async #getCsrfToken() {
-        console.log("TOKEN")
         if (this.#csrfToken) return this.#csrfToken;
         return await this.client
             .get("https://quasar.yandex.ru/csrf_token")

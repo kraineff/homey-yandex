@@ -31,7 +31,8 @@ export default class YandexApp extends Homey.App {
         const mediaRunAction = this.homey.flow.getActionCard("media_run");
         mediaRunAction.registerRunListener(async args => {
             const speaker: YandexSpeaker = await args.device.getSpeaker();
-            await speaker.actionRun(args.command, args.volume);
+            const response = await speaker.actionRun(args.command, args.volume) || "";
+            return { response };
         });
 
         const scenarioTrigger = this.homey.flow.getTriggerCard("scenario_run");
