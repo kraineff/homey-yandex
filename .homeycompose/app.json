@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "platforms": ["local"],
 
-    "compatibility": ">=12.2.0",
+    "compatibility": ">=12.1.0",
     "esm": true,
     "sdk": 3,
 
