@@ -1,3 +1,3 @@
 import Driver from "../Driver.mjs";
 
-export default class YandexStationMicroDriver extends Driver {}
+export default class YandexStationLiteDriver extends Driver {}

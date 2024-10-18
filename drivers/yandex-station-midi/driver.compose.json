@@ -1,8 +1,8 @@
 {
     "name": {
-        "en": "Station Lite",
-        "ru": "Станция Лайт"
+        "en": "Station Midi",
+        "ru": "Станция Миди"
     },
-    "platform": "yandexmicro",
+    "platform": "cucumber",
     "$extends": ["speaker_base", "speaker_capabilities", "speaker_local_settings"]
 }

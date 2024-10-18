@@ -724,8 +724,8 @@
         }
       ],
       "name": {
-        "en": "Yandex Station",
-        "ru": "Яндекс Станция"
+        "en": "Station",
+        "ru": "Станция"
       },
       "platform": "yandexstation",
       "id": "yandex-station"
@@ -810,11 +810,97 @@
         }
       ],
       "name": {
-        "en": "Yandex Station 2",
-        "ru": "Яндекс Станция 2"
+        "en": "Station 2",
+        "ru": "Станция 2"
       },
       "platform": "yandexmidi",
       "id": "yandex-station-2"
+    },
+    {
+      "class": "speaker",
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "cloud",
+        "lan"
+      ],
+      "images": {
+        "small": "/drivers/yandex-station-duo-max/assets/images/small.jpg",
+        "large": "/drivers/yandex-station-duo-max/assets/images/large.jpg"
+      },
+      "capabilities": [
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_shuffle",
+        "speaker_repeat",
+        "speaker_artist",
+        "speaker_album",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position",
+        "volume_set",
+        "media_like",
+        "media_dislike"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "step": 0.1
+        }
+      },
+      "pair": [
+        {
+          "id": "starting",
+          "template": "loading"
+        },
+        {
+          "id": "login_qr",
+          "navigation": {
+            "next": "list_devices"
+          }
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Settings",
+            "ru": "Настройки"
+          },
+          "children": [
+            {
+              "id": "image_quality",
+              "type": "number",
+              "label": {
+                "en": "Image Quality",
+                "ru": "Качество изображения"
+              },
+              "units": "px",
+              "min": 30,
+              "max": 1000,
+              "value": 1000
+            }
+          ]
+        }
+      ],
+      "name": {
+        "en": "Station Duo Max",
+        "ru": "Станция Дуо Макс"
+      },
+      "platform": "chiron",
+      "id": "yandex-station-duo-max"
     },
     {
       "class": "speaker",
@@ -896,8 +982,8 @@
         }
       ],
       "name": {
-        "en": "Yandex Station Lite",
-        "ru": "Яндекс Станция Лайт"
+        "en": "Station Lite",
+        "ru": "Станция Лайт"
       },
       "platform": "yandexmicro",
       "id": "yandex-station-lite"
@@ -990,11 +1076,97 @@
         }
       ],
       "name": {
-        "en": "Yandex Station Max",
-        "ru": "Яндекс Станция Макс"
+        "en": "Station Max",
+        "ru": "Станция Макс"
       },
       "platform": "yandexstation_2",
       "id": "yandex-station-max"
+    },
+    {
+      "class": "speaker",
+      "platforms": [
+        "local"
+      ],
+      "connectivity": [
+        "cloud",
+        "lan"
+      ],
+      "images": {
+        "small": "/drivers/yandex-station-midi/assets/images/small.jpg",
+        "large": "/drivers/yandex-station-midi/assets/images/large.jpg"
+      },
+      "capabilities": [
+        "speaker_playing",
+        "speaker_next",
+        "speaker_prev",
+        "speaker_shuffle",
+        "speaker_repeat",
+        "speaker_artist",
+        "speaker_album",
+        "speaker_track",
+        "speaker_duration",
+        "speaker_position",
+        "volume_set",
+        "media_like",
+        "media_dislike"
+      ],
+      "capabilitiesOptions": {
+        "volume_set": {
+          "step": 0.1
+        }
+      },
+      "pair": [
+        {
+          "id": "starting",
+          "template": "loading"
+        },
+        {
+          "id": "login_qr",
+          "navigation": {
+            "next": "list_devices"
+          }
+        },
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ],
+      "settings": [
+        {
+          "type": "group",
+          "label": {
+            "en": "Settings",
+            "ru": "Настройки"
+          },
+          "children": [
+            {
+              "id": "image_quality",
+              "type": "number",
+              "label": {
+                "en": "Image Quality",
+                "ru": "Качество изображения"
+              },
+              "units": "px",
+              "min": 30,
+              "max": 1000,
+              "value": 1000
+            }
+          ]
+        }
+      ],
+      "name": {
+        "en": "Station Midi",
+        "ru": "Станция Миди"
+      },
+      "platform": "cucumber",
+      "id": "yandex-station-midi"
     },
     {
       "class": "speaker",
@@ -1076,8 +1248,8 @@
         }
       ],
       "name": {
-        "en": "Yandex Station Mini",
-        "ru": "Яндекс Станция Мини"
+        "en": "Station Mini",
+        "ru": "Станция Мини"
       },
       "platform": "yandexmini",
       "id": "yandex-station-mini"
@@ -1162,8 +1334,8 @@
         }
       ],
       "name": {
-        "en": "Yandex Station Mini 2",
-        "ru": "Яндекс Станция Мини 2"
+        "en": "Station Mini 2",
+        "ru": "Станция Мини 2"
       },
       "platform": "yandexmini_2",
       "id": "yandex-station-mini-2"

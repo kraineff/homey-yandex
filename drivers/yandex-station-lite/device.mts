@@ -1,3 +1,3 @@
 import Device from "../Device.mjs";
 
-export default class YandexStationMicroDevice extends Device {}
+export default class YandexStationLiteDevice extends Device {}

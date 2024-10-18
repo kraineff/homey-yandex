@@ -94,15 +94,7 @@ export class YandexSpeaker extends EventEmitter {
         this.removeAllListeners();
     }
 
-    private async command(params: CommandParams) {
-        if ((params.volume === undefined) ||
-            (params.local !== undefined && this.connection === Connection.Local))
-            return await this.simpleCommand(params);
-        
-        return await this.volumeCommand(params);
-    }
-
-    private async simpleCommand(params: Omit<CommandParams, 'volume'>) {
+    private async command(params: Omit<CommandParams, "volume">) {
         const cloudAction = async () => {
             if (!params.cloud) return;
             await this.api.iot.runDeviceAction(this.id, [{
@@ -112,6 +104,7 @@ export class YandexSpeaker extends EventEmitter {
                     value: params.cloud[0]
                 }
             }]);
+            return "";
         };
         
         if (!params.local || this.connection === Connection.CloudOnly)
@@ -128,8 +121,8 @@ export class YandexSpeaker extends EventEmitter {
             .catch(cloudAction);
     }
 
-    private async volumeCommand(params: CommandParams) {
-        return new Promise<void>(async (resolve, reject) => {
+    private async commandWithVolume(params: CommandParams) {
+        return new Promise<any>(async (resolve, reject) => {
             try {
                 let response: any;
                 const { volume, ...command } = params;
@@ -143,7 +136,7 @@ export class YandexSpeaker extends EventEmitter {
 
                 await this.mediaPause();
                 await this.volumeSet(volume!);
-                response = await this.simpleCommand(command);
+                response = await this.command(command);
 
                 // В облачном режиме все команды идут по очереди, поэтому сразу возвращаем
                 if (this.connection !== Connection.Local)
@@ -167,7 +160,7 @@ export class YandexSpeaker extends EventEmitter {
     async actionSay(message: string, volume?: number) {
         volume = volume ?? this.state.volume;
 
-        await this.command({
+        await this.commandWithVolume({
             cloud: [message, "phrase_action"],
             volume
         });
@@ -176,7 +169,7 @@ export class YandexSpeaker extends EventEmitter {
     async actionRun(command: string, volume?: number) {
         volume = volume ?? this.state.volume;
 
-        return await this.command({
+        return await this.commandWithVolume({
             cloud: [command],
             local: ["sendText", { text: command }],
             volume
@@ -231,7 +224,7 @@ export class YandexSpeaker extends EventEmitter {
     }
 
     async controlPower(enable: boolean) {
-        await this.command({
+        await this.commandWithVolume({
             cloud: [(enable && "включи" || "выключи") + "телевизор"],
             volume: 0
         });
@@ -294,7 +287,7 @@ export class YandexSpeaker extends EventEmitter {
     async musicShuffle(enable: boolean) {
         if (this.state.playerState?.entityInfo.shuffled === enable) return;
 
-        await this.command({
+        await this.commandWithVolume({
             cloud: ["перемешай"],
             local: ["shuffle", { enable }],
             volume: 0
@@ -316,7 +309,7 @@ export class YandexSpeaker extends EventEmitter {
         if (this.connection !== Connection.Local && mode === 1)
             return await this.mediaNext();
 
-        await this.command({
+        await this.commandWithVolume({
             cloud: ["на повтор"],
             local: ["repeat", { mode }],
             volume: 0
