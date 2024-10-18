@@ -1,8 +1,10 @@
 {
     "id": "com.yandex",
     "version": "1.0.0",
-    "compatibility": ">=5.0.0",
     "platforms": ["local"],
+
+    "compatibility": ">=12.2.0",
+    "esm": true,
     "sdk": 3,
 
     "brandColor": "#FC3F1D",

@@ -1,6 +1,6 @@
-import EventEmitter from 'events';
-import { ClientRequestArgs } from 'http';
-import { ClientOptions, RawData, WebSocket } from 'ws';
+import EventEmitter from "events";
+import { ClientRequestArgs } from "http";
+import { ClientOptions, RawData, WebSocket } from "ws";
 
 export type Options = {
     address: () => PromiseLike<string>;
@@ -27,7 +27,7 @@ const DefaultOptions = {
     }
 };
 
-export default class ReconnectSocket extends EventEmitter {
+export class ReconnectSocket extends EventEmitter {
     #websocket?: WebSocket;
     #connectionLock: boolean;
     #heartbeatTimeout?: NodeJS.Timeout;
@@ -50,41 +50,41 @@ export default class ReconnectSocket extends EventEmitter {
 
         const promise = new Promise<void>((resolve, reject) => {
             this.#websocket = new WebSocket(address, protocols, options);
-            this.#websocket.on('ping', () => this.#heartbeat());
-            this.#websocket.on('error', console.error);
+            this.#websocket.on("ping", () => this.#heartbeat());
+            this.#websocket.on("error", console.error);
             
-            this.#websocket.once('open', async () => {
+            this.#websocket.once("open", async () => {
                 this.#heartbeat();
-                this.emit('connect');
+                this.emit("connect");
                 resolve();
             });
 
-            this.#websocket.on('close', async (code, reason) => {
+            this.#websocket.on("close", async (code, reason) => {
                 // Очищаем текущий сокет, разрешаем новые подключения
                 this.#connectionLock = false;
                 this.#websocket!.removeAllListeners();
                 clearTimeout(this.#heartbeatTimeout);
                 clearTimeout(this.#reconnectTimeout);
-                this.emit('disconnect');
+                this.emit("disconnect");
 
                 // Отдаем ошибку при первом подключении, если код закрытия в списке
                 const closeCodes = this.options.closeCodes ?? DefaultOptions.closeCodes;
                 if (closeCodes.includes(code))
-                    return reject(new Error('Подключение: закрытие'));
+                    return reject(new Error("Подключение: закрытие"));
 
                 await this.#reconnect();
             });
 
-            this.#websocket.on('message', async (message) => {
+            this.#websocket.on("message", async (message) => {
                 this.#heartbeat();
                 
                 // Декодируем сообщение или возвращаем оригинал
                 const decode = this.options.message?.decode ?? DefaultOptions.message.decode;
                 await decode(message)
-                    .then(decoded => this.emit('message', decoded), console.error);
+                    .then(decoded => this.emit("message", decoded), console.error);
             });
 
-            setTimeout(() => reject(new Error('Подключение: таймаут')), timeoutSec * 1000);
+            setTimeout(() => reject(new Error("Подключение: таймаут")), timeoutSec * 1000);
         });
 
         return promise.catch(error => {
@@ -97,7 +97,7 @@ export default class ReconnectSocket extends EventEmitter {
     async disconnect() {
         return new Promise<void>(resolve => {
             if (!this.#websocket) return resolve();
-            this.#websocket.once('close', resolve);
+            this.#websocket.once("close", resolve);
             this.#websocket.close(1000);
         });
     }
@@ -118,14 +118,14 @@ export default class ReconnectSocket extends EventEmitter {
                 const decoded = await decode(message).then(undefined, reject);
                 const isValid = await identify(transformed, decoded).then(undefined, reject);
                 if (!isValid) return;
-
+                
                 resolve(decoded);
-                this.off('message', handleMessage);
+                this.off("message", handleMessage);
             }
 
-            this.#websocket!.on('message', handleMessage);
+            this.#websocket!.on("message", handleMessage);
             this.#websocket!.send(encoded);
-            setTimeout(() => reject(new Error('Отправка: таймаут')), timeoutSec * 1000);
+            setTimeout(() => reject(new Error("Отправка: таймаут")), timeoutSec * 1000);
         });
     }
 
