@@ -38,6 +38,12 @@ export class YandexStorage {
         await this.setContent();
     }
 
+    async removeCookies() {
+        const content = await this.getContent();
+        content.cookieJar = new CookieJar();
+        await this.setContent();
+    }
+
     async getTokens() {
         const content = await this.getContent();
         return content.tokens || {};

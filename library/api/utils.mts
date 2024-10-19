@@ -20,12 +20,21 @@ export const createInstance = (storage: YandexStorage, configCallback: (config: 
         return config;
     });
 
-    client.interceptors.response.use(async response => {
-        const url = response.config.url;
-        const cookies = response.headers["set-cookie"];
-        (url && cookies) && await storage.setCookies(url, cookies);
-        return response;
-    });
+    client.interceptors.response.use(
+        async response => {
+            const url = response.config.url;
+            const cookies = response.headers["set-cookie"];
+            (url && cookies) && await storage.setCookies(url, cookies);
+            return response;
+        },
+        async error => {
+            if (axios.isAxiosError(error) && error.response?.status === 401) {
+                await storage.removeCookies();
+                throw new Error("Требуется повторная авторизация");
+            }
+            throw error;
+        }
+    );
 
     return client;
 };
