@@ -1,3 +1,3 @@
 import Driver from "../Driver.js";
 
-export default class DEXPSmartboxDriver extends Driver {}
+module.exports = class DEXPSmartboxDriver extends Driver {}

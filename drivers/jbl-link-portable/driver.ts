@@ -1,3 +1,3 @@
 import Driver from "../Driver.js";
 
-export default class JBLLinkPortableDriver extends Driver {}
+module.exports = class JBLLinkPortableDriver extends Driver {}

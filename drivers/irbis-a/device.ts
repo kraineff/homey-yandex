@@ -1,3 +1,3 @@
 import Device from "../Device.js";
 
-export default class IRBISADevice extends Device {}
+module.exports = class IRBISADevice extends Device {}

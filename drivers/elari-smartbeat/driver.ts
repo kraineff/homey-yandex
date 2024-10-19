@@ -1,3 +1,3 @@
 import Driver from "../Driver.js";
 
-export default class ElariSmartBeatDriver extends Driver {}
+module.exports = class ElariSmartBeatDriver extends Driver {}

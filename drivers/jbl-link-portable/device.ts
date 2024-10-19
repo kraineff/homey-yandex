@@ -1,3 +1,3 @@
 import Device from "../Device.js";
 
-export default class JBLLinkPortableDevice extends Device {}
+module.exports = class JBLLinkPortableDevice extends Device {}

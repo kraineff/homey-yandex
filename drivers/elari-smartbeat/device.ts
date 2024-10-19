@@ -1,3 +1,3 @@
 import Device from "../Device.js";
 
-export default class ElariSmartBeatDevice extends Device {}
+module.exports = class ElariSmartBeatDevice extends Device {}

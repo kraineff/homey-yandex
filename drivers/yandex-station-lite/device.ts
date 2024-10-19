@@ -1,3 +1,3 @@
 import Device from "../Device.js";
 
-export default class YandexStationLiteDevice extends Device {}
+module.exports = class YandexStationLiteDevice extends Device {}

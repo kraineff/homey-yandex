@@ -1,3 +1,3 @@
 import Device from "../Device.js";
 
-export default class LGXBOOMAIThinQDevice extends Device {}
+module.exports = class LGXBOOMAIThinQDevice extends Device {}

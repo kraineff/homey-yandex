@@ -1,3 +1,3 @@
 import Driver from "../Driver.js";
 
-export default class IRBISADriver extends Driver {}
+module.exports = class IRBISADriver extends Driver {}

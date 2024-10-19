@@ -2,7 +2,7 @@ import Homey from "homey";
 import { Yandex } from "./library/index.js";
 import { YandexSpeaker } from "./library/client/home/devices/speaker.js";
 
-export default class YandexApp extends Homey.App {
+module.exports = class YandexApp extends Homey.App {
     yandex!: Yandex;
     private scenarioIcons!: string[];
 
