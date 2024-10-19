@@ -38,6 +38,7 @@ export default class Device extends Homey.Device {
             this.speaker.state.volume = this.getCapabilityValue("volume_set") ?? 0;
             this.speaker.state.playing = this.getCapabilityValue("speaker_playing");
             this.speaker.on("state", this.handleState);
+            await this.speaker.connect();
         }
         return this.speaker;
     }

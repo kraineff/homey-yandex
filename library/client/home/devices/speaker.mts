@@ -85,12 +85,18 @@ export class YandexSpeaker extends EventEmitter {
             this.state = state;
             this.emit("state", this.state);
         });
+    }
 
-        this.websocket.connect().catch(console.error);
+    async connect() {
+        await this.websocket.connect();
+    }
+
+    async disconnect() {
+        await this.websocket.disconnect();
     }
 
     async destroy() {
-        await this.websocket.disconnect();
+        await this.disconnect();
         this.removeAllListeners();
     }
 

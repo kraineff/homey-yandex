@@ -9,12 +9,8 @@ export class YandexHome {
         this.updater = new YandexHomeUpdater(this.api);
     }
 
-    async connect() {
-        await this.updater.connect();
-    }
-
-    async disconnect() {
-        await this.updater.disconnect();
+    async destroy() {
+        await this.updater.destroy();
     }
 
     async createSpeaker(id: string) {

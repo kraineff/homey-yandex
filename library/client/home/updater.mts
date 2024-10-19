@@ -46,7 +46,13 @@ export class YandexHomeUpdater extends EventEmitter {
         await this.websocket.disconnect();
     }
 
+    async destroy() {
+        await this.disconnect();
+        this.removeAllListeners();
+    }
+
     async getDevices() {
+        await this.connect();
         return this.devices;
     }
 
@@ -68,6 +74,7 @@ export class YandexHomeUpdater extends EventEmitter {
     }
 
     async getScenarios() {
+        await this.connect();
         if (!this.scenarios.length) {
             const scenarios = await this.api.iot.getScenarios();
             await this.updateScenarios(scenarios);
