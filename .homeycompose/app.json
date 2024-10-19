@@ -4,7 +4,6 @@
     "platforms": ["local"],
 
     "compatibility": ">=12.1.0",
-    "esm": true,
     "sdk": 3,
 
     "brandColor": "#FC3F1D",
