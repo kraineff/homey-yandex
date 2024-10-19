@@ -32,6 +32,7 @@ export default class Driver extends Homey.Driver {
 
                 if (authReady) {
                     clearInterval(checkAuth);
+                    await this.yandex.home.connect();
                     session.emit("login_end", undefined);
                 }
             }, 2000)

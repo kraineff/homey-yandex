@@ -11,10 +11,10 @@ export default class YandexApp extends Homey.App {
             get: async () => JSON.parse(this.homey.settings.get("storage") ?? "{}"),
             set: async content => this.homey.settings.set("storage", JSON.stringify(content))
         });
-        await this.yandex.home.connect();
+        await this.yandex.home.connect().catch(console.error);
         await this.initFlows();
 
-        setInterval(async () => await this.yandex.api.iot.getDevices().catch(this.error), 2.16e+7);
+        setInterval(async () => await this.yandex.api.iot.getDevices().catch(console.error), 2.16e+7);
     }
 
     async onUninit() {
