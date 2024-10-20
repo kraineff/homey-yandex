@@ -1,0 +1,17 @@
+{
+    "title": {
+        "en": "Rewind",
+        "ru": "Перемотка"
+    },
+    "type": "number",
+    "getable": true,
+    "setable": true,
+    "uiComponent": "slider",
+    "min": 0,
+    "max": 100,
+    "step": 1,
+    "units": {
+        "en": "sec",
+        "ru": "сек"
+    }
+}

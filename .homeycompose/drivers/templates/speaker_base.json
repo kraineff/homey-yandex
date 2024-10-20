@@ -9,6 +9,10 @@
     "capabilities": [],
     "capabilitiesOptions": {
         "volume_set": {
+            "title": {
+                "en": "Volume",
+                "ru": "Громкость"
+            },
             "step": 0.1
         }
     },

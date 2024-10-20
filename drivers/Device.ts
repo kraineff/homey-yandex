@@ -86,6 +86,11 @@ export default class Device extends Homey.Device {
             await speaker.musicRepeat(mode);
         });
 
+        this.registerCapabilityListener("media_rewind", async value => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaRewind(value);
+        });
+
 
         this.hasCapability("media_like") && this.registerCapabilityListener("media_like", async value => {
             setTimeout(async () => await this.setCapabilityValue("media_like", false), 100);
@@ -153,7 +158,13 @@ export default class Device extends Homey.Device {
         const repeatMode = { None: "none", One: "track", All: "playlist" } as any;
         capabilities.speaker_repeat = capabilities.speaker_repeat && repeatMode[capabilities.speaker_repeat];
 
-        if (trackId && trackId !== lastTrackId) {
+        const rewindOptions = this.getCapabilityOptions("media_rewind");
+        if (capabilities.speaker_duration && capabilities.speaker_duration !== rewindOptions.max) {
+            await this.setCapabilityOptions("media_rewind", { min: 0, max: capabilities.speaker_duration, step: 1 });
+        }
+        await this.setCapabilityValue("media_rewind", capabilities.speaker_position || 0);
+
+        if (trackId !== lastTrackId) {
             const track = await this.yandex.api.music.getTrack(trackId);
             const trackImage = track.coverUri || track.ogImage || state.playerState?.extra?.coverURI;
 

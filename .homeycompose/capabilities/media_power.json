@@ -7,6 +7,5 @@
     "getable": true,
     "setable": true,
     "uiComponent": "button",
-    "uiQuickAction": true,
     "icon": "/assets/capabilities/media_power.svg"
 }
