@@ -1,9 +1,10 @@
+import { randomUUID } from "crypto";
 import EventEmitter from "events";
+import { isIPv4 } from "net";
 import { YandexAPI } from "../../../api/index.js";
 import { YandexHomeUpdater } from "../updater.js";
 import { YandexSpeakerState, YandexSpeakerVinsResponse } from "../typings.js";
 import { ReconnectSocket } from "../../../utils/websocket.js";
-import { randomUUID } from "crypto";
 import { strictJsonParse } from "../../../utils/json.js";
 
 enum AliceState {
@@ -49,7 +50,7 @@ export class YandexSpeaker extends EventEmitter {
                     throw new Error("Нет локального управления");
                 }
 
-                const speakerAddress = speaker.glagol_info.network_info.ip_addresses.find((ip: string) => ip.includes("."));
+                const speakerAddress = speaker.glagol_info.network_info.ip_addresses.find((ip: string) => isIPv4(ip));
                 const speakerPort = speaker.glagol_info.network_info.external_port;
                 this.token = await this.api.quasar.getGlagolToken(speakerId, deviceInfo.platform);
                 return `wss://${speakerAddress}:${speakerPort}`;

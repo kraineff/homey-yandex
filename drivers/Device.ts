@@ -7,16 +7,19 @@ export default class Device extends Homey.Device {
     private id!: string;
     private yandex!: Yandex;
     private speaker?: YandexSpeaker;
-    private waitings!: string[];
+    private waitings!: Record<string, number>;
     private image!: Homey.Image;
-    private imageUrl?: string;
-    private lastTrackId?: string;
+    private lastImageUrl?: string;
+    private lastTrackId!: string;
+    private aliceActive!: boolean;
     
     async onInit() {
         const data = this.getData();
         this.id = data.id as string;
         this.yandex = (this.homey.app as any).yandex;
-        this.waitings = [];
+        this.waitings = {};
+        this.lastTrackId = "";
+        this.aliceActive = false;
 
         this.getCapabilityValue("speaker_playing") ??
             await this.setCapabilityValue("speaker_playing", false);
@@ -33,7 +36,7 @@ export default class Device extends Homey.Device {
         await this.speaker.destroy();
     }
 
-    private async getSpeaker() {
+    async getSpeaker() {
         if (!this.speaker) {
             this.speaker = await this.yandex.home.createSpeaker(this.id);
             this.speaker.state.volume = this.getCapabilityValue("volume_set") ?? 0;
@@ -46,14 +49,14 @@ export default class Device extends Homey.Device {
 
     private registerCapabilities() {
         this.registerCapabilityListener("speaker_playing", async value => {
-            this.waitings.push("speaker_playing");
+            this.waitings["speaker_playing"] = Date.now();
             const speaker = await this.getSpeaker();
             if (value) await speaker.mediaPlay();
             else await speaker.mediaPause();
         });
 
         this.registerCapabilityListener("volume_set", async value => {
-            this.waitings.push("volume_set");
+            this.waitings["volume_set"] = Date.now();
             const speaker = await this.getSpeaker();
             await speaker.volumeSet(value);
         });
@@ -69,7 +72,7 @@ export default class Device extends Homey.Device {
         });
 
         this.registerCapabilityListener("speaker_shuffle", async value => {
-            this.waitings.push("speaker_shuffle");
+            this.waitings["speaker_shuffle"] = Date.now();
             const speaker = await this.getSpeaker();
             await speaker.musicShuffle(value);
         });
@@ -78,7 +81,7 @@ export default class Device extends Homey.Device {
             const modes = { none: "none", track: "one", playlist: "all" } as any;
             const mode = modes[value];
 
-            this.waitings.push("speaker_repeat");
+            this.waitings["speaker_repeat"] = Date.now();
             const speaker = await this.getSpeaker();
             await speaker.musicRepeat(mode);
         });
@@ -134,57 +137,70 @@ export default class Device extends Homey.Device {
     }
 
     private handleState = async (state: Partial<YandexSpeakerState>) => {
-        const capabilities = {
-            "image": state.playerState?.extra?.coverURI,
+        const trackId = state.playerState?.id || "";
+        const lastTrackId = this.lastTrackId + "";
+        this.lastTrackId = trackId;
+
+        const capabilities: Record<string, any> = {
             "speaker_playing": state.playing,
             "speaker_shuffle": state.playerState?.entityInfo?.shuffled,
             "speaker_repeat": state.playerState?.entityInfo?.repeatMode,
-            "speaker_artist": state.playerState?.subtitle,
-            "speaker_album": state.playerState?.playlistId,
-            "speaker_track": state.playerState?.title,
             "speaker_duration": state.playerState?.duration,
             "speaker_position": state.playerState?.progress,
             "volume_set": state.volume
         };
+
         const repeatMode = { None: "none", One: "track", All: "playlist" } as any;
         capabilities.speaker_repeat = capabilities.speaker_repeat && repeatMode[capabilities.speaker_repeat];
 
-        const imageQuality = this.getSetting("image_quality");
-        capabilities.image = "https://" + (capabilities.image || "").replace("%%", `${imageQuality}x${imageQuality}`);
-        if (["LISTENING", "SPEAKING"].includes(state.aliceState || "")) capabilities.image = "https://i.imgur.com/vTa3rif.png";
+        if (trackId && trackId !== lastTrackId) {
+            const track = await this.yandex.api.music.getTrack(trackId);
+            const trackImage = track.coverUri || track.ogImage || state.playerState?.extra?.coverURI;
 
-        if (state.playerState?.id && this.lastTrackId !== state.playerState?.id) {
-            this.lastTrackId = state.playerState?.id;
-            const track = await this.yandex.api.music.getTrack(this.lastTrackId!);
-            track.lyricsInfo.hasAvailableSyncLyrics && console.log(await this.yandex.api.music.getLyrics(this.lastTrackId!));
+            if (trackImage) {
+                const imageQuality = this.getSetting("image_quality");
+                this.lastImageUrl = "https://" + trackImage.replace("%%", `${imageQuality}x${imageQuality}`);
+                this.image.setUrl(this.lastImageUrl);
+                await this.image.update();
+            }
+            
+            // track.lyricsInfo.hasAvailableSyncLyrics && console.log(await this.yandex.api.music.getLyrics(this.lastTrackId!));
+            capabilities["speaker_track"] = track.title || state.playerState?.title;
+            capabilities["speaker_artist"] = track.artists?.map((a: any) => a.name)?.join(", ") || state.playerState?.subtitle;
+            capabilities["speaker_album"] = track.albums?.[0]?.title || state.playerState?.playlistId;
         }
 
-        const promises = Object.entries(capabilities).map(async ([capability, value]) => {
-            const currentValue = this.getCapabilityValue(capability);
-            const newValue = value ?? null;
+        const aliceState = state.aliceState || "";
+        if (!this.aliceActive && (aliceState === "LISTENING" || aliceState === "SPEAKING")) {
+            const handle = async (state: Partial<YandexSpeakerState>) => {
+                if (state.aliceState !== "IDLE") return;
 
-            // Установка обложки
-            if (capability === "image") {
-                if (this.imageUrl !== newValue) {
-                    this.imageUrl = newValue as string;
-                    this.image.setUrl(this.imageUrl);
-                    await this.image.update();
+                this.aliceActive = false;
+                this.speaker!.off("state", handle);
+                this.image.setUrl(this.lastImageUrl!);
+                await this.image.update();
+            };
+
+            this.aliceActive = true;
+            this.speaker!.on("state", handle);
+            this.image.setUrl("https://i.imgur.com/vTa3rif.png");
+            await this.image.update();
+        }
+
+        await Promise.all(
+            Object.entries(capabilities).map(async ([capability, value]) => {
+                const capabilityValue = this.getCapabilityValue(capability);
+                const stateValue = value ?? null;
+
+                if (Object.keys(this.waitings).includes(capability)) {
+                    if (Date.now() - this.waitings[capability] >= 3000)
+                        delete this.waitings[capability];
+                    return Promise.resolve();
                 }
-                return Promise.resolve();
-            }
 
-            // Предотвращение мерцания в интерфейсе (из-за частого обновления значений)
-            if (this.waitings.includes(capability)) {
-                if (currentValue === newValue)
-                    this.waitings = this.waitings.filter(c => c !== capability);
-                return Promise.resolve();
-            }
-
-            // Установка значений
-            if (currentValue !== newValue)
-                await this.setCapabilityValue(capability, newValue).catch(this.error);
-        });
-        
-        await Promise.all(promises);
+                if (capabilityValue !== stateValue)
+                    await this.setCapabilityValue(capability, stateValue).catch(this.error);
+            })
+        );
     };
 }
