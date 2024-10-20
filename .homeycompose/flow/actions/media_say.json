@@ -39,7 +39,7 @@
         {
             "type": "device",
             "name": "device",
-            "filter": "driver_id=dexp-smartbox|elari-smartbeat|irbis-a|jbl-link-music|jbl-link-portable|lg-xboom-ai-thinq|prestigio-smart-mate|yandex-module-2|yandex-station|yandex-station-2|yandex-station-lite|yandex-station-max|yandex-station-mini|yandex-station-mini-2"
+            "filter": "driver_id=dexp-smartbox|elari-smartbeat|irbis-a|jbl-link-music|jbl-link-portable|lg-xboom-ai-thinq|prestigio-smart-mate|yandex-station|yandex-station-2|yandex-station-duo-max|yandex-station-lite|yandex-station-max|yandex-station-midi|yandex-station-mini|yandex-station-mini-2"
         }
     ]
 }
