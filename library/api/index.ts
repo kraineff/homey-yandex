@@ -2,17 +2,20 @@ import { AxiosInstance } from "axios";
 import { YandexStorage } from "../storage/index.js";
 import { createInstance } from "./utils.js";
 import { YandexPassportAPI } from "./services/passport.js";
-import { YandexIotAPI } from "./services/iot.js";
+import { YandexQuasarAPI } from "./services/quasar.js";
+import { YandexMusicAPI } from "./services/music.js";
 
 export class YandexAPI {
     readonly request: AxiosInstance;
     readonly passport: YandexPassportAPI;
-    readonly iot: YandexIotAPI;
+    readonly quasar: YandexQuasarAPI;
+    readonly music: YandexMusicAPI;
 
     constructor(storage: YandexStorage) {
         this.request = createInstance(storage, config => config);
         this.passport = new YandexPassportAPI(storage);
-        this.iot = new YandexIotAPI(storage, this.passport);
+        this.quasar = new YandexQuasarAPI(storage, this.passport);
+        this.music = new YandexMusicAPI(storage, this.passport);
     }
 
     async getAuthorization() {

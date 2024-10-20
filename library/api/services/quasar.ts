@@ -3,23 +3,15 @@ import { YandexStorage } from "../../storage/index.js";
 import { YandexPassportAPI } from "./passport.js";
 import { createInstance } from "../utils.js";
 
-export class YandexIotAPI {
+export class YandexQuasarAPI {
     private client: AxiosInstance;
     #csrfToken?: string;
 
     constructor(storage: YandexStorage, private passport: YandexPassportAPI) {
-        this.client = createInstance(storage, config => ({
-            ...config,
-            headers: {
-                ...config.headers,
-                "Accept": "*/*",
-                "Origin": "https://yandex.ru",
-                "Referer": "https://yandex.ru/"
-            }
-        }));
+        this.client = createInstance(storage, config => config);
 
         this.client.interceptors.request.use(async request => {
-            if (request.method === "get" && request.url?.includes("/glagol/"))
+            if (request.method === "get" && request.url?.includes("/glagol/") || request.url?.includes("/muspult/"))
                 request.headers.set("Authorization", `OAuth ${ await this.passport.getMusicToken() }`);
 
             if (["post", "put", "delete"].includes(request.method || ""))
@@ -63,15 +55,27 @@ export class YandexIotAPI {
             .then(res => res.data.devices);
     }
 
+    async getAudioDevices() {
+        return await this.client
+            .get("https://iot.quasar.yandex.ru/glagol/user/info?scope=audio")
+            .then(res => res.data.devices);
+    }
+
+    async getAccountConfig() {
+        return await this.client
+            .get("https://quasar.yandex.ru/get_account_config")
+            .then(res => res.data.config);
+    }
+
     async getDevices() {
         return await this.client
             .get("https://iot.quasar.yandex.ru/m/v3/user/devices")
             .then(res => res.data as any);
     }
 
-    async getAudioDevices() {
+    async getDevicesQuasarConfig() {
         return await this.client
-            .get("https://iot.quasar.yandex.ru/glagol/user/info?scope=audio")
+            .get("https://iot.quasar.yandex.ru/m/user/devices/quasar/configuration")
             .then(res => res.data.devices);
     }
 
@@ -93,11 +97,6 @@ export class YandexIotAPI {
             .then(res => res.data);
     }
 
-    async editScenario(scenarioId: string, data: any) {
-        await this.client
-            .put(`https://iot.quasar.yandex.ru/m/user/scenarios/${scenarioId}`, data);
-    }
-
     async createScenario(data: any) {
         // status: 'ok',
         // request_id: '9c465ddd-5e8d-4909-a14b-1f5d55c9e484',
@@ -109,6 +108,11 @@ export class YandexIotAPI {
                 if (status !== 'ok') throw new Error(res.data.message ?? res.data.code);
                 return res.data;
             });
+    }
+
+    async editScenario(scenarioId: string, data: any) {
+        await this.client
+            .put(`https://iot.quasar.yandex.ru/m/user/scenarios/${scenarioId}`, data);
     }
 
     async runScenarioAction(scenarioId: string) {

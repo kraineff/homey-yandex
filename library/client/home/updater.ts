@@ -15,7 +15,7 @@ export class YandexHomeUpdater extends EventEmitter {
 
         this.websocket = new ReconnectSocket({
             address: async () => {
-                const response = await this.api.iot.getDevices();
+                const response = await this.api.quasar.getDevices();
                 this.updateDevices(response.households);
                 return response.updates_url;
             },
@@ -76,7 +76,7 @@ export class YandexHomeUpdater extends EventEmitter {
     async getScenarios() {
         await this.connect();
         if (!this.scenarios.length) {
-            const scenarios = await this.api.iot.getScenarios();
+            const scenarios = await this.api.quasar.getScenarios();
             await this.updateScenarios(scenarios);
         }
         return this.scenarios;

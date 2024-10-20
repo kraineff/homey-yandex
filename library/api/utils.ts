@@ -10,7 +10,9 @@ export const createInstance = (storage: YandexStorage, configCallback: (config: 
         httpsAgent: new https.Agent({ keepAlive: true }),
         headers: {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Safari/605.1.15",
-            "Accept-Language": "ru"
+            "Accept": "*/*",
+            "Accept-Language": "ru",
+            "Accept-Encoding": "gzip, deflate, br"
         }
     }));
 

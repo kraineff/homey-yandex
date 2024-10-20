@@ -10,6 +10,7 @@ export default class Device extends Homey.Device {
     private waitings!: string[];
     private image!: Homey.Image;
     private imageUrl?: string;
+    private lastTrackId?: string;
     
     async onInit() {
         const data = this.getData();
@@ -151,6 +152,12 @@ export default class Device extends Homey.Device {
         const imageQuality = this.getSetting("image_quality");
         capabilities.image = "https://" + (capabilities.image || "").replace("%%", `${imageQuality}x${imageQuality}`);
         if (["LISTENING", "SPEAKING"].includes(state.aliceState || "")) capabilities.image = "https://i.imgur.com/vTa3rif.png";
+
+        if (state.playerState?.id && this.lastTrackId !== state.playerState?.id) {
+            this.lastTrackId = state.playerState?.id;
+            const track = await this.yandex.api.music.getTrack(this.lastTrackId!);
+            track.lyricsInfo.hasAvailableSyncLyrics && console.log(await this.yandex.api.music.getLyrics(this.lastTrackId!));
+        }
 
         const promises = Object.entries(capabilities).map(async ([capability, value]) => {
             const currentValue = this.getCapabilityValue(capability);

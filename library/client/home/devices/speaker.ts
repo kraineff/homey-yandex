@@ -41,7 +41,7 @@ export class YandexSpeaker extends EventEmitter {
                 const deviceInfo = device.quasar_info;
 
                 const speakerId = deviceInfo.device_id;
-                const speakers = await this.api.iot.getAudioDevices() as Array<any>;
+                const speakers = await this.api.quasar.getAudioDevices() as Array<any>;
                 const speaker = speakers.find(s => s.id === this.id);
 
                 if (!speaker.glagol_info.network_info) {
@@ -49,9 +49,9 @@ export class YandexSpeaker extends EventEmitter {
                     throw new Error("Нет локального управления");
                 }
 
-                const speakerAddress = speaker.glagol_info.network_info.ip_addresses[0];
+                const speakerAddress = speaker.glagol_info.network_info.ip_addresses.find((ip: string) => ip.includes("."));
                 const speakerPort = speaker.glagol_info.network_info.external_port;
-                this.token = await this.api.iot.getGlagolToken(speakerId, deviceInfo.platform);
+                this.token = await this.api.quasar.getGlagolToken(speakerId, deviceInfo.platform);
                 return `wss://${speakerAddress}:${speakerPort}`;
             },
             options: { rejectUnauthorized: false },
@@ -103,7 +103,7 @@ export class YandexSpeaker extends EventEmitter {
     private async command(params: Omit<CommandParams, "volume">) {
         const cloudAction = async () => {
             if (!params.cloud) return;
-            await this.api.iot.runDeviceAction(this.id, [{
+            await this.api.quasar.runDeviceAction(this.id, [{
                 type: "devices.capabilities.quasar.server_action",
                 state: {
                     instance: params.cloud[1] ?? "text_action",

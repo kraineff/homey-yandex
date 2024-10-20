@@ -12,8 +12,8 @@ module.exports = class YandexApp extends Homey.App {
             set: async content => this.homey.settings.set("storage", JSON.stringify(content))
         });
         await this.initFlows();
-
-        setInterval(async () => await this.yandex.api.iot.getDevices().catch(console.error), 2.16e+7);
+        
+        setInterval(async () => await this.yandex.api.quasar.getDevices().catch(console.error), 2.16e+7);
     }
 
     async onUninit() {
@@ -43,7 +43,7 @@ module.exports = class YandexApp extends Homey.App {
 
             // Обновление иконки для нового сценария
             if (!query.length && this.scenarioIcons === undefined) {
-                const scenarioIcons = await this.yandex.api.iot.getScenarioIcons();
+                const scenarioIcons = await this.yandex.api.quasar.getScenarioIcons();
                 this.scenarioIcons = scenarioIcons.icons;
             }
             
@@ -98,7 +98,7 @@ module.exports = class YandexApp extends Homey.App {
             .filter(scenario => scenario.action.value.startsWith("громче на 0!"))
             .map(scenario => scenario.action.value.replace("громче на 0", "").length);
 
-        return await this.yandex.api.iot.createScenario({
+        return await this.yandex.api.quasar.createScenario({
             name: trigger, icon,
             triggers: [{
                 trigger: {
