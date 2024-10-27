@@ -195,6 +195,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -205,6 +206,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -260,6 +266,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -270,6 +277,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -325,6 +337,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -335,6 +348,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -390,6 +408,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -400,6 +419,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -478,6 +502,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -488,6 +513,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -566,6 +596,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -576,6 +607,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -631,6 +667,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -641,6 +678,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -696,6 +738,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_power",
         "media_home",
         "media_back",
@@ -714,6 +757,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -795,6 +843,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -805,6 +854,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -886,6 +940,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -896,6 +951,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -977,6 +1037,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -987,6 +1048,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -1068,6 +1134,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_power",
         "media_home",
         "media_back",
@@ -1086,6 +1153,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -1167,6 +1239,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -1177,6 +1250,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -1258,6 +1336,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -1268,6 +1347,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -1349,6 +1433,7 @@
         "speaker_position",
         "volume_set",
         "media_rewind",
+        "media_lyrics",
         "media_like",
         "media_dislike"
       ],
@@ -1359,6 +1444,11 @@
             "ru": "Громкость"
           },
           "step": 0.1
+        },
+        "media_rewind": {
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       },
       "pair": [
@@ -1492,6 +1582,17 @@
       "setable": true,
       "uiComponent": "button",
       "icon": "/assets/capabilities/media_like.svg"
+    },
+    "media_lyrics": {
+      "title": {
+        "en": "Lyrics",
+        "ru": "Текст песни"
+      },
+      "type": "enum",
+      "getable": true,
+      "setable": true,
+      "uiComponent": "picker",
+      "values": []
     },
     "media_power": {
       "title": {

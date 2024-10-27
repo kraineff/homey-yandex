@@ -12,6 +12,8 @@ export default class Device extends Homey.Device {
     private lastImageUrl?: string;
     private lastTrackId!: string;
     private aliceActive!: boolean;
+    private lyricSeconds!: Array<string>;
+    private lyricTimeout?: NodeJS.Timeout;
     
     async onInit() {
         const data = this.getData();
@@ -20,6 +22,7 @@ export default class Device extends Homey.Device {
         this.waitings = {};
         this.lastTrackId = "";
         this.aliceActive = false;
+        this.lyricSeconds = [];
 
         this.getCapabilityValue("speaker_playing") ??
             await this.setCapabilityValue("speaker_playing", false);
@@ -87,10 +90,17 @@ export default class Device extends Homey.Device {
         });
 
         this.registerCapabilityListener("media_rewind", async value => {
+            this.waitings["media_rewind"] = Date.now();
             const speaker = await this.getSpeaker();
             await speaker.mediaRewind(value);
         });
 
+        this.registerCapabilityListener("media_lyrics", async value => {
+            const speaker = await this.getSpeaker();
+            await speaker.mediaRewind(Number(value));
+            clearTimeout(this.lyricTimeout);
+            this.lyricTimeout = undefined;
+        });
 
         this.hasCapability("media_like") && this.registerCapabilityListener("media_like", async value => {
             setTimeout(async () => await this.setCapabilityValue("media_like", false), 100);
@@ -152,19 +162,11 @@ export default class Device extends Homey.Device {
             "speaker_repeat": state.playerState?.entityInfo?.repeatMode,
             "speaker_duration": state.playerState?.duration,
             "speaker_position": state.playerState?.progress,
-            "volume_set": state.volume
+            "volume_set": state.volume,
+            "media_rewind": Math.round(state.playerState?.progress || 0)
         };
 
-        const repeatMode = { None: "none", One: "track", All: "playlist" } as any;
-        capabilities.speaker_repeat = capabilities.speaker_repeat && repeatMode[capabilities.speaker_repeat];
-
-        const rewindOptions = this.getCapabilityOptions("media_rewind");
-        if (capabilities.speaker_duration && capabilities.speaker_duration !== rewindOptions.max) {
-            await this.setCapabilityOptions("media_rewind", { min: 0, max: capabilities.speaker_duration, step: 1 });
-        }
-        await this.setCapabilityValue("media_rewind", capabilities.speaker_position || 0);
-
-        if (trackId !== lastTrackId) {
+        if (trackId !== "" && trackId !== lastTrackId) {
             const track = await this.yandex.api.music.getTrack(trackId);
             const trackImage = track.coverUri || track.ogImage || state.playerState?.extra?.coverURI;
 
@@ -175,10 +177,52 @@ export default class Device extends Homey.Device {
                 await this.image.update();
             }
             
-            // track.lyricsInfo.hasAvailableSyncLyrics && console.log(await this.yandex.api.music.getLyrics(this.lastTrackId!));
+            this.lyricSeconds = [];
+            await this.setCapabilityOptions("media_lyrics", { values: [] });
+
+            if (track.lyricsInfo.hasAvailableSyncLyrics) {
+                const lyrics = await this.yandex.api.music.getLyrics(trackId)
+                    .then(lyrics => {
+                        const lyricsLines: string[] = lyrics.split("\n");
+                        return lyricsLines.map(line => {
+                            const time = line.split("[")[1].split("] ")[0];
+                            const timeColons = time.split(":").map(c => Number(c));
+                            const timeSeconds = String((timeColons[0] * 60) + timeColons[1]);
+                            this.lyricSeconds.push(timeSeconds);
+
+                            const text = line.replace(`[${time}] `, "") || "-";
+                            return { id: timeSeconds, title: text };
+                        });
+                    })
+                    .catch(console.error);
+                await this.setCapabilityOptions("media_lyrics", { values: lyrics });
+            }
+
             capabilities["speaker_track"] = track.title || state.playerState?.title;
             capabilities["speaker_artist"] = track.artists?.map((a: any) => a.name)?.join(", ") || state.playerState?.subtitle;
             capabilities["speaker_album"] = track.albums?.[0]?.title || state.playerState?.playlistId;
+        }
+
+        const repeatMode = { None: "none", One: "track", All: "playlist" } as any;
+        capabilities.speaker_repeat = capabilities.speaker_repeat && repeatMode[capabilities.speaker_repeat];
+
+        const rewindOptions = this.getCapabilityOptions("media_rewind");
+        if (capabilities.speaker_duration && capabilities.speaker_duration !== rewindOptions.max) {
+            await this.setCapabilityOptions("media_rewind", { min: 0, max: capabilities.speaker_duration, step: 1 });
+        }
+
+        if (capabilities.speaker_position && this.lyricSeconds.length) {
+            const position = capabilities.speaker_position;
+            const closest = this.lyricSeconds.find(s => Number(s) >= position) || this.lyricSeconds[0];
+            const between = Number(closest) - position;
+
+            if (between > 0 && !this.lyricTimeout) {
+                this.lyricTimeout = setTimeout(async () => {
+                    this.lyricTimeout = undefined;
+                    this.lyricSeconds.includes(closest) &&
+                        await this.setCapabilityValue("media_lyrics", closest).catch(this.error);
+                }, between * 1000);
+            }
         }
 
         const aliceState = state.aliceState || "";

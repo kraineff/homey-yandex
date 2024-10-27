@@ -1,0 +1,11 @@
+{
+    "title": {
+        "en": "Lyrics",
+        "ru": "Текст песни"
+    },
+    "type": "enum",
+    "getable": true,
+    "setable": true,
+    "uiComponent": "picker",
+    "values": []
+}

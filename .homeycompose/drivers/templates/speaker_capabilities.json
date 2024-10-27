@@ -3,7 +3,7 @@
         "speaker_playing", "speaker_next", "speaker_prev", "speaker_shuffle", "speaker_repeat",
         "speaker_artist", "speaker_album", "speaker_track",
         "speaker_duration", "speaker_position",
-        "volume_set", "media_rewind",
+        "volume_set", "media_rewind", "media_lyrics",
         "media_like", "media_dislike"
     ]
 }
