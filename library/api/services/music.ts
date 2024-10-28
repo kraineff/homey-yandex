@@ -28,6 +28,12 @@ export class YandexMusicAPI {
         return this.client;
     }
 
+    async getAccountStatus() {
+        return await this.client
+            .get("https://api.music.yandex.net/account/status")
+            .then(res => res.data.result);
+    }
+
     async getTrack(trackId: string) {
         return await this.client
             .post("https://api.music.yandex.net/tracks", qs.stringify({ "track-ids": [trackId] }))
@@ -47,6 +53,50 @@ export class YandexMusicAPI {
 
         return await this.client
             .get(lyricsUrl)
-            .then(res => res.data);
+            .then(res => res.data as string);
+    }
+
+    async getLikes(userId: string) {
+        return await this.client
+            .get(`https://api.music.yandex.net/users/${userId}/likes/tracks`)
+            .then(res => res.data.result.library.tracks as any[]);
+    }
+
+    async addLike(userId: string, trackId: string, albumId: string) {
+        const params = new URLSearchParams();
+        params.append("track-ids", `${trackId}:${albumId}`);
+
+        return await this.client
+            .post(`https://api.music.yandex.net/users/${userId}/likes/tracks/add-multiple`, undefined, { params });
+    }
+
+    async removeLike(userId: string, trackId: string) {
+        const params = new URLSearchParams();
+        params.append("track-ids", `${trackId}`);
+
+        return await this.client
+            .post(`https://api.music.yandex.net/users/${userId}/likes/tracks/remove`, undefined, { params });
+    }
+
+    async getDislikes(userId: string) {
+        return await this.client
+            .get(`https://api.music.yandex.net/users/${userId}/dislikes/tracks`)
+            .then(res => res.data.result.library.tracks as any[]);
+    }
+
+    async addDislike(userId: string, trackId: string, albumId: string) {
+        const params = new URLSearchParams();
+        params.append("track-ids", `${trackId}:${albumId}`);
+
+        return await this.client
+            .post(`https://api.music.yandex.net/users/${userId}/dislikes/tracks/add-multiple`, undefined, { params });
+    }
+
+    async removeDislike(userId: string, trackId: string) {
+        const params = new URLSearchParams();
+        params.append("track-ids", `${trackId}`);
+
+        return await this.client
+            .post(`https://api.music.yandex.net/users/${userId}/dislikes/tracks/remove`, undefined, { params });
     }
 }
