@@ -1,9 +1,9 @@
-import { AxiosInstance } from "axios";
-import { createInstance } from "../utils.js";
-import { YandexStorage } from "../../storage/index.js";
-import { YandexPassportAPI } from "./passport.js";
+import type { AxiosInstance } from "axios";
+import type { YandexStorage } from "../../storage.js";
+import type { YandexPassportAPI } from "./passport.js";
 import { createHmac } from "crypto";
 import qs from "querystring";
+import { createInstance } from "../utils.js";
 
 export class YandexMusicAPI {
     private client: AxiosInstance;
@@ -34,10 +34,15 @@ export class YandexMusicAPI {
             .then(res => res.data.result);
     }
 
-    async getTrack(trackId: string) {
+    async getTracks(trackIds: Array<string>) {
         return await this.client
-            .post("https://api.music.yandex.net/tracks", qs.stringify({ "track-ids": [trackId] }))
-            .then(res => res.data.result[0]);
+            .post("https://api.music.yandex.net/tracks", qs.stringify({ "track-ids": trackIds }))
+            .then(res => res.data.result);
+    }
+
+    async getTrack(trackId: string) {
+        return await this.getTracks([trackId])
+           .then(tracks => tracks[0]);
     }
 
     async getLyrics(trackId: string) {

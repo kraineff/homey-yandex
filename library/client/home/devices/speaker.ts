@@ -14,8 +14,7 @@ enum AliceState {
 
 enum Connection {
     Local = 0,
-    Cloud = 1,
-    CloudOnly = 2
+    Cloud = 1
 };
 
 type CommandParams = {
@@ -76,10 +75,6 @@ export class YandexSpeaker extends EventEmitter {
             this.connection = Connection.Local;
         });
 
-        this.websocket.on("disconnect", async () => {
-            this.connection = Connection.Cloud;
-        });
-
         this.websocket.on("message", message => {
             const state = message.state;
             if (JSON.stringify(this.state) === JSON.stringify(state)) return;
@@ -114,7 +109,7 @@ export class YandexSpeaker extends EventEmitter {
             return "";
         };
         
-        if (!params.local || this.connection === Connection.CloudOnly)
+        if (!params.local || this.connection === Connection.Cloud)
             return await cloudAction();
 
         return await this.websocket.send({ command: params.local[0], ...(params.local[1] || {}) })

@@ -29,67 +29,67 @@ const DefaultOptions = {
 
 export class ReconnectSocket extends EventEmitter {
     #websocket?: WebSocket;
-    #connectionLock: boolean;
+    #connectionPromise?: Promise<void>;
     #heartbeatTimeout?: NodeJS.Timeout;
     #reconnectTimeout?: NodeJS.Timeout;
-    #reconnectAttempt: number;
+    #reconnectAttempt: number = 0;
 
     constructor(public options: Options) {
         super();
-        this.#connectionLock = false;
-        this.#reconnectAttempt = 0;
     }
 
     async connect(timeoutSec: number = 10) {
-        // Блокируем новые подключения, если сокет не закрыт
-        if (this.#connectionLock) return;
+        if (this.#connectionPromise) return this.#connectionPromise;
 
-        const address = await this.options.address();
-        const { protocols, options } = this.options;
-        this.#connectionLock = true;
+        this.#connectionPromise = (async () => {
+            try {
+                const address = await this.options.address();
+                const { protocols, options } = this.options;
 
-        const promise = new Promise<void>((resolve, reject) => {
-            this.#websocket = new WebSocket(address, protocols, options);
-            this.#websocket.on("ping", () => this.#heartbeat());
-            this.#websocket.on("error", console.error);
-            
-            this.#websocket.once("open", async () => {
-                this.#heartbeat();
-                this.emit("connect");
-                resolve();
-            });
+                await new Promise<void>((resolve, reject) => {
+                    this.#websocket = new WebSocket(address, protocols, options);
+                    this.#websocket.on("ping", () => this.#heartbeat());
+                    this.#websocket.on("error", console.error);
+                    
+                    this.#websocket.once("open", async () => {
+                        this.#reconnectAttempt = 0;
+                        this.#heartbeat();
+                        this.emit("connect");
+                        resolve();
+                    });
 
-            this.#websocket.on("close", async (code, reason) => {
-                // Очищаем текущий сокет, разрешаем новые подключения
-                this.#connectionLock = false;
-                this.#websocket!.removeAllListeners();
-                clearTimeout(this.#heartbeatTimeout);
-                clearTimeout(this.#reconnectTimeout);
-                this.emit("disconnect");
+                    this.#websocket.on("close", async (code, reason) => {
+                        if (this.#reconnectAttempt === 0) {
+                            this.emit("disconnect");
+                            return reject("Ошибка подключения");
+                        }
 
-                // Отдаем ошибку при первом подключении, если код закрытия в списке
-                const closeCodes = this.options.closeCodes ?? DefaultOptions.closeCodes;
-                if (closeCodes.includes(code))
-                    return reject(new Error("Подключение: закрытие"));
+                        const closeCodes = this.options.closeCodes ?? DefaultOptions.closeCodes;
+                        if (this.#reconnectAttempt > 3 || closeCodes.includes(code)) {
+                            this.#cleanup();
+                            this.emit("disconnect");
+                        }
+                        await this.#reconnect();
+                    });
 
-                await this.#reconnect();
-            });
+                    this.#websocket.on("message", async (message) => {
+                        this.#heartbeat();
+                        
+                        // Декодируем сообщение или возвращаем оригинал
+                        const decode = this.options.message?.decode ?? DefaultOptions.message.decode;
+                        await decode(message)
+                            .then(decoded => this.emit("message", decoded), console.error);
+                    });
 
-            this.#websocket.on("message", async (message) => {
-                this.#heartbeat();
-                
-                // Декодируем сообщение или возвращаем оригинал
-                const decode = this.options.message?.decode ?? DefaultOptions.message.decode;
-                await decode(message)
-                    .then(decoded => this.emit("message", decoded), console.error);
-            });
+                    setTimeout(() => reject(new Error("Таймаут подключения")), timeoutSec * 1000);
+                });
+            } finally {
+                this.#connectionPromise = undefined;
+            }
+        })();
 
-            setTimeout(() => reject(new Error("Подключение: таймаут")), timeoutSec * 1000);
-        });
-
-        return promise.catch(error => {
-            // Сбрасываем блокировку подключения при ошибке
-            this.#connectionLock = false;
+        return this.#connectionPromise.catch(error => {
+            this.#cleanup();
             return Promise.reject(error);
         });
     }
@@ -125,7 +125,7 @@ export class ReconnectSocket extends EventEmitter {
 
             this.#websocket!.on("message", handleMessage);
             this.#websocket!.send(encoded);
-            setTimeout(() => reject(new Error("Отправка: таймаут")), timeoutSec * 1000);
+            setTimeout(() => reject(new Error("Таймаут отправки")), timeoutSec * 1000);
         });
     }
 
@@ -140,8 +140,20 @@ export class ReconnectSocket extends EventEmitter {
 
     async #reconnect() {
         clearTimeout(this.#reconnectTimeout);
+        const delay = Math.min(1000 * Math.pow(2, this.#reconnectAttempt - 1), 30000);
+        const jitter = Math.random() * 1000;
+        
         this.#reconnectAttempt += 1;
         this.#reconnectTimeout =
-            setTimeout(async () => await this.connect().catch(console.error), 1 * 1000);
+            setTimeout(async () => await this.connect().catch(console.error), delay + jitter);
+    }
+
+    #cleanup() {
+        if (this.#websocket) {
+            this.#websocket.removeAllListeners();
+            this.#websocket = undefined;
+        }
+        clearTimeout(this.#heartbeatTimeout);
+        clearTimeout(this.#reconnectTimeout);
     }
 }

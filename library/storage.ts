@@ -1,12 +1,23 @@
 import { CookieJar } from "tough-cookie";
-import { YandexStorageContent, YandexStorageHandlers, YandexStorageToken } from "./typings.js";
+
+export type YandexStorageHandlers = {
+    get: () => PromiseLike<YandexStorageContent>;
+    set: (content: YandexStorageContent) => PromiseLike<any>;
+}
+
+export type YandexStorageContent = {
+    cookieJar?: string;
+    tokens?: Record<string, YandexStorageToken>;
+}
+
+export type YandexStorageToken = {
+    accessToken: string;
+    expiresAt: number;
+}
 
 export class YandexStorage {
     private content?: Omit<YandexStorageContent, "cookieJar"> & {
         cookieJar: CookieJar;
-        tokens?: {
-            [clientId: string]: YandexStorageToken;
-        };
     };
 
     constructor(private handlers: YandexStorageHandlers) {}

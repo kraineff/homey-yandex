@@ -1,7 +1,7 @@
+import type { AxiosInstance } from "axios";
+import type { YandexStorage } from "../../storage.js";
 import qs from "querystring";
-import { AxiosInstance } from "axios";
 import { createInstance } from "../utils.js";
-import { YandexStorage } from "../../storage/index.js";
 
 export class YandexPassportAPI {
     private client: AxiosInstance;

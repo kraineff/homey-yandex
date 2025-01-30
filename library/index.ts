@@ -1,7 +1,6 @@
 import { YandexAPI } from "./api/index.js";
 import { YandexHome } from "./client/home/index.js";
-import { YandexStorage } from "./storage/index.js";
-import { YandexStorageHandlers } from "./storage/typings.js";
+import { type YandexStorageHandlers, YandexStorage } from "./storage.js";
 
 export class Yandex {
     readonly storage: YandexStorage;

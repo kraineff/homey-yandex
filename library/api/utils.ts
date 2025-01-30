@@ -1,7 +1,11 @@
 import http from "http";
 import https from "https";
-import axios, { CreateAxiosDefaults } from "axios";
-import { YandexStorage } from "../storage/index.js";
+import axios, { AxiosInstance, CreateAxiosDefaults } from "axios";
+import { YandexStorage } from "../storage.js";
+
+interface YandexAxiosInstance extends AxiosInstance {
+    lastRequest: number;
+}
 
 export const createInstance = (storage: YandexStorage, configCallback: (config: CreateAxiosDefaults) => CreateAxiosDefaults) => {   
     const client = axios.create(configCallback({
@@ -14,9 +18,15 @@ export const createInstance = (storage: YandexStorage, configCallback: (config: 
             "Accept-Language": "ru",
             "Accept-Encoding": "gzip, deflate, br"
         }
-    }));
+    })) as YandexAxiosInstance;
 
-    client.interceptors.request.use(async config => {            
+    client.lastRequest = Date.now();
+
+    client.interceptors.request.use(async config => {
+        const delay = client.lastRequest + 200 - Date.now();
+        delay > 0 && await new Promise(resolve => setTimeout(resolve, delay));
+        client.lastRequest = Date.now();
+
         const cookies = await storage.getCookies(config.url || "");
         (cookies) && config.headers.set("Cookie", cookies);
         return config;

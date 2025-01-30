@@ -15,7 +15,7 @@ export default class Device extends Homey.Device {
 
     private lastTrackId: string = "";
     private lastTrackAlbumId: string = "";
-    private lastTrackImage?: string;
+    private lastTrackImage: string = "https://";
     private lastTrackLyrics: Array<string> = [];
     private lastTrackLyricsTimeout?: NodeJS.Timeout;
     
@@ -24,13 +24,18 @@ export default class Device extends Homey.Device {
         this.id = data.id as string;
         this.yandex = (this.homey.app as any).yandex;
 
+        // Значение по умолчанию при создании колонки
         this.getCapabilityValue("speaker_playing") ??
             await this.setCapabilityValue("speaker_playing", false);
 
+        // Создание и установка обложки
         this.image = await this.homey.images.createImage();
         await this.setAlbumArtImage(this.image);
+
+        // Регистрация свойств
         this.registerCapabilities();
 
+        // Получение идентификатора пользователя
         const accountStatus = await this.yandex.api.music.getAccountStatus();
         this.userId = String(accountStatus.account.uid);
 
@@ -163,65 +168,17 @@ export default class Device extends Homey.Device {
             await speaker.controlClick();
         });
     }
-
+    
     private handleState = async (state: Partial<YandexSpeakerState>) => {
         const capabilities: Record<string, any> = {
-            "speaker_playing": state.playing,
-            "speaker_shuffle": state.playerState?.entityInfo?.shuffled,
-            "speaker_repeat": state.playerState?.entityInfo?.repeatMode,
-            "speaker_duration": state.playerState?.duration,
-            "speaker_position": state.playerState?.progress,
-            "volume_set": state.volume,
+            "speaker_playing": state.playing || false,
+            "speaker_shuffle": state.playerState?.entityInfo?.shuffled || false,
+            "speaker_repeat": state.playerState?.entityInfo?.repeatMode || "None",
+            "speaker_duration": state.playerState?.duration || 0,
+            "speaker_position": state.playerState?.progress || 0,
+            "volume_set": state.volume || this.getCapabilityValue("volume_set"),
             "media_rewind": Math.round(state.playerState?.progress || 0)
         };
-
-        // Для нового трека
-        const trackId = state.playerState?.id || "";
-        if (trackId !== this.lastTrackId) {
-            const track = await this.yandex.api.music.getTrack(trackId).catch(() => undefined);
-            this.lastTrackId = track?.id || trackId;
-            this.lastTrackAlbumId = track?.albums?.[0]?.id || "";
-            this.lastTrackLyrics = [];
-
-            // Обновление обложки
-            const trackImage = track?.coverUri || track?.ogImage || state.playerState?.extra?.coverURI;
-            if (trackImage) {
-                const imageQuality = this.getSetting("image_quality") || 500;
-                this.lastTrackImage = "https://" + trackImage.replace("%%", `${imageQuality}x${imageQuality}`);
-                this.image.setUrl(this.lastTrackImage);
-                await this.image.update();
-            }
-
-            // Обновление текста песни
-            let lyricsValues = [{ id: "none", title: "Нет текста песни" }];
-            if (track?.lyricsInfo?.hasAvailableSyncLyrics) {
-                const lyrics = await this.yandex.api.music.getLyrics(trackId).catch(() => "");
-                const lyricsLines = lyrics.split("\n");
-                const values = lyricsLines.map(line => {
-                    const time = line.split("[")[1].split("] ")[0];
-                    const timeColons = time.split(":").map(c => Number(c));
-                    const timeSeconds = String((timeColons[0] * 60) + timeColons[1]);
-                    const title = line.replace(`[${time}] `, "") || "-";
-
-                    this.lastTrackLyrics.push(timeSeconds);
-                    return { id: timeSeconds, title };
-                });
-                values.length && (lyricsValues = values);
-            }
-            await this.setCapabilityOptions("media_lyrics", { values: lyricsValues });
-
-            // Обновление лайка и дизлайка
-            const likedTracks = await this.yandex.api.music.getLikes(this.userId).catch(() => []);
-            capabilities["media_like"] = likedTracks.find(track => track.id === trackId) ? true : false;
-            
-            const dislikedTracks = await this.yandex.api.music.getDislikes(this.userId).catch(() => []);
-            capabilities["media_dislike"] = dislikedTracks.find(track => track.id === trackId) ? true : false;
-
-            // Обновление названия, исполнителей, альбома
-            capabilities["speaker_track"] = track?.title || state.playerState?.title;
-            capabilities["speaker_artist"] = track?.artists?.map((a: any) => a.name)?.join(", ") || state.playerState?.subtitle;
-            capabilities["speaker_album"] = track?.albums?.[0]?.title || state.playerState?.playlistId;
-        }
 
         const repeatMode = { None: "none", One: "track", All: "playlist" } as any;
         capabilities.speaker_repeat = capabilities.speaker_repeat && repeatMode[capabilities.speaker_repeat];
@@ -231,8 +188,81 @@ export default class Device extends Homey.Device {
             await this.setCapabilityOptions("media_rewind", { min: 0, max: capabilities.speaker_duration, step: 1 });
         }
 
-        if (capabilities.speaker_position && this.lastTrackLyrics.length) {
-            const position = capabilities.speaker_position;
+        // Для нового трека
+        const trackId = state.playerState?.id || "";
+        if (trackId !== this.lastTrackId) {
+            const track = await this.yandex.api.music.getTrack(trackId).catch(() => undefined);
+            this.lastTrackId = track?.id || trackId;
+            this.lastTrackAlbumId = track?.albums?.[0]?.id || "";
+            this.lastTrackLyrics = [];
+
+            const [likes, dislikes] = await Promise.all([
+                this.yandex.api.music.getLikes(this.userId).catch(() => [] as any[]),
+                this.yandex.api.music.getDislikes(this.userId).catch(() => [] as any[]),
+                this.updateTrackCover(state, track),
+                this.updateTrackLyrics(state, track)
+            ]);
+
+            capabilities["speaker_track"] = track?.title || state.playerState?.title || "";
+            capabilities["speaker_artist"] = track?.artists?.map((a: any) => a.name)?.join(", ") || state.playerState?.subtitle || "";
+            capabilities["speaker_album"] = track?.albums?.[0]?.title || state.playerState?.playlistId || "";
+            capabilities["media_like"] = likes.find(like => like.id === track?.id) ? true : false;
+            capabilities["media_dislike"] = dislikes.find(dislike => dislike.id === track?.id) ? true : false;
+        }
+
+        await this.handleLyricsSync(state);
+        await this.handleAliceState(state);
+
+        await Promise.all(
+            Object.entries(capabilities).map(async ([capability, value]) => {
+                if (Object.keys(this.waitings).includes(capability)) {
+                    if (Date.now() - this.waitings[capability] >= 3000)
+                        delete this.waitings[capability];
+                    return Promise.resolve();
+                }
+
+                const currentValue = this.getCapabilityValue(capability);
+                if (currentValue !== value)
+                    await this.setCapabilityValue(capability, value).catch(this.error);
+            })
+        );
+    };
+
+    private async updateTrackCover(state: Partial<YandexSpeakerState>, track?: any) {
+        const trackImage = track?.coverUri || track?.ogImage || state.playerState?.extra?.coverURI || "";
+        const imageQuality = this.getSetting("image_quality") || 500;
+        
+        this.lastTrackImage = "https://" + trackImage.replace("%%", `${imageQuality}x${imageQuality}`);
+        this.image.setUrl(this.lastTrackImage);
+        await this.image.update();
+    }
+
+    private async updateTrackLyrics(state: Partial<YandexSpeakerState>, track?: any) {
+        const trackId = state.playerState?.id || track?.id;
+        let lyricsValues = [{ id: "none", title: "Нет текста песни" }];
+
+        if (track?.lyricsInfo?.hasAvailableSyncLyrics) {
+            const lyrics = await this.yandex.api.music.getLyrics(trackId).catch(() => "");
+            const lyricsLines = lyrics.split("\n");
+            const values = lyricsLines.map(line => {
+                const time = line.split("[")[1].split("] ")[0];
+                const timeColons = time.split(":").map(c => Number(c));
+                const timeSeconds = String((timeColons[0] * 60) + timeColons[1]);
+                const title = line.replace(`[${time}] `, "") || "-";
+
+                this.lastTrackLyrics.push(timeSeconds);
+                return { id: timeSeconds, title };
+            });
+            values.length && (lyricsValues = values);
+        }
+
+        await this.setCapabilityOptions("media_lyrics", { values: lyricsValues });
+    }
+
+    private async handleLyricsSync(state: Partial<YandexSpeakerState>) {
+        const position = state.playerState?.progress;
+
+        if (position !== undefined && this.lastTrackLyrics.length) {
             const closest = this.lastTrackLyrics.find(s => Number(s) >= position) || this.lastTrackLyrics[0];
             const between = Number(closest) - position;
 
@@ -244,38 +274,25 @@ export default class Device extends Homey.Device {
                 }, between * 1000);
             }
         }
+    }
 
+    private async handleAliceState(state: Partial<YandexSpeakerState>) {
         const aliceState = state.aliceState || "";
+
         if (!this.aliceActive && (aliceState === "LISTENING" || aliceState === "SPEAKING")) {
-            const handle = async (state: Partial<YandexSpeakerState>) => {
-                if (state.aliceState !== "IDLE") return;
-
-                this.aliceActive = false;
-                this.speaker!.off("state", handle);
-                this.lastTrackImage && this.image.setUrl(this.lastTrackImage);
-                await this.image.update();
-            };
-
             this.aliceActive = true;
-            this.speaker!.on("state", handle);
             this.image.setUrl("https://i.imgur.com/vTa3rif.png");
             await this.image.update();
+            
+            const listener = async (state: Partial<YandexSpeakerState>) => {
+                if (state.aliceState !== "IDLE") return;
+                this.aliceActive = false;
+                this.image.setUrl(this.lastTrackImage);
+                await this.image.update();
+
+                this.speaker?.off("state", listener);
+            };
+            this.speaker?.on("state", listener);
         }
-
-        await Promise.all(
-            Object.entries(capabilities).map(async ([capability, value]) => {
-                const capabilityValue = this.getCapabilityValue(capability);
-                const stateValue = value ?? null;
-
-                if (Object.keys(this.waitings).includes(capability)) {
-                    if (Date.now() - this.waitings[capability] >= 3000)
-                        delete this.waitings[capability];
-                    return Promise.resolve();
-                }
-
-                if (capabilityValue !== stateValue)
-                    await this.setCapabilityValue(capability, stateValue).catch(this.error);
-            })
-        );
-    };
+    }
 }

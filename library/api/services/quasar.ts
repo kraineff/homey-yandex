@@ -1,5 +1,5 @@
-import axios, { AxiosInstance } from "axios";
-import { YandexStorage } from "../../storage/index.js";
+import axios, { type AxiosInstance } from "axios";
+import { YandexStorage } from "../../storage.js";
 import { YandexPassportAPI } from "./passport.js";
 import { createInstance } from "../utils.js";
 
