@@ -96,11 +96,13 @@ export type GlagolPlayerState = {
 		shuffled?: boolean;
 		type: string;
 	};
-	extra: Record<string, never> | {
-		coverURI: string;
-		requestID: string;
-		stateType: string;
-	};
+	extra:
+		| Record<string, never>
+		| {
+				coverURI: string;
+				requestID: string;
+				stateType: string;
+		  };
 	hasNext: boolean;
 	hasPause: boolean;
 	hasPlay: boolean;

@@ -51,7 +51,9 @@ export class YandexAliceAPI {
 	}
 
 	async getReminders() {
-		return await this.#client.get("/get_reminders").then((res) => res.data.reminders as Types.Reminder[]);
+		return await this.#client
+			.get("/get_reminders")
+			.then((res) => res.data.reminders as Types.Reminder[]);
 	}
 
 	async createReminder(reminder: Types.Reminder) {

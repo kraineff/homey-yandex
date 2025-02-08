@@ -79,7 +79,8 @@ export class YandexStorage {
 		const accessToken = token.access_token;
 		const expiresIn = token.expires_in;
 
-		if (accessToken === undefined || expiresIn === undefined) throw new Error("Недействительный токен");
+		if (accessToken === undefined || expiresIn === undefined)
+			throw new Error("Недействительный токен");
 
 		const currentTime = Math.round(Date.now() / 1000);
 		const expiresAt = currentTime + expiresIn;

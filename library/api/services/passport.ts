@@ -66,14 +66,16 @@ export class YandexPassportAPI {
 			with_code: 1,
 		});
 
-		return await this.#client.post("/registration-validations/auth/password/submit", body).then((res) => {
-			if (res.data.status !== "ok") throw new Error("Неизвестная ошибка");
-			return {
-				auth_url: `https://passport.yandex.ru/am/push/qrsecure?track_id=${res.data.track_id}`,
-				csrf_token: res.data.csrf_token,
-				track_id: res.data.track_id,
-			} as Types.AuthData;
-		});
+		return await this.#client
+			.post("/registration-validations/auth/password/submit", body)
+			.then((res) => {
+				if (res.data.status !== "ok") throw new Error("Неизвестная ошибка");
+				return {
+					auth_url: `https://passport.yandex.ru/am/push/qrsecure?track_id=${res.data.track_id}`,
+					csrf_token: res.data.csrf_token,
+					track_id: res.data.track_id,
+				} as Types.AuthData;
+			});
 	}
 
 	async checkMagicAuthorization(authData: Types.AuthData) {

@@ -34,7 +34,9 @@ export class YandexMusicAPI {
 	}
 
 	async getTracks(trackIds: string[]) {
-		return await this.#client.post("/tracks", qs.stringify({ "track-ids": trackIds })).then((res) => res.data.result);
+		return await this.#client
+			.post("/tracks", qs.stringify({ "track-ids": trackIds }))
+			.then((res) => res.data.result);
 	}
 
 	async getTrack(trackId: string) {
@@ -43,7 +45,9 @@ export class YandexMusicAPI {
 
 	async getLyrics(trackId: string) {
 		const timestamp = Math.round(Date.now() / 1000);
-		const hmac = createHmac("sha256", "p93jhgh689SBReK6ghtw62").update(`${trackId}${timestamp}`).digest();
+		const hmac = createHmac("sha256", "p93jhgh689SBReK6ghtw62")
+			.update(`${trackId}${timestamp}`)
+			.digest();
 
 		const params = { timeStamp: timestamp, sign: hmac.toString("base64") };
 		const lyricsUrl = await this.#client
@@ -63,7 +67,9 @@ export class YandexMusicAPI {
 		const params = new URLSearchParams();
 		params.append("track-ids", `${trackId}:${albumId}`);
 
-		return await this.#client.post(`/users/${userId}/likes/tracks/add-multiple`, undefined, { params });
+		return await this.#client.post(`/users/${userId}/likes/tracks/add-multiple`, undefined, {
+			params,
+		});
 	}
 
 	async removeLike(userId: string, trackId: string) {
@@ -83,13 +89,17 @@ export class YandexMusicAPI {
 		const params = new URLSearchParams();
 		params.append("track-ids", `${trackId}:${albumId}`);
 
-		return await this.#client.post(`/users/${userId}/dislikes/tracks/add-multiple`, undefined, { params });
+		return await this.#client.post(`/users/${userId}/dislikes/tracks/add-multiple`, undefined, {
+			params,
+		});
 	}
 
 	async removeDislike(userId: string, trackId: string) {
 		const params = new URLSearchParams();
 		params.append("track-ids", `${trackId}`);
 
-		return await this.#client.post(`/users/${userId}/dislikes/tracks/remove`, undefined, { params });
+		return await this.#client.post(`/users/${userId}/dislikes/tracks/remove`, undefined, {
+			params,
+		});
 	}
 }

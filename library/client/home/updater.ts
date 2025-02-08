@@ -96,7 +96,9 @@ export class YandexHomeUpdater extends EventEmitter {
 					await Promise.all(
 						device.capabilities.map(async (capability) => {
 							if (capability.type !== "devices.capabilities.quasar.server_action") return;
-							const scenario = await this.getScenarioByAction(capability.state.value as string).catch(console.error);
+							const scenario = await this.getScenarioByAction(
+								capability.state.value as string,
+							).catch(console.error);
 							scenario && this.emit("scenario_run", scenario);
 						}),
 					);

@@ -14,7 +14,10 @@ export class YandexQuasarAPI {
 		this.#client = createInstance(storage, (config) => config);
 
 		this.#client.interceptors.request.use(async (request) => {
-			if ((request.method === "get" && request.url?.includes("/glagol/")) || request.url?.includes("/muspult/"))
+			if (
+				(request.method === "get" && request.url?.includes("/glagol/")) ||
+				request.url?.includes("/muspult/")
+			)
 				request.headers.set("Authorization", `OAuth ${await this.#passport.getMusicToken()}`);
 
 			if (["post", "put", "delete"].includes(request.method || ""))
@@ -110,7 +113,9 @@ export class YandexQuasarAPI {
 	}
 
 	async dingDevice(deviceId: string) {
-		return await this.#client.post(`https://iot.quasar.yandex.ru/m/v3/user/devices/${deviceId}/ding`);
+		return await this.#client.post(
+			`https://iot.quasar.yandex.ru/m/v3/user/devices/${deviceId}/ding`,
+		);
 	}
 
 	async getDevicesQuasarConfig() {
@@ -132,18 +137,22 @@ export class YandexQuasarAPI {
 	}
 
 	async getScenarioIcons() {
-		return await this.#client.get("https://iot.quasar.yandex.ru/m/user/scenarios/icons").then((res) => res.data);
+		return await this.#client
+			.get("https://iot.quasar.yandex.ru/m/user/scenarios/icons")
+			.then((res) => res.data);
 	}
 
 	async createScenario(data: any) {
 		// status: 'ok',
 		// request_id: '9c465ddd-5e8d-4909-a14b-1f5d55c9e484',
 		// scenario_id: '5cc7b99c-5a55-434a-a6f3-554064d318db'
-		return await this.#client.post("https://iot.quasar.yandex.ru/m/v3/user/scenarios", data).then((res) => {
-			const status = res.data.status;
-			if (status !== "ok") throw new Error(res.data.message ?? res.data.code);
-			return res.data;
-		});
+		return await this.#client
+			.post("https://iot.quasar.yandex.ru/m/v3/user/scenarios", data)
+			.then((res) => {
+				const status = res.data.status;
+				if (status !== "ok") throw new Error(res.data.message ?? res.data.code);
+				return res.data;
+			});
 	}
 
 	async editScenario(scenarioId: string, data: any) {
