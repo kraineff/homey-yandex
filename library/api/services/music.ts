@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import qs from "node:querystring";
 import type { AxiosInstance } from "axios";
 import type { YandexStorage } from "../../storage.js";
+import type * as Types from "../../typings/index.js";
 import { createInstance } from "../utils.js";
 import type { YandexPassportAPI } from "./passport.js";
 
@@ -36,7 +37,7 @@ export class YandexMusicAPI {
 	async getTracks(trackIds: string[]) {
 		return await this.#client
 			.post("/tracks", qs.stringify({ "track-ids": trackIds }))
-			.then((res) => res.data.result);
+			.then((res) => res.data.result as Types.MusicTrack[]);
 	}
 
 	async getTrack(trackId: string) {
@@ -60,10 +61,10 @@ export class YandexMusicAPI {
 	async getLikes(userId: string) {
 		return await this.#client
 			.get(`/users/${userId}/likes/tracks`)
-			.then((res) => res.data.result.library.tracks as any[]);
+			.then((res) => res.data.result.library.tracks as Types.MusicLike[]);
 	}
 
-	async addLike(userId: string, trackId: string, albumId: string) {
+	async addLike(userId: string, trackId: string | number, albumId: string | number) {
 		const params = new URLSearchParams();
 		params.append("track-ids", `${trackId}:${albumId}`);
 
@@ -72,7 +73,7 @@ export class YandexMusicAPI {
 		});
 	}
 
-	async removeLike(userId: string, trackId: string) {
+	async removeLike(userId: string, trackId: string | number) {
 		const params = new URLSearchParams();
 		params.append("track-ids", `${trackId}`);
 
@@ -82,10 +83,10 @@ export class YandexMusicAPI {
 	async getDislikes(userId: string) {
 		return await this.#client
 			.get(`/users/${userId}/dislikes/tracks`)
-			.then((res) => res.data.result.library.tracks as any[]);
+			.then((res) => res.data.result.library.tracks as Types.MusicLike[]);
 	}
 
-	async addDislike(userId: string, trackId: string, albumId: string) {
+	async addDislike(userId: string, trackId: string | number, albumId: string | number) {
 		const params = new URLSearchParams();
 		params.append("track-ids", `${trackId}:${albumId}`);
 
@@ -94,7 +95,7 @@ export class YandexMusicAPI {
 		});
 	}
 
-	async removeDislike(userId: string, trackId: string) {
+	async removeDislike(userId: string, trackId: string | number) {
 		const params = new URLSearchParams();
 		params.append("track-ids", `${trackId}`);
 

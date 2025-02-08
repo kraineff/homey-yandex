@@ -15,7 +15,7 @@ export default class Device extends Homey.Device {
 
     #lastAliceState = AliceState.Idle;
     #lastTrackId = "";
-    #lastTrackAlbumId = "";
+    #lastTrackAlbumId?: number;
     #lastTrackImage = "https://";
     #lastTrackLyrics: Array<string> = [];
     #lastTrackLyricsTimeout?: NodeJS.Timeout;
@@ -191,18 +191,18 @@ export default class Device extends Homey.Device {
         if (trackId !== this.#lastTrackId) {
             const track = await this.#yandex.api.music.getTrack(trackId).catch(() => undefined);
             this.#lastTrackId = track?.id || trackId;
-            this.#lastTrackAlbumId = track?.albums?.[0]?.id || "";
+            this.#lastTrackAlbumId = track?.albums?.[0]?.id || undefined;
             this.#lastTrackLyrics = [];
 
             const [likes, dislikes] = await Promise.all([
-                this.#yandex.api.music.getLikes(this.#userId).catch(() => [] as any[]),
-                this.#yandex.api.music.getDislikes(this.#userId).catch(() => [] as any[]),
+                this.#yandex.api.music.getLikes(this.#userId),
+                this.#yandex.api.music.getDislikes(this.#userId),
                 this.updateTrackCover(state, track),
                 this.updateTrackLyrics(state, track)
             ]);
 
             capabilities.speaker_track = track?.title || state.playerState?.title || "";
-            capabilities.speaker_artist = track?.artists?.map((a: any) => a.name)?.join(", ") || state.playerState?.subtitle || "";
+            capabilities.speaker_artist = track?.artists?.map((a) => a.name)?.join(", ") || state.playerState?.subtitle || "";
             capabilities.speaker_album = track?.albums?.[0]?.title || state.playerState?.playlistId || "";
             capabilities.media_like = !!likes.find(like => like.id === track?.id);
             capabilities.media_dislike = !!dislikes.find(dislike => dislike.id === track?.id);
@@ -280,7 +280,7 @@ export default class Device extends Homey.Device {
 
         if (this.#lastAliceState !== aliceState) {
             this.#lastAliceState = aliceState;
-            
+
             const aliceUrl = "https://i.imgur.com/vTa3rif.png";
             this.#image.setUrl(aliceState !== AliceState.Idle ? aliceUrl : this.#lastTrackImage);
             await this.#image.update();
