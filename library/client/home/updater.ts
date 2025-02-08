@@ -1,158 +1,188 @@
-import EventEmitter from "events";
-import { YandexAPI } from "../../api/index.js";
+import EventEmitter from "node:events";
+import type { YandexAPI } from "../../api/index.js";
+import type * as Types from "../../typings";
+import { parseJson } from "../../utils/json.js";
 import { ReconnectSocket } from "../../utils/websocket.js";
-import { strictJsonParse } from "../../utils/json.js";
+
+type UpdateScenarios = {
+	operation: "update_scenario_list";
+	source: "create_scenario_launch" | "update_scenario_launch";
+	scenarios: Types.Scenario[];
+	scheduled_scenarios: any[];
+};
+
+type UpdateDevices = {
+	operation: "update_device_list";
+	households: Types.HouseholdV3[];
+};
+
+type UpdateDevicesStates = {
+	operation: "update_states";
+	update_groups: null;
+	update_multidevices: null;
+} & (
+	| {
+			source: "query";
+			updated_devices: Types.DeviceStateQuery[];
+	  }
+	| {
+			source: "action";
+			updated_devices: Types.DeviceStateAction[];
+	  }
+	| {
+			source: "callback";
+			updated_devices: Types.DeviceStateCallback[];
+	  }
+);
+
+type UpdateMessage = UpdateScenarios | UpdateDevices | UpdateDevicesStates;
 
 export class YandexHomeUpdater extends EventEmitter {
-    private websocket: ReconnectSocket;
-    private devices: Record<string, any>;
-    private scenarios: Array<any>;
+	#websocket: ReconnectSocket;
+	#devices: Record<string, Types.DeviceV3> = {};
+	#scenarios: any[] = [];
 
-    constructor(private api: YandexAPI) {
-        super();
-        this.devices = {};
-        this.scenarios = [];
+	constructor(private api: YandexAPI) {
+		super();
+		this.#websocket = new ReconnectSocket({
+			address: async () => {
+				const response = await this.api.quasar.getDevices();
+				this.#updateDevices(response.households);
+				return response.updates_url;
+			},
+			heartbeat: 70,
+			message: {
+				decode: async (message) => {
+					const json = parseJson<Record<string, any>>(message.toString());
+					const data = parseJson<Record<string, any>>(json.message as string);
+					return { operation: json.operation as string, ...data };
+				},
+			},
+		});
 
-        this.websocket = new ReconnectSocket({
-            address: async () => {
-                const response = await this.api.quasar.getDevices();
-                this.updateDevices(response.households);
-                return response.updates_url;
-            },
-            heartbeat: 70,
-            message: {
-                decode: async message => {
-                    const json = strictJsonParse(message.toString());
-                    const data = strictJsonParse(json.message);
-                    return { operation: json.operation, ...data };
-                }
-            }
-        });
+		this.#websocket.on("message", async (message: UpdateMessage) => {
+			switch (message.operation) {
+				case "update_scenario_list":
+					return await this.#handleScenarios(message);
+				case "update_device_list":
+					return await this.#handleDevices(message);
+				case "update_states":
+					return await this.#handleStates(message);
+			}
+		});
+	}
 
-        this.websocket.on("message", async message => {
-            switch (message.operation) {
-                case "update_device_list": return await this.handleDevices(message);
-                case "update_scenario_list": return await this.handleScenarios(message);
-                case "update_states": return await this.handleStates(message);
-            }
-        });
-    }
+	async disconnect() {
+		await this.#websocket.disconnect();
+		this.removeAllListeners();
+	}
 
-    async connect() {
-        await this.websocket.connect();
-    }
+	async #handleScenarios(message: UpdateScenarios) {
+		this.#updateScenarios(message.scenarios);
+		this.emit("scenarios", message);
+	}
 
-    async disconnect() {
-        await this.websocket.disconnect();
-    }
+	async #handleDevices(message: UpdateDevices) {
+		this.#updateDevices(message.households);
+		this.emit("devices", this.#devices);
+	}
 
-    async destroy() {
-        await this.disconnect();
-        this.removeAllListeners();
-    }
+	async #handleStates(message: UpdateDevicesStates) {
+		this.emit("states", message);
 
-    async getDevices() {
-        await this.connect();
-        return this.devices;
-    }
+		if (message.source === "action") {
+			await Promise.all(
+				message.updated_devices.map(async (device) => {
+					await Promise.all(
+						device.capabilities.map(async (capability) => {
+							if (capability.type !== "devices.capabilities.quasar.server_action") return;
+							const scenario = await this.getScenarioByAction(capability.state.value as string).catch(console.error);
+							scenario && this.emit("scenario_run", scenario);
+						}),
+					);
+				}),
+			);
+		}
+	}
 
-    async getDevice(id: string) {
-        const devices = await this.getDevices();
-        return devices[id];
-    }
+	async getDevices() {
+		await this.#websocket.connect();
+		return this.#devices;
+	}
 
-    async getDevicesByType(type: string) {
-        const devices = await this.getDevices();
-        return Object.values(devices)
-            .filter(device => device.type === type);
-    }
+	async getDevice(id: string) {
+		const devices = await this.getDevices();
+		return devices[id];
+	}
 
-    async getDevicesByPlatform(platform: string) {
-        const devices = await this.getDevices();
-        return Object.values(devices)
-            .filter(device => device.quasar_info?.platform === platform);
-    }
+	async getDevicesByType(type: string) {
+		const devices = await this.getDevices();
+		return Object.values(devices).filter((device) => device.type === type);
+	}
 
-    async getScenarios() {
-        await this.connect();
-        if (!this.scenarios.length) {
-            const scenarios = await this.api.quasar.getScenarios();
-            await this.updateScenarios(scenarios);
-        }
-        return this.scenarios;
-    }
+	async getDevicesByPlatform(platform: string) {
+		const devices = await this.getDevices();
+		return Object.values(devices).filter((device) => device.quasar_info?.platform === platform);
+	}
 
-    async getScenarioByTrigger(trigger: string) {
-        const scenarios = await this.getScenarios();
-        return scenarios.find(scenario => scenario.trigger === trigger);
-    }
+	async getScenarios() {
+		await this.#websocket.connect();
 
-    async getScenarioByAction(action: string) {
-        const scenarios = await this.getScenarios();
-        return scenarios.find(scenario => scenario.action.value === action);
-    }
+		if (!this.#scenarios.length) {
+			const scenarios = await this.api.quasar.getScenarios();
+			await this.#updateScenarios(scenarios);
+		}
 
-    private async handleDevices(data: any) {
-        this.updateDevices(data.households);
-        this.emit("devices", this.devices);
-    }
-    
-    private async handleScenarios(data: any) {
-        this.updateScenarios(data.scenarios);
-        this.emit("scenarios", data);
-    }
+		return this.#scenarios;
+	}
 
-    private async handleStates(data: any) {
-        this.emit("states", data);
-        
-        // Триггер сценария
-        const devices = data.updated_devices as any[];
-        const devicesPromises = devices.map(async device => {
-            if (!device.hasOwnProperty("capabilities") ||
-                device.capabilities.length !== 1) return;
+	async getScenarioByTrigger(trigger: string) {
+		const scenarios = await this.getScenarios();
+		return scenarios.find((scenario) => scenario.trigger === trigger);
+	}
 
-            const capability = device.capabilities[0];
-            if (!capability.hasOwnProperty("state") ||
-                capability.type !== "devices.capabilities.quasar.server_action") return;
+	async getScenarioByAction(action: string) {
+		const scenarios = await this.getScenarios();
+		return scenarios.find((scenario) => scenario.action.value === action);
+	}
 
-            const scenario = await this.getScenarioByAction(capability.state.value).catch(console.error);
-            scenario && this.emit("scenario_run", scenario);
-        });
-        await Promise.all(devicesPromises);
-    }
+	#updateDevices(households: Types.HouseholdV3[]) {
+		households.map((household) => {
+			const devices = household.all;
+			devices.map((device) => {
+				this.#devices[device.id] = device;
+			});
+		});
+	}
 
-    private updateDevices(households: any[]) {
-        this.devices = households.reduce<any>((result, household) => {
-            const devices = household.all;
-            devices.map((device: any) => result[device.id] = device);
-            return result;
-        }, {});
-    }
+	async #updateScenarios(scenarios: Types.Scenario[]) {
+		if (!scenarios.length) return;
 
-    private async updateScenarios(scenarios: any[]) {
-        if (!scenarios.length) return;
+		const scenarioIds = scenarios.map((scenario) => scenario.id);
+		const scenarioDetails = await Promise.all(
+			scenarioIds.map(async (scenarioId) => {
+				const address = `https://iot.quasar.yandex.ru/m/user/scenarios/${scenarioId}/edit`;
+				const response = await this.api.request(address);
+				return response.data.scenario;
+			}),
+		);
 
-        const scenarioIds = scenarios.map(scenario => scenario.id);
-        const scenarioPromises = scenarioIds.map(async scenarioId => {
-            const res = await this.api.request(`https://iot.quasar.yandex.ru/m/user/scenarios/${scenarioId}/edit`);
-            return res.data.scenario;
-        });
-        scenarios = await Promise.all(scenarioPromises);
-        
-        this.scenarios = scenarios
-            .map(scenario => ({
-                name: scenario.name,
-                trigger: scenario.triggers[0]?.value,
-                action: {
-                    type: scenario.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.instance ||
-                        scenario.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.instance,
-                    value: scenario.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.value ||
-                        scenario.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.value
-                },
-                icon: scenario.icon_url,
-                device_id: scenario.steps[0]?.parameters?.launch_devices[0]?.id,
-                id: scenario.id
-            }))
-            .filter(scenario => ["text_action", "phrase_action"].includes(scenario.action.type));
-    }
+		this.#scenarios = scenarioDetails
+			.map((scenario) => ({
+				name: scenario.name,
+				trigger: scenario.triggers[0]?.value,
+				action: {
+					type:
+						scenario.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.instance ||
+						scenario.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.instance,
+					value:
+						scenario.steps[0]?.parameters?.launch_devices[0]?.capabilities[0]?.state?.value ||
+						scenario.steps[0]?.parameters?.requested_speaker_capabilities[0]?.state?.value,
+				},
+				icon: scenario.icon_url,
+				device_id: scenario.steps[0]?.parameters?.launch_devices[0]?.id,
+				id: scenario.id,
+			}))
+			.filter((scenario) => ["text_action", "phrase_action"].includes(scenario.action.type));
+	}
 }
