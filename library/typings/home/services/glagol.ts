@@ -1,3 +1,4 @@
+import type { AliceState } from "../../../client/home/devices/media";
 import type { QuasarConfig } from "./quasar";
 
 export type GlagolDevice = {
@@ -72,7 +73,7 @@ export type GlagolMessage = {
 };
 
 export type GlagolState = {
-	aliceState: string;
+	aliceState: AliceState;
 	canStop: boolean;
 	hdmi: {
 		capable: boolean;

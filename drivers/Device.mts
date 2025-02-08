@@ -12,8 +12,8 @@ export default class Device extends Homey.Device {
 
     #userId!: string;
     #waitings: Record<string, number> = {};
-    #aliceActive = false;
 
+    #lastAliceState = AliceState.Idle;
     #lastTrackId = "";
     #lastTrackAlbumId = "";
     #lastTrackImage = "https://";
@@ -276,22 +276,14 @@ export default class Device extends Homey.Device {
     }
 
     private async handleAliceState(state: Types.GlagolState) {
-        const aliceState = state.aliceState || "";
+        const aliceState = state.aliceState;
 
-        if (!this.#aliceActive && (aliceState === AliceState.Listening || aliceState === AliceState.Speaking)) {
-            this.#aliceActive = true;
-            this.#image.setUrl("https://i.imgur.com/vTa3rif.png");
-            await this.#image.update();
+        if (this.#lastAliceState !== aliceState) {
+            this.#lastAliceState = aliceState;
             
-            const listener = async (state: Types.GlagolState) => {
-                if (state.aliceState !== AliceState.Idle) return;
-                this.#aliceActive = false;
-                this.#image.setUrl(this.#lastTrackImage);
-                await this.#image.update();
-
-                this.#speaker?.off("state", listener);
-            };
-            this.#speaker?.on("state", listener);
+            const aliceUrl = "https://i.imgur.com/vTa3rif.png";
+            this.#image.setUrl(aliceState !== AliceState.Idle ? aliceUrl : this.#lastTrackImage);
+            await this.#image.update();
         }
     }
 }
