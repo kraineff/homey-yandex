@@ -191,15 +191,15 @@ export default class Device extends Homey.Device {
         if (trackId !== this.#lastTrackId) {
             const track = await this.#yandex.api.music.getTrack(trackId).catch(() => undefined);
             this.#lastTrackId = track?.id || trackId;
-            this.#lastTrackAlbumId = track?.albums?.[0]?.id || undefined;
-            this.#lastTrackLyrics = [];
+            this.#lastTrackAlbumId = track?.albums?.[0]?.id;
 
             const [likes, dislikes] = await Promise.all([
                 this.#yandex.api.music.getLikes(this.#userId),
                 this.#yandex.api.music.getDislikes(this.#userId),
-                this.updateTrackCover(state, track),
-                this.updateTrackLyrics(state, track)
+                this.updateCover(state, track)
             ]);
+
+            if (track) await this.updateLyrics(track);
 
             capabilities.speaker_track = track?.title || state.playerState?.title || "";
             capabilities.speaker_artist = track?.artists?.map((a) => a.name)?.join(", ") || state.playerState?.subtitle || "";
@@ -208,8 +208,8 @@ export default class Device extends Homey.Device {
             capabilities.media_dislike = !!dislikes.find(dislike => dislike.id === track?.id);
         }
 
-        await this.handleLyricsSync(state);
         await this.handleAliceState(state);
+        await this.handleLyricsSync(state);
 
         await Promise.all(
             Object.entries(capabilities).map(async ([capability, value]) => {
@@ -226,7 +226,7 @@ export default class Device extends Homey.Device {
         );
     };
 
-    private async updateTrackCover(state: Types.GlagolState, track?: any) {
+    private async updateCover(state: Types.GlagolState, track?: any) {
         const trackImage = track?.coverUri || track?.ogImage || state.playerState?.extra?.coverURI || "";
         const imageQuality = this.getSetting("image_quality") || 500;
 
@@ -236,12 +236,12 @@ export default class Device extends Homey.Device {
         await this.#image.update();
     }
 
-    private async updateTrackLyrics(state: Types.GlagolState, track?: any) {
-        const trackId = state.playerState?.id || track?.id;
+    private async updateLyrics(track: Types.MusicTrack) {
         let lyricsValues = [{ id: "none", title: "Нет текста песни" }];
-
+        
+        this.#lastTrackLyrics = [];
         if (track?.lyricsInfo?.hasAvailableSyncLyrics) {
-            const lyrics = await this.#yandex.api.music.getLyrics(trackId).catch(() => "");
+            const lyrics = await this.#yandex.api.music.getLyrics(track.id).catch(() => "");
             const lyricsLines = lyrics.split("\n");
             const values = lyricsLines.map(line => {
                 const time = line.split("[")[1].split("] ")[0];

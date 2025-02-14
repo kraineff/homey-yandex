@@ -86,7 +86,7 @@ export class YandexMediaDevice extends EventEmitter {
 			options: { rejectUnauthorized: false },
 			heartbeat: 10,
 			message: {
-				transform: async (payload) => ({
+				modify: async (payload) => ({
 					id: randomUUID(),
 					sentTime: Date.now(),
 					conversationToken: this.#conversationToken,
@@ -94,7 +94,7 @@ export class YandexMediaDevice extends EventEmitter {
 				}),
 				encode: async (payload) => JSON.stringify(payload),
 				decode: async (message) => parseJson(message.toString()),
-				identify: async (payload, message) =>
+				match:  async (payload, message) =>
 					message.requestId === payload.id && message.requestSentTime === payload.sentTime,
 			},
 		});
